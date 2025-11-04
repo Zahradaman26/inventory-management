@@ -1,0 +1,88 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="'Components / Column Chart'" [main-title]="'Column Chart'"></app-breadcrumb>
+
+
+    <div class="row gy-4">
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Column Charts</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="columnChart" class="">
+                        <apx-chart [series]="columnChart.series" [chart]="columnChart.chart" [xaxis]="columnChart.xaxis"
+                            [yaxis]="columnChart.yaxis" [fill]="columnChart.fill" [grid]="columnChart.grid"
+                            [plotOptions]="columnChart.plotOptions" [dataLabels]="columnChart.dataLabels"
+                            [responsive]="columnChart.responsive" [stroke]="columnChart.stroke"
+                            [colors]="columnChart.colors" [legend]="columnChart.legend" [labels]="columnChart.labels"
+                            [tooltip]="columnChart.tooltip" [zoom]="columnChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Column Charts</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="columnGroupBarChart" class="">
+                        <apx-chart [series]="columnGroupBarChart.series" [chart]="columnGroupBarChart.chart"
+                            [xaxis]="columnGroupBarChart.xaxis" [yaxis]="columnGroupBarChart.yaxis"
+                            [fill]="columnGroupBarChart.fill" [grid]="columnGroupBarChart.grid"
+                            [plotOptions]="columnGroupBarChart.plotOptions"
+                            [dataLabels]="columnGroupBarChart.dataLabels" [responsive]="columnGroupBarChart.responsive"
+                            [stroke]="columnGroupBarChart.stroke" [colors]="columnGroupBarChart.colors"
+                            [legend]="columnGroupBarChart.legend" [labels]="columnGroupBarChart.labels"
+                            [tooltip]="columnGroupBarChart.tooltip" [zoom]="columnGroupBarChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Group Column</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="groupColumnBarChart" class="">
+                        <apx-chart [series]="groupColumnBarChart.series" [chart]="groupColumnBarChart.chart"
+                            [xaxis]="groupColumnBarChart.xaxis" [yaxis]="groupColumnBarChart.yaxis"
+                            [fill]="groupColumnBarChart.fill" [grid]="groupColumnBarChart.grid"
+                            [plotOptions]="groupColumnBarChart.plotOptions"
+                            [dataLabels]="groupColumnBarChart.dataLabels" [responsive]="groupColumnBarChart.responsive"
+                            [stroke]="groupColumnBarChart.stroke" [colors]="groupColumnBarChart.colors"
+                            [legend]="groupColumnBarChart.legend" [labels]="groupColumnBarChart.labels"
+                            [tooltip]="groupColumnBarChart.tooltip" [zoom]="groupColumnBarChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Simple Column</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="upDownBarchart">
+                        <apx-chart [series]="upDownBarchart.series" [chart]="upDownBarchart.chart"
+                            [xaxis]="upDownBarchart.xaxis" [yaxis]="upDownBarchart.yaxis" [fill]="upDownBarchart.fill"
+                            [grid]="upDownBarchart.grid" [plotOptions]="upDownBarchart.plotOptions"
+                            [dataLabels]="upDownBarchart.dataLabels" [responsive]="upDownBarchart.responsive"
+                            [stroke]="upDownBarchart.stroke" [colors]="upDownBarchart.colors"
+                            [legend]="upDownBarchart.legend" [labels]="upDownBarchart.labels"
+                            [tooltip]="upDownBarchart.tooltip" [zoom]="upDownBarchart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

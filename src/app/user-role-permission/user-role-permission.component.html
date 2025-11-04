@@ -1,0 +1,76 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="'User Roles & Permissions'" [main-title]="'User Roles & Permissions'"></app-breadcrumb>
+
+    <div class="card basic-data-table">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
+                    <thead>
+                        <tr>
+                            <th scope="col">User</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Permission Group</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let user of users">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img [src]="user.img" alt=""
+                                        class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
+                                    <div class="flex-grow-1">
+                                        <span class="text-md mb-0 fw-bolder text-primary-light d-block">{{ user.name
+                                            }}</span>
+                                        <span class="text-sm mb-0 fw-normal text-secondary-light d-block">{{ user.email
+                                            }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span [ngClass]="{
+                                  'bg-success-focus text-success-main': user.status === 'Active',
+                                  'bg-danger-focus text-danger-main': user.status === 'Inactive',
+                                  'bg-warning-focus text-warning-main': user.status === 'Pending'
+                                }" class="px-20 py-4 rounded fw-medium text-sm">{{ user.status }}</span>
+                            </td>
+                            <td>
+                                <select [(ngModel)]="user.role"
+                                    class="form-control w-auto border border-neutral-900 fw-semibold text-primary-light text-sm">
+                                    <option *ngFor="let role of roles">{{ role }}</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select [(ngModel)]="user.access"
+                                    class="form-control w-auto border border-neutral-900 fw-semibold text-primary-light text-sm">
+                                    <option *ngFor="let access of accessLevels">{{ access }}</option>
+                                </select>
+                            </td>
+                            <td>
+                                <span class="text-sm mb-0 fw-normal text-secondary-light d-block">{{ user.location
+                                    }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button *ngIf="user.status === 'Active'" type="button"
+                                        class="btn rounded border text-neutral-500 border-neutral-500 radius px-4 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1">Deactivate</button>
+                                    <button *ngIf="user.status === 'Inactive'" type="button"
+                                        class="btn rounded border text-neutral-500 border-neutral-500 radius px-4 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1">Activate</button>
+                                    <button *ngIf="user.status === 'Pending'" type="button"
+                                        class="btn rounded border text-neutral-500 border-neutral-500 radius px-4 py-6 bg-hover-neutral-500 text-hover-white flex-grow-1">Approve</button>
+
+                                    <button type="button"
+                                        class="btn rounded border text-info-500 border-info-500 radius px-4 py-6 bg-hover-info-500 text-hover-white flex-grow-1">Edit</button>
+                                    <button type="button"
+                                        class="btn rounded border text-danger-500 border-danger-500 radius px-4 py-6 bg-hover-danger-500 text-hover-white flex-grow-1">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,131 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="'Components / Line Chart'" [main-title]="'Line Chart'"></app-breadcrumb>
+
+
+    <div class="row gy-4">
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Default Line Chart</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="defaultLineChart" class="apexcharts-tooltip-style-1">
+                        <apx-chart [series]="defaultLineChart.series" [chart]="defaultLineChart.chart"
+                            [xaxis]="defaultLineChart.xaxis" [yaxis]="defaultLineChart.yaxis"
+                            [fill]="defaultLineChart.fill" [grid]="defaultLineChart.grid"
+                            [plotOptions]="defaultLineChart.plotOptions" [dataLabels]="defaultLineChart.dataLabels"
+                            [responsive]="defaultLineChart.responsive" [stroke]="defaultLineChart.stroke"
+                            [colors]="defaultLineChart.colors" [legend]="defaultLineChart.legend"
+                            [labels]="defaultLineChart.labels" [tooltip]="defaultLineChart.tooltip">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Zoomable Chart</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="zoomAbleLineChart">
+                        <apx-chart [series]="zoomAbleLineChart.series" [chart]="zoomAbleLineChart.chart"
+                            [xaxis]="zoomAbleLineChart.xaxis" [yaxis]="zoomAbleLineChart.yaxis"
+                            [fill]="zoomAbleLineChart.fill" [grid]="zoomAbleLineChart.grid"
+                            [plotOptions]="zoomAbleLineChart.plotOptions" [dataLabels]="zoomAbleLineChart.dataLabels"
+                            [responsive]="zoomAbleLineChart.responsive" [stroke]="zoomAbleLineChart.stroke"
+                            [colors]="zoomAbleLineChart.colors" [legend]="zoomAbleLineChart.legend"
+                            [labels]="zoomAbleLineChart.labels" [tooltip]="zoomAbleLineChart.tooltip"
+                            [zoom]="zoomAbleLineChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Line Chart with Data Labels</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="lineDataLabel">
+                        <apx-chart [series]="lineDataLabel.series" [chart]="lineDataLabel.chart"
+                            [xaxis]="lineDataLabel.xaxis" [yaxis]="lineDataLabel.yaxis" [fill]="lineDataLabel.fill"
+                            [grid]="lineDataLabel.grid" [plotOptions]="lineDataLabel.plotOptions"
+                            [dataLabels]="lineDataLabel.dataLabels" [responsive]="lineDataLabel.responsive"
+                            [stroke]="lineDataLabel.stroke" [colors]="lineDataLabel.colors"
+                            [legend]="lineDataLabel.legend" [labels]="lineDataLabel.labels"
+                            [tooltip]="lineDataLabel.tooltip" [zoom]="lineDataLabel.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Line Chart Animation</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="doubleLineChart">
+                        <apx-chart [series]="doubleLineChart.series" [chart]="doubleLineChart.chart"
+                            [xaxis]="doubleLineChart.xaxis" [yaxis]="doubleLineChart.yaxis"
+                            [fill]="doubleLineChart.fill" [grid]="doubleLineChart.grid"
+                            [plotOptions]="doubleLineChart.plotOptions" [dataLabels]="doubleLineChart.dataLabels"
+                            [responsive]="doubleLineChart.responsive" [stroke]="doubleLineChart.stroke"
+                            [colors]="doubleLineChart.colors" [legend]="doubleLineChart.legend"
+                            [labels]="doubleLineChart.labels" [tooltip]="doubleLineChart.tooltip"
+                            [zoom]="doubleLineChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Stepline Charts</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="stepLineChart">
+                        <apx-chart [series]="stepLineChart.series" [chart]="stepLineChart.chart"
+                            [xaxis]="stepLineChart.xaxis" [yaxis]="stepLineChart.yaxis" [fill]="stepLineChart.fill"
+                            [grid]="stepLineChart.grid" [plotOptions]="stepLineChart.plotOptions"
+                            [dataLabels]="stepLineChart.dataLabels" [responsive]="stepLineChart.responsive"
+                            [stroke]="stepLineChart.stroke" [colors]="stepLineChart.colors"
+                            [legend]="stepLineChart.legend" [labels]="stepLineChart.labels"
+                            [tooltip]="stepLineChart.tooltip" [zoom]="stepLineChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-0">
+                <div class="card-header border-bottom bg-base py-16 px-24">
+                    <h6 class="text-lg fw-semibold mb-0">Gradient Charts</h6>
+                </div>
+                <div class="card-body p-24">
+                    <div id="gradientLineChart">
+                        <apx-chart [series]="gradientLineChart.series" [chart]="gradientLineChart.chart"
+                            [xaxis]="gradientLineChart.xaxis" [yaxis]="gradientLineChart.yaxis"
+                            [fill]="gradientLineChart.fill" [grid]="gradientLineChart.grid"
+                            [plotOptions]="gradientLineChart.plotOptions" [dataLabels]="gradientLineChart.dataLabels"
+                            [responsive]="gradientLineChart.responsive" [stroke]="gradientLineChart.stroke"
+                            [colors]="gradientLineChart.colors" [legend]="gradientLineChart.legend"
+                            [labels]="gradientLineChart.labels" [tooltip]="gradientLineChart.tooltip"
+                            [zoom]="gradientLineChart.zoom">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

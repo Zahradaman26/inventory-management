@@ -1,0 +1,327 @@
+<div class="dashboard-main-body">
+
+    <app-breadcrumb [title]="'Dashboard'" [main-title]="'Dashboard'"></app-breadcrumb>
+
+
+    <div class="row gy-4">
+        <div class="col-12">
+            <div class="card radius-12">
+                <div class="card-body p-16">
+                    <div class="row gy-4">
+                        <div class="row">
+                            <div class="col-xxl-3 col-xl-4 col-sm-6" *ngFor="let card of cards">
+                                <div class="px-20 py-16 shadow-none radius-8 h-100 position-relative overflow-hidden"
+                                    [ngClass]="[card.gradientClass, 'left-line', card.lineBgClass]">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-8">
+                                        <div>
+                                            <span class="mb-2 fw-medium text-secondary-light text-md">{{ card.title
+                                                }}</span>
+                                            <h6 class="fw-semibold mb-1">{{ card.amount }}</h6>
+                                        </div>
+                                        <span
+                                            class="w-44-px h-44-px radius-8 d-inline-flex justify-content-center align-items-center text-2xl mb-12"
+                                            [ngClass]="[card.iconBg, card.iconText]">
+                                            <i [class]="card.iconClass"></i>
+                                        </span>
+                                    </div>
+                                    <p class="text-sm mb-0">
+                                        <span class="px-1 rounded-2 fw-medium text-sm" [ngClass]="card.percentageClass">
+                                            <i [class]="card.percentageIcon"></i> {{ card.percentage }}
+                                        </span>
+                                        {{ card.note }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-8">
+            <div class="card h-100">
+                <div class="card-body p-24 mb-8">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Income Vs Expense </h6>
+                        <select class="form-select form-select-sm w-auto bg-base border text-secondary-light">
+                            <option>Yearly</option>
+                            <option>Monthly</option>
+                            <option>Weekly</option>
+                            <option>Today</option>
+                        </select>
+                    </div>
+                    <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-24">
+                        <li class="d-flex flex-column gap-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="w-8-px h-8-px rounded-pill bg-primary-600"></span>
+                                <span class="text-secondary-light text-sm fw-semibold">Income </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-8">
+                                <h6 class="mb-0">$26,201</h6>
+                                <span class="text-success-600 d-flex align-items-center gap-1 text-sm fw-bolder">
+                                    10%
+                                    <i class="ri-arrow-up-s-fill d-flex"></i>
+                                </span>
+                            </div>
+                        </li>
+                        <li class="d-flex flex-column gap-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="w-8-px h-8-px rounded-pill bg-warning-600"></span>
+                                <span class="text-secondary-light text-sm fw-semibold">Expenses </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-8">
+                                <h6 class="mb-0">$18,120</h6>
+                                <span class="text-danger-600 d-flex align-items-center gap-1 text-sm fw-bolder">
+                                    10%
+                                    <i class="ri-arrow-down-s-fill d-flex"></i>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="incomeExpense" class="apexcharts-tooltip-style-1">
+                        <apx-chart [series]="incomeExpense.series" [chart]="incomeExpense.chart"
+                            [xaxis]="incomeExpense.xaxis" [yaxis]="incomeExpense.yaxis" [fill]="incomeExpense.fill"
+                            [grid]="incomeExpense.grid" [plotOptions]="incomeExpense.plotOptions"
+                            [dataLabels]="incomeExpense.dataLabels" [responsive]="incomeExpense.responsive"
+                            [stroke]="incomeExpense.stroke" [colors]="incomeExpense.colors"
+                            [legend]="incomeExpense.legend" [labels]="incomeExpense.labels">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-4 col-md-6">
+            <div class="card">
+                <div class="card-header border-bottom">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Users</h6>
+                        <a href="javascript:void(0)"
+                            class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                            View All
+                            <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-20">
+                    <div class="d-flex flex-column gap-24">
+                        <div class="d-flex align-items-center justify-content-between gap-3"
+                            *ngFor="let dept of departments">
+                            <div class="d-flex align-items-center">
+                                <img [src]="dept.img" alt=""
+                                    class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
+                                <div class="flex-grow-1">
+                                    <h6 class="text-md mb-0">{{ dept.name }}</h6>
+                                    <span class="text-sm text-secondary-light fw-normal">{{ dept.role }}</span>
+                                </div>
+                            </div>
+                            <span [class]="dept.statusClass + ' fw-medium text-md'">{{ dept.status }}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-xxl-4 col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Top Suppliers</h6>
+                        <a href="javascript:void(0)"
+                            class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                            View All
+                            <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-24">
+                    <div class="table-responsive scroll-sm">
+                        <table class="table bordered-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">SL</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of topSupplier">
+                                    <td><span class="text-secondary-light">{{ row.sl }}</span></td>
+                                    <td><span class="text-secondary-light">{{ row.name }}</span></td>
+                                    <td><span class="text-secondary-light">{{ row.amount }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-xxl-4 col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Top Customer</h6>
+                        <a href="javascript:void(0)"
+                            class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                            View All
+                            <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-24">
+                    <div class="table-responsive scroll-sm">
+                        <table class="table bordered-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">SL</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let row of topCustomer">
+                                    <td><span class="text-secondary-light">{{ row.sl }}</span></td>
+                                    <td><span class="text-secondary-light">{{ row.name }}</span></td>
+                                    <td><span class="text-secondary-light">{{ row.amount }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-xxl-4 col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg">Overall Report</h6>
+                        <select class="form-select form-select-sm w-auto bg-base border text-secondary-light">
+                            <option>Yearly</option>
+                            <option>Monthly</option>
+                            <option>Weekly</option>
+                            <option>Today</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-24">
+                    <div class="mt-32">
+                        <div id="userOverviewDonutChart" class="mx-auto apexcharts-tooltip-z-none">
+                            <apx-chart [series]="userOverviewDonutChart.series" [chart]="userOverviewDonutChart.chart"
+                                [labels]="userOverviewDonutChart.labels"
+                                [responsive]="userOverviewDonutChart.responsive"
+                                [legend]="userOverviewDonutChart.legend"
+                                [dataLabels]="userOverviewDonutChart.dataLabels"
+                                [plotOptions]="userOverviewDonutChart.plotOptions" [fill]="userOverviewDonutChart.fill"
+                                [stroke]="userOverviewDonutChart.stroke" [colors]="userOverviewDonutChart.colors"
+                                [grid]="userOverviewDonutChart.grid">
+                            </apx-chart>
+
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-20 justify-content-center mt-48">
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-primary-600"></span>
+                            <span class="text-secondary-light">Purchase</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-lilac-600"></span>
+                            <span class="text-secondary-light">Sales</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-warning-600"></span>
+                            <span class="text-secondary-light">Expense</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-success-600"></span>
+                            <span class="text-secondary-light">Gross Profit</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-4 col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Purchase & Sales</h6>
+                        <select class="form-select form-select-sm w-auto bg-base text-secondary-light">
+                            <option>This Month</option>
+                            <option>This Week</option>
+                            <option>This Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-24">
+                    <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-3">
+                        <li class="d-flex align-items-center gap-2">
+                            <span class="w-12-px h-8-px rounded-pill bg-warning-600"></span>
+                            <span class="text-secondary-light text-sm fw-semibold">Purchase: $<span
+                                    class="text-primary-light fw-bold">500</span>
+                            </span>
+                        </li>
+                        <li class="d-flex align-items-center gap-2">
+                            <span class="w-12-px h-8-px rounded-pill bg-success-600"></span>
+                            <span class="text-secondary-light text-sm fw-semibold">Sales: $<span
+                                    class="text-primary-light fw-bold">800</span>
+                            </span>
+                        </li>
+                    </ul>
+                    <div id="purchaseSaleChart" class="margin-16-minus y-value-left">
+                        <apx-chart [series]="purchaseSaleChart.series" [chart]="purchaseSaleChart.chart"
+                            [xaxis]="purchaseSaleChart.xaxis" [yaxis]="purchaseSaleChart.yaxis"
+                            [fill]="purchaseSaleChart.fill" [grid]="purchaseSaleChart.grid"
+                            [plotOptions]="purchaseSaleChart.plotOptions" [dataLabels]="purchaseSaleChart.dataLabels"
+                            [responsive]="purchaseSaleChart.responsive" [stroke]="purchaseSaleChart.stroke"
+                            [colors]="purchaseSaleChart.colors" [legend]="purchaseSaleChart.legend"
+                            [labels]="purchaseSaleChart.labels">
+                        </apx-chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xxl-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Recent Transactions</h6>
+                        <a href="javascript:void(0)"
+                            class="text-primary-600 hover-text-primary d-flex align-items-center gap-1">
+                            View All
+                            <iconify-icon icon="solar:alt-arrow-right-linear" class="icon"></iconify-icon>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-24">
+                    <div class="table-responsive scroll-sm">
+                        <table class="table bordered-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">SL</th>
+                                    <th scope="col">Date </th>
+                                    <th scope="col">Payment Type</th>
+                                    <th scope="col">Paid Amount</th>
+                                    <th scope="col">Due Amount</th>
+                                    <th scope="col">Payable Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let tx of transactions">
+                                    <td><span class="text-secondary-light">{{ tx.sl }}</span></td>
+                                    <td><span class="text-secondary-light">{{ tx.date }}</span></td>
+                                    <td><span class="text-secondary-light">{{ tx.method }}</span></td>
+                                    <td><span class="text-secondary-light">{{ tx.debit }}</span></td>
+                                    <td><span class="text-secondary-light">{{ tx.credit }}</span></td>
+                                    <td><span class="text-secondary-light">{{ tx.balance }}</span></td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
