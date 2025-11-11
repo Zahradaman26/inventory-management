@@ -102,16 +102,28 @@ import { SideNavComponent } from './side-nav/side-nav.component';
 // import { GalleryMasonryComponent } from './gallery-masonry/gallery-masonry.component';
 // import { GalleryHoverEffectComponent } from './gallery-hover-effect/gallery-hover-effect.component';
 import { UserRolePermissionComponent } from './user-role-permission/user-role-permission.component';
+import { ProductsComponent } from './products/products.component';
+import { OrdersComponent } from './orders/orders.component';
+import { VenueComponent } from './venue/venue.component';
+import { ReturnsComponent } from './returns/returns.component';
+import { AddProductComponent } from './add-product/add-product.component';
 
 export const routes: Routes = [
+    { path: 'sign-in', component: SignInComponent },
+    { path: 'sign-up', component: SignUpComponent },
+    { path: 'forgot-password', component: ForgotPasswordComponent },
+
+    { path: '', redirectTo: 'sign-in', pathMatch: 'full' },
+   
     {
         path: '',
         component: SideNavComponent,
         children: [
-            { path: '', redirectTo: 'home', pathMatch: 'full' },
+            { path: '', redirectTo: 'home-10', pathMatch: 'full' },
             // { path: 'home', component: HomeComponent },
             // { path: 'add-blog', component: AddBlogComponent },
             { path: 'add-user', component: AddUserComponent },
+            { path: 'add-product', component: AddProductComponent },
             { path: 'alert', component: AlertComponent },
             { path: 'assign-role', component: AssignRoleComponent },
             // { path: 'avatar', component: AvatarComponent },
@@ -176,11 +188,15 @@ export const routes: Routes = [
             // { path: 'pagination', component: PaginationComponent },
             // { path: 'payment-gateway', component: PaymentGatewayComponent },
             { path: 'pie-chart', component: PieChartComponent },
+            { path: 'products', component: ProductsComponent },
             // { path: 'portfolio', component: PortfolioComponent },
             // { path: 'pricing', component: PricingComponent },
             // { path: 'progress', component: ProgressComponent },
             // { path: 'radio', component: RadioComponent },
             { path: 'role-access', component: RoleAccessComponent },
+            { path: 'orders', component: OrdersComponent },
+            { path: 'venue', component: VenueComponent },
+            { path: 'returns', component: ReturnsComponent },
 
             // { path: 'star-rating', component: StarRatingComponent },
             // { path: 'starred', component: StarredComponent },
@@ -213,11 +229,6 @@ export const routes: Routes = [
     },
     // { path: 'coming-soon', component: ComingSoonComponent },
     // { path: 'maintenance', component: MaintenanceComponent },
-    { path: 'sign-in', component: SignInComponent },
-    { path: 'sign-up', component: SignUpComponent },
-    { path: 'forgot-password', component: ForgotPasswordComponent },
-
-    { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: '**', redirectTo : 'error', pathMatch: 'full'}
 ];
 

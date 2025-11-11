@@ -521,7 +521,7 @@
       <li class="sidebar-menu-group-title">Orders Management</li>
 
       <li>
-        <a routerLink="/users-list">
+        <a routerLink="/orders">
           <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
           <span>Orders</span>
         </a>
@@ -536,7 +536,7 @@
       <li class="sidebar-menu-group-title">Products Management</li>
 
       <li>
-        <a routerLink="/users-list">
+        <a routerLink="/products">
           <iconify-icon icon="flowbite:users-group-outline" class="menu-icon"></iconify-icon>
           <span>Products</span>
         </a>
@@ -936,7 +936,8 @@
                     <iconify-icon icon="icon-park-outline:setting-two" class="icon text-xl"></iconify-icon> Setting</a>
                 </li>
                 <li>
-                  <a (click)="logout()"
+                  <!--onLogout()-> from side-nav.component.ts-->
+                  <a (click)="onLogout()" 
                     class="dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3">
                     <iconify-icon icon="lucide:power" class="icon text-xl"></iconify-icon> Log Out</a>
                 </li>
@@ -949,7 +950,7 @@
     </div>
   </div>
 
-  <router-outlet />
+  <router-outlet></router-outlet>
 
   <footer class="d-footer">
     <div class="row align-items-center justify-content-between">

@@ -1,0 +1,156 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb> <!-- Add this line -->
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">Add New Product</h5>
+        </div>
+        
+        <div class="card-body p-24">
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                    <!-- SKU -->
+                    <div class="col-md-6 mb-3">
+                        <label for="sku" class="form-label">SKU *</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="sku"
+                                   formControlName="sku"
+                                   placeholder="Product SKU">
+                            <button type="button" 
+                                    class="btn btn-outline-secondary" 
+                                    (click)="generateSKU()">
+                                Generate
+                            </button>
+                        </div>
+                        <div *ngIf="f['sku'].invalid && (f['sku'].dirty || f['sku'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['sku'].errors?.['required']">SKU is required</div>
+                            <div *ngIf="f['sku'].errors?.['minlength']">SKU must be at least 3 characters</div>
+                        </div>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">Product Name *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name"
+                               formControlName="name"
+                               placeholder="Enter product name">
+                        <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['name'].errors?.['required']">Product name is required</div>
+                            <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters</div>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Category *</label>
+                        <select class="form-select" 
+                                id="category"
+                                formControlName="category">
+                            <option value="">Select Category</option>
+                            <option *ngFor="let category of categories" [value]="category">
+                                {{ category }}
+                            </option>
+                        </select>
+                        <div *ngIf="f['category'].invalid && (f['category'].dirty || f['category'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['category'].errors?.['required']">Category is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="col-md-6 mb-3">
+                        <label for="price" class="form-label">Price *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="price"
+                                   formControlName="price"
+                                   placeholder="0.00"
+                                   step="0.01"
+                                   min="0">
+                        </div>
+                        <div *ngIf="f['price'].invalid && (f['price'].dirty || f['price'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['price'].errors?.['required']">Price is required</div>
+                            <div *ngIf="f['price'].errors?.['min']">Price must be positive</div>
+                        </div>
+                    </div>
+
+                    <!-- Stock Quantity -->
+                    <div class="col-md-6 mb-3">
+                        <label for="stockQuantity" class="form-label">Stock Quantity *</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="stockQuantity"
+                               formControlName="stockQuantity"
+                               placeholder="0"
+                               min="0">
+                        <div *ngIf="f['stockQuantity'].invalid && (f['stockQuantity'].dirty || f['stockQuantity'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['stockQuantity'].errors?.['required']">Stock quantity is required</div>
+                            <div *ngIf="f['stockQuantity'].errors?.['min']">Stock cannot be negative</div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="isActive"
+                                   formControlName="isActive">
+                            <label class="form-check-label" for="isActive">
+                                {{ productForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12 mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" 
+                                  id="description"
+                                  formControlName="description"
+                                  rows="3"
+                                  placeholder="Enter product description"></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <button type="button" 
+                            class="btn btn-secondary"
+                            (click)="onCancel()">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="btn btn-primary"
+                            [disabled]="loading || productForm.invalid">
+                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ loading ? 'Adding Product...' : 'Add Product' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

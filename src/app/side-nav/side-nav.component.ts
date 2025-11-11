@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { Subscription } from 'rxjs';
 import { ThemeService } from '../services/theme.service';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../services/auth-service.service';
 
 
 @Component({
@@ -25,7 +26,8 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
   constructor(private router: Router,
     private themeService: ThemeService,
     private renderer: Renderer2,
-    private el: ElementRef
+    private el: ElementRef,
+    private authService: AuthService
   ) { }
   ngOnInit(): void {
 
@@ -205,8 +207,9 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     this.currentThemeSetting = newTheme;
   }
 
-  logout() {
-    auth.log
+  //on logout -> from auth-service.ts
+  onLogout(): void {
+    this.authService.logout();
   }
 }
 

@@ -1,0 +1,175 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
+                
+                <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
+                        [(ngModel)]="productService.pageSize" (ngModelChange)="onPagination(1)">
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                    <option [ngValue]="50">50</option>
+                </select>
+
+                <form class="navbar-search">
+                    <input type="text" 
+                        class="bg-base h-40-px w-auto" 
+                        placeholder="Search by Name or SKU..."
+                        [(ngModel)]="productService.searchTerm"
+                        (ngModelChange)="onSearchProduct($event)"
+                        name="search"
+                    >
+                    <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
+                </form>
+                
+                <select class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
+                        [(ngModel)]="selectedStatus" (ngModelChange)="onStatusFilterChange($event)">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+
+                <!-- Bulk Actions -->
+                <div *ngIf="selectedProducts.length > 0" class="d-flex align-items-center gap-2">
+                    <span class="text-sm text-secondary-light">{{ selectedProducts.length }} selected</span>
+                    <button class="btn btn-danger btn-sm" (click)="deleteSelectedProducts()">
+                        <iconify-icon icon="fluent:delete-24-regular" class="me-1"></iconify-icon>
+                        Delete Selected
+                    </button>
+                </div>
+            </div>
+            
+            <a routerLink="/add-product"
+                class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                Add New Product
+            </a>
+        </div>
+        
+        <div class="card-body p-24">
+            
+            <div *ngIf="loading" class="text-center p-4 alert alert-info">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Loading Products...</p>
+            </div>
+            <div *ngIf="error" class="alert alert-danger text-center">{{ error }}</div>
+            <div *ngIf="!loading && !error && productsList.length === 0" class="alert alert-warning text-center">
+                No products found.
+            </div>
+
+            <div *ngIf="productsList.length > 0" class="table-responsive scroll-sm">
+                <table class="table bordered-table sm-table mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="d-flex align-items-center gap-10">
+                                    <div class="form-check style-check d-flex align-items-center">
+                                        <input class="form-check-input radius-4 border input-form-dark" 
+                                               type="checkbox" 
+                                               [checked]="isAllSelected()"
+                                               (change)="toggleSelectAll($event)">
+                                    </div>
+                                    S.L.
+                                </div>
+                            </th>
+                            
+                            <th scope="col" productSortable="sku" (sort)="onSort($event)">SKU</th>
+                            <th scope="col">Image</th>
+                            <th scope="col" productSortable="name" (sort)="onSort($event)">Product Name</th>
+                            <th scope="col" productSortable="category" (sort)="onSort($event)">Category</th>
+                            <th scope="col" productSortable="price" (sort)="onSort($event)">Price</th>
+                            <th scope="col" productSortable="stockQuantity" (sort)="onSort($event)">Stock</th>
+                            <th scope="col" class="text-center" productSortable="isActive" (sort)="onSort($event)">Status</th>
+                            <th scope="col" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let product of productsList; let i = index">
+                            <td>
+                                <div class="d-flex align-items-center gap-10">
+                                    <div class="form-check style-check d-flex align-items-center">
+                                        <input class="form-check-input radius-4 border border-neutral-400" 
+                                               type="checkbox" 
+                                               [checked]="isSelected(product)"
+                                               (change)="toggleProductSelection(product)">
+                                    </div>
+                                    {{ productService.startIndex + i }}
+                                </div>
+                            </td>
+                            
+                            <td>{{ product.sku }}</td>
+                            <td>
+                                <img [src]="product.imgSrc" alt="{{product.name}}"
+                                    class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
+                            </td>
+                            <td>
+                                <span class="text-md mb-0 fw-normal text-secondary-light">{{ product.name }}</span>
+                            </td>
+                            <td>{{ product.category }}</td>
+                            <td>${{ product.price | number: '1.2-2' }}</td>
+                            <td>
+                                <span [ngClass]="{
+                                    'text-success': product.stockQuantity > 10,
+                                    'text-warning': product.stockQuantity <= 10 && product.stockQuantity > 0,
+                                    'text-danger': product.stockQuantity === 0
+                                }">
+                                    {{ product.stockQuantity }}
+                                </span>
+                            </td>
+                            
+                            <td class="text-center">
+                                <span (click)="updateStatus(product)" style="cursor: pointer;"
+                                    [ngClass]="{
+                                        'bg-success-focus text-success-600 border border-success-main': product.isActive,
+                                        'bg-neutral-200 text-neutral-600 border border-neutral-400': !product.isActive
+                                    }" class="px-24 py-4 radius-4 fw-medium text-sm">
+                                    {{ product.isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex align-items-center gap-10 justify-content-center">
+                                    <!-- View Button -->
+                                    <button type="button" (click)="viewProduct(product)"
+                                        class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                        title="View Product">
+                                        <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                                    </button>
+                                    
+                                    <!-- Edit Button -->
+                                    <button type="button" (click)="editProduct(product)"
+                                        class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                        title="Edit Product">
+                                        <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                    </button>
+                                    
+                                    <!-- Delete Button -->
+                                    <button type="button" (click)="deleteProduct(product)"
+                                        class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                        title="Delete Product">
+                                        <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div *ngIf="productsList.length > 0" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
+                <span>
+                    Showing {{ productService.startIndex }} to {{ productService.endIndex }} of {{ productService.totalRecords }} entries
+                </span>
+                
+                <mat-paginator 
+                    [length]="productService.totalRecords"
+                    [pageSize]="productService.pageSize"
+                    [pageIndex]="productService.page - 1"
+                    (page)="onPagination($event.pageIndex + 1)"
+                    [pageSizeOptions]="[10, 20, 50]">
+                </mat-paginator>
+            </div>
+        </div>
+    </div>
+</div>

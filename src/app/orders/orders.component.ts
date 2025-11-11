@@ -1,18 +1,18 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 
 @Component({
-  selector: 'app-users-list',
+  selector: 'app-orders',
   standalone: true,
-  imports: [BreadcrumbComponent, RouterLink,CommonModule],
+  imports: [BreadcrumbComponent ,RouterLink, CommonModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  templateUrl: './users-list.component.html',
-  styleUrl: './users-list.component.css'
+  templateUrl: './orders.component.html',
+  styleUrl: './orders.component.css'
 })
-export class UsersListComponent {
-  title = 'Users Lists';
+export class OrdersComponent {
+  title = 'Order Lists';
   users= [
     {
       id: 1,
@@ -106,5 +106,4 @@ export class UsersListComponent {
     },
     // ... add all other users here similarly ...
   ];
-
 }
