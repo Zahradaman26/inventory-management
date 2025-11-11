@@ -1,6 +1,7 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './services/theme.service';
+import { AuthService } from './services/auth-service.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,10 @@ import { ThemeService } from './services/theme.service';
 export class AppComponent implements OnInit {
 
   currentThemeSetting: string = 'light';
-  constructor(private themeService : ThemeService) { }
+  constructor(
+    private themeService : ThemeService,
+    private authService : AuthService 
+  ) { }
   
   ngOnInit(): void {
     const localStorageTheme = localStorage.getItem('theme');

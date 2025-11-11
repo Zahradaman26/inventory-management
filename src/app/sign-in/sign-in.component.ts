@@ -68,7 +68,6 @@ export class SignInComponent implements OnInit {
     this.authService.loginUser(credentials)
       .subscribe({
         next: (response) => {
-          console.log('Login successful, navigating...');
           this.loading = false;
 
           setTimeout(() => {
@@ -78,7 +77,6 @@ export class SignInComponent implements OnInit {
         error: (errorMsg: string) => {
           this.errorMessage = errorMsg;
           this.loading = false;
-          console.error('Login error:', errorMsg);
         }
       });
   }

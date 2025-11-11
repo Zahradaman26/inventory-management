@@ -23,8 +23,8 @@ export interface ProductItem {
 }
 
 export interface ProductApiResponse {
+    data: ProductItem[];
     status? : string;
-    products : ProductItem[]
     totalRecords : number;
 }
 
@@ -40,6 +40,6 @@ export interface State {
 }
 
 export interface SearchResult {
-  products: ProductItem[];
+  data: ProductItem[];
   total: number;
 }

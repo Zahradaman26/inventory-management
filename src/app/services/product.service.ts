@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@angular/core';
-import { HttpClient } from '@angular/common/http'; // Remove HttpHeaders
+import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError, map, of } from 'rxjs';
 import { DecimalPipe } from '@angular/common'; 
 import { ProductApiResponse, ProductItem, State, SearchResult } from '../interfaces/product.model';
@@ -7,6 +7,7 @@ import { SortColumn, SortDirection } from '../products/product-sortable.directiv
 import { environment } from '../../environments/environment';
 
 const compare = (v1: string | number, v2: string | number) => v1 < v2 ? -1 : v1 > v2 ? 1 : 0;
+
 function sort(products: ProductItem[], column: string, direction: string): ProductItem[] {
   if (direction === '' || column === '') return products;
   return [...products].sort((a: any, b: any) => { 
@@ -14,10 +15,12 @@ function sort(products: ProductItem[], column: string, direction: string): Produ
     return direction === 'asc' ? res : -res;
   });
 }
+
 function matches(product: ProductItem, term: string, pipe: PipeTransform) {
   return (
     product.name.toLowerCase().includes(term.toLowerCase()) ||
-    product.sku.toLowerCase().includes(term.toLowerCase())
+    product.sku.toLowerCase().includes(term.toLowerCase()) ||
+    product.category.toLowerCase().includes(term.toLowerCase())
   );
 }
 
@@ -33,7 +36,6 @@ export class ProductService {
 
   get startIndex() { return this._state.startIndex; }
   get endIndex() { return this._state.endIndex; }
-
   get page() { return this._state.page; }
   set page(page: number) { this._set({ page }); }
   get pageSize() { return this._state.pageSize; }
@@ -47,150 +49,104 @@ export class ProductService {
 
   private _set(patch: Partial<State>) { 
     Object.assign(this._state, patch); 
-    // Recalculate indices when page or pageSize changes
-    if (patch.page || patch.pageSize) {
-      this._state.startIndex = ((this._state.page - 1) * this._state.pageSize) + 1;
-      this._state.endIndex = Math.min(this._state.page * this._state.pageSize, this._state.totalRecords);
-    }
   }
 
-  // 🔑 READ: GET All Products - SIMPLIFIED (no headers)
-  // getAllProducts(): Observable<ProductApiResponse> {
-  //   return this.http.get<ProductItem[]>(this.PRODUCTS_API_URL).pipe(
-  //     map(productsArray => {
-  //       const products = productsArray.map((p, index) => ({
-  //           ...p,
-  //           srNo: index + 1, 
-  //           imgSrc: `assets/images/product-placeholder-${(index % 3) + 1}.png`
-  //       }));
-        
-  //       return { products: products, totalRecords: products.length };
-  //     }),
-  //     catchError(this.errorHandler)
-  //   );
-  // }
-
-  //for now use this ->
-  getAllProducts(): Observable<ProductApiResponse> {
+  // 🔑 FIXED: Handle the API response structure correctly
+  getAllProducts(): Observable<ProductApiResponse> {    
     return this.http.get<any>(this.PRODUCTS_API_URL).pipe(
       map(response => {
-        console.log('Raw API response:', response);
-        
-        // Handle different response structures
-        let productsArray: ProductItem[];
-        
-        if (Array.isArray(response)) {
-          // Case 1: Response is directly an array
-          productsArray = response;
-        } else if (response.products && Array.isArray(response.products)) {
-          // Case 2: Response has { products: [], totalRecords: number }
-          productsArray = response.products;
-        } else if (response.data && Array.isArray(response.data)) {
-          // Case 3: Response has { data: [], totalRecords: number }
-          productsArray = response.data;
-        } else {
-          // Case 4: Unexpected structure, return empty
-          console.error('Unexpected API response structure:', response);
-          productsArray = [];
-        }
-        
-        const products = productsArray.map((p, index) => ({
-            ...p,
-            srNo: index + 1, 
-            imgSrc: p.imgSrc || `assets/images/product-placeholder-${(index % 3) + 1}.png`
-        }));
-        
-        return { 
-          products: products, 
-          totalRecords: response.totalRecords || products.length 
-        };
+        return response;
       }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 READ: GET Single Product by ID - SIMPLIFIED
   getProductById(productId: string): Observable<ProductItem> {
-    return this.http.get<ProductItem>(
-      `${this.PRODUCTS_API_URL}/${productId}`
-    ).pipe(
+    return this.http.get<any>(`${this.PRODUCTS_API_URL}/${productId}`).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        throw new Error('Product not found');
+      }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 CREATE: Add New Product - SIMPLIFIED
   addProduct(productData: any): Observable<ProductItem> {
-    return this.http.post<ProductItem>(
-      this.PRODUCTS_API_URL,
-      productData
-    ).pipe(
+    return this.http.post<any>(this.PRODUCTS_API_URL, productData).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        throw new Error(response.error || 'Failed to add product');
+      }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 UPDATE: Update Product - SIMPLIFIED
   updateProduct(productId: string, productData: any): Observable<ProductItem> {
-    return this.http.put<ProductItem>(
-      `${this.PRODUCTS_API_URL}/${productId}`,
-      productData
-    ).pipe(
+    return this.http.put<any>(`${this.PRODUCTS_API_URL}/${productId}`, productData).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        throw new Error(response.error || 'Failed to update product');
+      }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 UPDATE: Update Product Status - SIMPLIFIED
   updateProductStatus(productId: string, isActive: boolean): Observable<any> {
     const payload = { isActive };
     
-    return this.http.patch(
-      `${this.PRODUCTS_API_URL}/${productId}`, 
-      payload
-    ).pipe(
+    return this.http.patch<any>(`${this.PRODUCTS_API_URL}/${productId}`, payload).pipe(
+      map(response => {
+        if (response.success) {
+          return response.data || { message: 'Status updated successfully' };
+        }
+        throw new Error(response.error || 'Failed to update status');
+      }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 DELETE: Delete Product - SIMPLIFIED
   deleteProduct(productId: string): Observable<any> {
-    return this.http.delete(
-      `${this.PRODUCTS_API_URL}/${productId}`
-    ).pipe(
+    return this.http.delete<any>(`${this.PRODUCTS_API_URL}/${productId}`).pipe(
+      map(response => {
+        if (response.success) {
+          return response.data || { message: 'Product deleted successfully' };
+        }
+        throw new Error(response.error || 'Failed to delete product');
+      }),
       catchError(this.errorHandler)
     );
   }
 
-  // 🔑 BULK DELETE: Delete Multiple Products - SIMPLIFIED
   deleteMultipleProducts(productIds: string[]): Observable<any> {
-    return this.http.post(
-      `${this.PRODUCTS_API_URL}/bulk-delete`,
-      { productIds }
-    ).pipe(
+    return this.http.post<any>(`${this.PRODUCTS_API_URL}/bulk-delete`, { productIds }).pipe(
+      map(response => {
+        if (response.success) {
+          return response.data || { message: 'Products deleted successfully' };
+        }
+        throw new Error(response.error || 'Failed to delete products');
+      }),
       catchError(this.errorHandler)
     );
   }
-  
-  // 🔑 Local Search/Sort/Paginate Logic - FIXED VERSION
+
+  // 🔑 Local Search/Sort/Paginate Logic
   public _search(productList: Array<ProductItem> = []): Observable<SearchResult> {
     const { sortColumn, sortDirection, pageSize, page, searchTerm } = this._state;
 
-    console.log(`_search called with:`, {
-        productListLength: productList.length,
-        page,
-        pageSize,
-        searchTerm,
-        sortColumn,
-        sortDirection
-    });
-
     // 1. Filter products based on search term
-    let products = productList.filter((item) => matches(item, searchTerm, this.pipe));
-    console.log(`After search filter: ${products.length} products`);
+    let data = productList.filter((item) => matches(item, searchTerm, this.pipe));
     
     // 2. Sort the filtered products
-    products = sort(products, sortColumn, sortDirection);
+    data = sort(data, sortColumn, sortDirection);
 
     // 3. Update total records
-    const total = products.length;
+    const total = data.length;
     this.totalRecords = total;
     
     // 4. Calculate pagination
@@ -202,27 +158,30 @@ export class ProductService {
     this._state.endIndex = total > 0 ? endIndex : 0;
 
     // 6. Slice for current page
-    const paginatedProducts = products.slice(startIndex, endIndex);
-    
-    console.log(`Pagination: Showing ${paginatedProducts.length} of ${total} products`);
+    const paginatedProducts = data.slice(startIndex, endIndex);
     
     return of({ 
-        products: paginatedProducts, 
+        data: paginatedProducts, 
         total: total 
     });
   }
 
-
   private errorHandler(error: any) {
+    
     let errorMessage = 'An unknown error occurred';
     
-    if (error.error instanceof ErrorEvent) {
+    if (typeof error === 'string') {
+      errorMessage = error;
+    } else if (error.error instanceof ErrorEvent) {
       errorMessage = `Client error: ${error.error.message}`;
+    } else if (error.message) {
+      errorMessage = error.message;
+    } else if (error.error?.message) {
+      errorMessage = error.error.message;
     } else {
-      errorMessage = error.error?.message || error.message || `Server Error: ${error.status}`;
+      errorMessage = `Server Error: ${error.status || 'Unknown'}`;
     }
     
-    console.error('Product Service Error:', error);
     return throwError(() => errorMessage);
   }
 }

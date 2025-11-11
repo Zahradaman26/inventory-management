@@ -40,8 +40,6 @@ export class ProductsComponent implements OnInit{
   ngOnInit(): void {
   // Debug: Check if token exists
     const token = localStorage.getItem('authToken');
-    console.log('Products Page - Token exists:', !!token);
-    console.log('Token value:', token);
     
     this.fetchProducts();
   }
@@ -50,26 +48,15 @@ export class ProductsComponent implements OnInit{
     this.loading = true;
     this.error = null;
 
-    console.log("=== fetchProducts started ===");
-
     this.productService.getAllProducts().subscribe({
         next: (response) => {
-            console.log("API Response received:", {
-                productsCount: response.products?.length,
-                totalRecords: response.totalRecords
-            });
-            
-            this.backupProductsList = response.products || []; 
+            this.backupProductsList = response.data || []; 
             this.totalRecords = response.totalRecords || this.backupProductsList.length;
-            
-            console.log("Backup list set:", this.backupProductsList.length);
-            console.log("Calling filterData...");
             
             this.filterData(this.backupProductsList); 
             this.loading = false;
         },
         error: (err: string) => {
-            console.error("Products API error:", err);
             
             // Don't show error if it's 401 (handled by interceptor)
             if (err.includes('401')) {
@@ -159,13 +146,13 @@ export class ProductsComponent implements OnInit{
   // Product Actions
   viewProduct(product: ProductItem): void {
     // Navigate to product details page
-    console.log('View product:', product);
+    
     // this.router.navigate(['/products', product._id.$oid]);
   }
 
   editProduct(product: ProductItem): void {
     // Navigate to edit product page
-    console.log('Edit product:', product);
+    
     // this.router.navigate(['/edit-product', product._id.$oid]);
   }
 
@@ -213,10 +200,6 @@ export class ProductsComponent implements OnInit{
   }
 
   private filterData(data: ProductItem[]): void {
-    console.log("=== filterData called ===");
-    console.log("Input data length:", data?.length);
-    console.log("Selected status:", this.selectedStatus);
-    console.log("Current search term:", this.productService.searchTerm);
     
     let filteredData = data || [];
     
@@ -228,21 +211,18 @@ export class ProductsComponent implements OnInit{
             if (this.selectedStatus === 'inactive') return !product.isActive;
             return true;
         });
-        console.log(`Status filter: ${beforeFilter} -> ${filteredData.length} products`);
     }
     
-    console.log("Calling _search with filtered data:", filteredData.length);
     
     this.productService._search(filteredData).subscribe((result: SearchResult) => {
-        console.log("_search result received:", {
-            productsCount: result.products.length,
-            total: result.total
-        });
         
-        this.productsList = result.products;
+        this.productsList = result.data;
         this.totalRecords = result.total;
         
-        console.log("Component state updated - productsList:", this.productsList.length);
     });
   } 
+
+  refreshProducts(): void {
+    this.fetchProducts();
+  }
 }
