@@ -135,7 +135,7 @@ export class ProductService {
     );
   }
 
-  // 🔑 Local Search/Sort/Paginate Logic
+
   public _search(productList: Array<ProductItem> = []): Observable<SearchResult> {
     const { sortColumn, sortDirection, pageSize, page, searchTerm } = this._state;
 

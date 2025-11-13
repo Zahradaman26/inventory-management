@@ -51,7 +51,7 @@ export class AuthService {
       userData
     ).pipe(
       tap(response => {
-        console.log('Raw API Response:', response);
+        // console.log('Raw API Response:', response);
       }),
       map(response => {
         // Flexible response handling - adjust based on your API
@@ -101,9 +101,6 @@ export class AuthService {
     localStorage.setItem('currentUser', JSON.stringify(authResponse.user));
     this.isAuthenticated = true;
     this.currentUser = authResponse.user;
-    
-    console.log('Login successful, token stored:', authResponse.token.substring(0, 20) + '...');
-    console.log('User data stored:', authResponse.user);
     
     // Navigate to home
     this.router.navigate(['/home-10']);

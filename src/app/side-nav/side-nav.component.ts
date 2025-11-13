@@ -59,7 +59,6 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     submenuItems.forEach((item) => {
       item.addEventListener('click', (event) => {
         event.stopPropagation(); // Prevent the click from affecting the parent `.dropdown`
-        console.log('Sidebar submenu item clicked');
       });
     });
 

@@ -95,7 +95,7 @@ export class ProductsComponent implements OnInit{
     this.filterData(this.backupProductsList);
   }
   
-  // 🔑 Status toggle now uses the actual MongoDB '_id.$oid' and 'isActive' status
+  
   updateStatus(product: ProductItem): void {
     const newIsActive = !product.isActive;
     const productId = product._id.$oid;
@@ -205,7 +205,6 @@ export class ProductsComponent implements OnInit{
     
     // Apply status filter
     if (this.selectedStatus) {
-        const beforeFilter = filteredData.length;
         filteredData = filteredData.filter(product => {
             if (this.selectedStatus === 'active') return product.isActive;
             if (this.selectedStatus === 'inactive') return !product.isActive;

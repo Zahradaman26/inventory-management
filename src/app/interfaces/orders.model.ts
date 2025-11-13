@@ -1,19 +1,17 @@
 import { SortColumn, SortDirection } from "../products/product-sortable.directive";
 import { ProductItem } from "./product.model";
-
-interface mongoId {
-    $oid: string;
-}
+import { User } from "./user.model";
+import { VenueModel } from "./venue.model";
 
 export interface OrderModel {
     srNo : number;
-    _id : mongoId;
+    _id : string;
     orderNumber : string;
-    user : mongoId;
+    user : User;
     products : ProductItem[];
-    venue : mongoId;
+    venue : VenueModel;
     status : string;
-    reason : string;
+    reason? : string;
     createdAt : number;
     updatedAt : number;
     __v : number;
