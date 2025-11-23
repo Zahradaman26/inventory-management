@@ -2,7 +2,22 @@
     <app-breadcrumb [title]="title"></app-breadcrumb>
 
     <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">Add New User</h5>
+        </div>
         <div class="card-body p-24">
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
             <div class="row justify-content-center">
                 <div class="col-xxl-6 col-xl-8 col-lg-10">
                     <div class="card border">
@@ -27,38 +42,76 @@
                             </div>
                             <!-- Upload Image End -->
 
-                            <form action="#">
+                            <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+                                <!--Full Name-->
                                 <div class="mb-20">
                                     <label for="name"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Full Name <span
                                             class="text-danger-600">*</span></label>
-                                    <input type="text" class="form-control radius-8" id="name"
+                                    <input type="text" class="form-control radius-8" id="name" formControlName="name"
                                         placeholder="Enter Full Name">
+                                    <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['name'].errors?.['required']">Name is required</div>
+                                    </div>
                                 </div>
+
+                                <!--email-->
                                 <div class="mb-20">
                                     <label for="email"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Email <span
                                             class="text-danger-600">*</span></label>
-                                    <input type="email" class="form-control radius-8" id="email"
+                                    <input type="email" class="form-control radius-8" id="email" formControlName="email"
                                         placeholder="Enter email address">
+                                    <div *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+                                    </div>
                                 </div>
+
+                                <!--phone-->
                                 <div class="mb-20">
                                     <label for="number"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Phone</label>
-                                    <input type="email" class="form-control radius-8" id="number"
+                                    <input type="phone" class="form-control radius-8" id="number" formControlName="phone"
                                         placeholder="Enter phone number">
+                                    <div *ngIf="f['phone'].invalid && (f['phone'].dirty || f['phone'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['phone'].errors?.['required']">Phone No. is required</div>
+                                    </div>
                                 </div>
+
+                                <!--role-->
                                 <div class="mb-20">
                                     <label for="depart"
-                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Department <span
+                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Role <span
                                             class="text-danger-600">*</span> </label>
-                                    <select class="form-control radius-8 form-select" id="depart">
-                                        <option>Enter Event Title </option>
-                                        <option>Enter Event Title One </option>
-                                        <option>Enter Event Title Two</option>
+                                    <select class="form-control radius-8 form-select" id="role" formControlName="role">
+                                        <option value="">Select Category</option>
+                                        <option *ngFor="let role of roles" [value]="role">
+                                            {{ role }}
+                                        </option>
                                     </select>
+                                    <div *ngIf="f['role'].invalid && (f['role'].dirty || f['role'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['role'].errors?.['required']">Role is required</div>
+                                    </div>
                                 </div>
-                                <div class="mb-20">
+
+                                <!-- Status -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" 
+                                            type="checkbox" 
+                                            id="isActive"
+                                            formControlName="isActive">
+                                        <label class="form-check-label" for="isActive">
+                                            {{ userForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- <div class="mb-20">
                                     <label for="desig"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Designation <span
                                             class="text-danger-600">*</span> </label>
@@ -73,15 +126,18 @@
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
                                     <textarea name="#0" class="form-control radius-8" id="desc"
                                         placeholder="Write description..."></textarea>
-                                </div>
+                                </div> -->
                                 <div class="d-flex align-items-center justify-content-center gap-3">
                                     <button type="button"
-                                        class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
+                                        class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8"
+                                        (click)="onCancel()">
                                         Cancel
                                     </button>
                                     <button type="submit"
-                                        class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8">
-                                        Save
+                                        class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
+                                        [disabled]="loading || userForm.invalid">
+                                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                                            {{ loading ? 'Adding User...' : 'Add User' }}
                                     </button>
                                 </div>
                             </form>

@@ -51,12 +51,6 @@ export class SignInComponent implements OnInit {
       this.loginForm.markAllAsTouched();
       return;
     }
-    // if(this.credentials.email && this.credentials.password) {
-    //   const fakeToken = 'auth-' + this.credentials.email
-    //   this.authService.login(fakeToken)
-    // } else {
-    //   alert('Please enter both email and password')
-    // }
     this.loading = true;
     this.errorMessage = '';
 
@@ -71,7 +65,7 @@ export class SignInComponent implements OnInit {
           this.loading = false;
 
           setTimeout(() => {
-            this.router.navigate(['/home-10']); // or your products page
+            this.router.navigate(['/home-10']); 
           }, 100);
         },
         error: (errorMsg: string) => {

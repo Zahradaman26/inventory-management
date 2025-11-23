@@ -107,6 +107,9 @@ import { OrdersComponent } from './orders/orders.component';
 import { VenueComponent } from './venue/venue.component';
 import { ReturnsComponent } from './returns/returns.component';
 import { AddProductComponent } from './add-product/add-product.component';
+import { WarehousesComponent } from './warehouses/warehouses.component';
+import { EventsComponent } from './events/events.component';
+import { AddWarehouseComponent } from './add-warehouse/add-warehouse.component';
 
 export const routes: Routes = [
     { path: 'sign-in', component: SignInComponent },
@@ -124,6 +127,7 @@ export const routes: Routes = [
             // { path: 'add-blog', component: AddBlogComponent },
             { path: 'add-user', component: AddUserComponent },
             { path: 'add-product', component: AddProductComponent },
+            { path: 'add-warehouse', component: AddWarehouseComponent },
             { path: 'alert', component: AlertComponent },
             { path: 'assign-role', component: AssignRoleComponent },
             // { path: 'avatar', component: AvatarComponent },
@@ -196,7 +200,9 @@ export const routes: Routes = [
             { path: 'role-access', component: RoleAccessComponent },
             { path: 'orders', component: OrdersComponent },
             { path: 'venue', component: VenueComponent },
-            { path: 'returns', component: ReturnsComponent },
+            { path: 'returns', component: ReturnsComponent },            
+            { path: 'warehouses', component: WarehousesComponent },            
+            { path: 'events', component: EventsComponent },            
 
             // { path: 'star-rating', component: StarRatingComponent },
             // { path: 'starred', component: StarredComponent },
