@@ -21,7 +21,7 @@ export class SignInComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: new FormControl('', [Validators.required]),
+      contactNumber: new FormControl('', [Validators.required]),
       password: new FormControl('',[Validators.required]),
     })  
   }
@@ -39,8 +39,8 @@ export class SignInComponent implements OnInit {
   get loginFormControl() {
     return this.loginForm.controls;
   }
-  get email() {
-    return this.loginForm.get('email');
+  get contactNumber() {
+    return this.loginForm.get('contactNumber');
   }
   get password() {
     return this.loginForm.get('password');
@@ -52,10 +52,10 @@ export class SignInComponent implements OnInit {
       return;
     }
     this.loading = true;
-    this.errorMessage = '';
+    // this.errorMessage = '';
 
     const credentials: LoginCredentials = {
-      email: this.loginForm.value.email,
+      contactNumber: this.loginForm.value.contactNumber,
       password: this.loginForm.value.password
     };
 
@@ -63,16 +63,12 @@ export class SignInComponent implements OnInit {
       .subscribe({
         next: (response) => {
           this.loading = false;
-
-          setTimeout(() => {
-            this.router.navigate(['/home-10']); 
-          }, 100);
+          this.router.navigate(['/home-10']); 
         },
         error: (errorMsg: string) => {
           this.errorMessage = errorMsg;
           this.loading = false;
         }
       });
-  }
-
+    }
  }

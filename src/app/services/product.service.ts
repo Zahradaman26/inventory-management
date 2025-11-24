@@ -112,12 +112,13 @@ export class ProductService {
   }
 
   deleteProduct(productId: string): Observable<any> {
+    
     return this.http.delete<any>(`${this.PRODUCTS_API_URL}/${productId}`).pipe(
       map(response => {
-        if (response.success) {
-          return response.data || { message: 'Product deleted successfully' };
+        if (response.success || response.status === 'success' || response.message) {
+          return response;
         }
-        throw new Error(response.error || 'Failed to delete product');
+        throw new Error('Invalid response format from server');
       }),
       catchError(this.errorHandler)
     );
@@ -173,13 +174,33 @@ export class ProductService {
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error.error instanceof ErrorEvent) {
+      // Client-side error
       errorMessage = `Client error: ${error.error.message}`;
+    } else if (error.status) {
+      // HTTP error response
+      switch (error.status) {
+        case 404:
+          errorMessage = 'Product not found';
+          break;
+        case 401:
+          errorMessage = 'Unauthorized - Please login again';
+          break;
+        case 403:
+          errorMessage = 'Forbidden - You do not have permission';
+          break;
+        case 500:
+          errorMessage = 'Server error - Please try again later';
+          break;
+        default:
+          errorMessage = `Server Error: ${error.status} - ${error.message || 'Unknown error'}`;
+      }
+      
+      // Try to get error message from server response
+      if (error.error && error.error.message) {
+        errorMessage = error.error.message;
+      }
     } else if (error.message) {
       errorMessage = error.message;
-    } else if (error.error?.message) {
-      errorMessage = error.error.message;
-    } else {
-      errorMessage = `Server Error: ${error.status || 'Unknown'}`;
     }
     
     return throwError(() => errorMessage);

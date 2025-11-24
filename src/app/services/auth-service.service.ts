@@ -56,57 +56,29 @@ export class AuthService {
       userData
     ).pipe(
       tap(response => {
-        console.log('Raw API Response:', response);
       }),
-      map(response => {
-        // Handle different response structures
-        let token: string | null = null;
-        let user: UserItem | null = null;
+      map((response: any) => {
 
-        // Structure 1: { data: { token: '...', user: {...} } }
-        if (response.data?.token && response.data?.user) {
-          token = response.data.token;
-          user = response.data.user;
-        } 
-        // Structure 2: { data: { access_token: '...', user: {...} } }
-        else if (response.data?.access_token && response.data?.user) {
-          token = response.data.access_token;
-          user = response.data.user;
-        }
-        // Structure 3: { token: '...', user: {...} } (direct response without data wrapper)
-        else if (response.token && response.user) {
-          token = response.token;
-          user = response.user;
-        }
-        // Structure 4: { access_token: '...', user: {...} } (direct response without data wrapper)
-        else if (response.access_token && response.user) {
-          token = response.access_token;
-          user = response.user;
-        }
-        // Structure 5: Direct token and user in response (common structure)
-        else if (response.token) {
-          token = response.token;
-          user = response.user || response.data;
-        }
-        // Structure 6: Direct access_token and user in response
-        else if (response.access_token) {
-          token = response.access_token;
-          user = response.user || response.data;
+        const token =
+          response?.data?.tokens?.accessToken || null;
+
+        const user =
+          response?.data?.user || null;
+
+        if (!token || !user) {
+          console.error("Invalid response structure:", response);
+          throw new Error(response.message || 'Invalid response format from server');
         }
 
-        if (token && user) {
-          const loginResponse: LoginResponse = {
-            token: token,
-            user: user,
-            status: response.status || 'success'
-          };
-          return loginResponse;
-        } else {
-          console.error('Invalid response structure:', response);
-          throw new Error(response.message || response.error || 'Invalid response format from server');
-        }
+        return {
+          token: token,
+          user: user,
+          status: response.success ? 'success' : 'error'
+        };
       }),
+
       tap((loginResponse: LoginResponse) => {
+
         this.handleAuthenticationSuccess(loginResponse);
       }),
       catchError(this.errorHandler)
@@ -128,7 +100,6 @@ export class AuthService {
     // Optional: Call logout API if needed
     this.http.post(`${environment.apiUrl}/auth/logout`, {}).subscribe({
       next: () => {
-        console.log('Logged out successfully from server');
       },
       error: (error) => {
         console.error('Error during server logout:', error);
@@ -154,7 +125,7 @@ export class AuthService {
   // Refresh token method (if your API supports it)
   refreshToken(): Observable<LoginResponse> {
     const refreshToken = localStorage.getItem('refreshToken'); // if you store refresh token
-    return this.http.post<any>(`${environment.apiUrl}/auth/refresh`, {
+    return this.http.post<any>(`${environment.apiUrl}/auth/refresh-token`, {
       refreshToken: refreshToken
     }).pipe(
       map(response => {

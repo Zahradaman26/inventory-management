@@ -158,6 +158,7 @@ export class ProductsComponent implements OnInit{
 
   deleteProduct(product: ProductItem): void {
     if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      const productId: any = product._id;
       this.productService.deleteProduct(product._id.$oid).subscribe({
         next: () => {
           // Remove from local lists

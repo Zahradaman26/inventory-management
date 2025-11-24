@@ -12,8 +12,12 @@ export interface ProductItem {
     sku : string;
     category : string;
     price : number;
-    stockQuantity : number;
+    stock : number;
+    pendingStock: number,
+    reservedStock : number,
+    unit : string,
     minStockLevel : number;
+    maxStockLevel : number;
     venue : mongoId;
     createdBy : mongoId;
     isActive : boolean;

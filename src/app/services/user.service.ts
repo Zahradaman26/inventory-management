@@ -31,7 +31,6 @@ export class UserService {
     return this.http.get<any>(`${this.apiUrl}/users`, { params: httpParams })
       .pipe(
         map(response => {
-          console.log('🔍 RAW USERS API RESPONSE:', response);
           
           // Transform API response data to match UserItem interface
           let users: UserItem[] = [];
@@ -52,7 +51,6 @@ export class UserService {
           };
         }),
         tap(response => {
-          console.log('📊 Processed users response:', response);
           this.usersSubject.next(response.data);
         }),
         catchError(error => {
@@ -64,13 +62,12 @@ export class UserService {
 
   // Transform API user data to match UserItem interface
   private transformUserData(apiUser: any, index: number): UserItem {
-    console.log('🔄 Transforming user data:', apiUser);
     
     return {
       srNo: index + 1,
       _id: apiUser._id,
       name: apiUser.username || apiUser.name || 'Unknown User', // Map username to name
-      email: apiUser.email || '',
+      contactNumber: apiUser.contactNumber || '',
       role: apiUser.role || 'User',
       status: apiUser.isActive ? 'Active' : 'Inactive', // Map isActive to status
       joinDate: this.formatDate(apiUser.createdAt) || 'Unknown Date',

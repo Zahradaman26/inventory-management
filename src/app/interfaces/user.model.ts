@@ -8,12 +8,11 @@ export interface UserItem {
     srNo: number;
     _id: mongoId;
     name: string;
-    email: string;
+    contactNumber: string;
     role: string;
     status: 'Active' | 'Inactive';
     department?: string;
     position?: string;
-    phone?: string;
     joinDate: string;
     lastLogin?: number;
     venue?: mongoId;
@@ -76,29 +75,27 @@ export interface PaginationParams {
 
 // Additional user-specific interfaces
 export interface LoginCredentials {
-    email: string;
+    contactNumber: string;
     password: string;
 }
 
 export interface CreateUserRequest {
     name: string;
-    email: string;
+    contactNumber: string;
     password: string;
     role: string;
     department?: string;
     position?: string;
-    phone?: string;
     status?: 'Active' | 'Inactive';
     venue?: mongoId;
 }
 
 export interface UpdateUserRequest {
     name?: string;
-    email?: string;
     role?: string;
     department?: string;
     position?: string;
-    phone?: string;
+    contactNumber?: string;
     status?: 'Active' | 'Inactive';
 }
 
