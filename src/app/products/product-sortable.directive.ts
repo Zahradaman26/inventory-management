@@ -24,7 +24,7 @@ export interface SortEvent {
 })
 export class ProductSortableHeader {
 
-  // The column name (e.g., 'name', 'price', 'sku') passed from the HTML
+  // The column name (e.g., 'name', 'price', 'SKU') passed from the HTML
   @Input() productSortable: SortColumn = '';
   
   // The current sort direction for this column

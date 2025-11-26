@@ -23,23 +23,23 @@
                 <div class="row">
                     <!-- SKU -->
                     <div class="col-md-6 mb-3">
-                        <label for="sku" class="form-label">SKU *</label>
+                        <label for="SKU" class="form-label">SKU *</label>
                         <div class="input-group">
                             <input type="text" 
                                    class="form-control" 
-                                   id="sku"
-                                   formControlName="sku"
-                                   placeholder="Product SKU">
+                                   id="SKU"
+                                   formControlName="SKU"
+                                   placeholder="Product sku">
                             <button type="button" 
                                     class="btn btn-outline-secondary" 
                                     (click)="generateSKU()">
                                 Generate
                             </button>
                         </div>
-                        <div *ngIf="f['sku'].invalid && (f['sku'].dirty || f['sku'].touched)" 
+                        <div *ngIf="f['SKU'].invalid && (f['SKU'].dirty || f['SKU'].touched)" 
                              class="text-danger small mt-1">
-                            <div *ngIf="f['sku'].errors?.['required']">SKU is required</div>
-                            <div *ngIf="f['sku'].errors?.['minlength']">SKU must be at least 3 characters</div>
+                            <div *ngIf="f['SKU'].errors?.['required']">SKU is required</div>
+                            <div *ngIf="f['SKU'].errors?.['minlength']">SKU must be at least 3 characters</div>
                         </div>
                     </div>
 
@@ -97,17 +97,34 @@
 
                     <!-- Stock Quantity -->
                     <div class="col-md-6 mb-3">
-                        <label for="stockQuantity" class="form-label">Stock Quantity *</label>
+                        <label for="stock" class="form-label">Stock Quantity *</label>
                         <input type="number" 
                                class="form-control" 
-                               id="stockQuantity"
-                               formControlName="stockQuantity"
+                               id="stock"
+                               formControlName="stock"
                                placeholder="0"
                                min="0">
-                        <div *ngIf="f['stockQuantity'].invalid && (f['stockQuantity'].dirty || f['stockQuantity'].touched)" 
+                        <div *ngIf="f['stock'].invalid && (f['stock'].dirty || f['stock'].touched)" 
                              class="text-danger small mt-1">
-                            <div *ngIf="f['stockQuantity'].errors?.['required']">Stock quantity is required</div>
-                            <div *ngIf="f['stockQuantity'].errors?.['min']">Stock cannot be negative</div>
+                            <div *ngIf="f['stock'].errors?.['required']">Stock quantity is required</div>
+                            <div *ngIf="f['stock'].errors?.['min']">Stock cannot be negative</div>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6 mb-3">
+                        <label for="warehouse" class="form-label">Warehouse *</label>
+                        <select class="form-select" 
+                                id="warehouse"
+                                formControlName="warehouse">
+                            <option value="">Select Warehouse</option>
+                            <option *ngFor="let warehouse of warehouses" [value]="warehouse">
+                                {{ warehouse }}
+                            </option>
+                        </select>
+                        <div *ngIf="f['warehouse'].invalid && (f['warehouse'].dirty || f['warehouse'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['warehouse'].errors?.['required']">Warehouse is required</div>
                         </div>
                     </div>
 

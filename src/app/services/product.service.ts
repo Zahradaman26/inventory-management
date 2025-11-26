@@ -17,10 +17,11 @@ function sort(products: ProductItem[], column: string, direction: string): Produ
 }
 
 function matches(product: ProductItem, term: string, pipe: PipeTransform) {
+  const searchTerm = term.toLowerCase();
   return (
-    product.name.toLowerCase().includes(term.toLowerCase()) ||
-    product.sku.toLowerCase().includes(term.toLowerCase()) ||
-    product.category.toLowerCase().includes(term.toLowerCase())
+    product.name.toLowerCase().includes(searchTerm) ||
+    (product.SKU && product.SKU.toLowerCase().includes(searchTerm)) ||
+    product.category.toLowerCase().includes(searchTerm)
   );
 }
 
@@ -30,8 +31,14 @@ export class ProductService {
   private readonly PRODUCTS_API_URL = `${environment.apiUrl}/products`; 
 
   private _state: State = {
-    page: 1, pageSize: 10, searchTerm: '', sortColumn: '', sortDirection: '',
-    startIndex: 0, endIndex: 9, totalRecords: 0,
+    page: 1, 
+    pageSize: 10, 
+    searchTerm: '', 
+    sortColumn: '', 
+    sortDirection: '',
+    startIndex: 0, 
+    endIndex: 9, 
+    totalRecords: 0,
   };
 
   get startIndex() { return this._state.startIndex; }
@@ -51,12 +58,40 @@ export class ProductService {
     Object.assign(this._state, patch); 
   }
 
-  // 🔑 FIXED: Handle the API response structure correctly
+  // FIXED: Properly handle API response and map properties
   getAllProducts(): Observable<ProductApiResponse> {    
     return this.http.get<any>(this.PRODUCTS_API_URL).pipe(
       map(response => {
+
+        // If API returned array directly, convert to standard shape
+        // if (Array.isArray(response)) {
+        //   response = { data: response, totalRecords: (response as any).length };
+        // }
+
+        // if (response.data && Array.isArray(response.data.products)) {
+        //   response.data.products = response.data.products.map((product: any) => ({
+        //     ...product,
+        //     sku: product.SKU || product.sku || '',
+        //     imgSrc: product.imgSrc || 'assets/images/default-product.png',
+        //     price: product.price || 0,
+        //     stock: product.stock || 0,
+        //     isActive: product.isActive !== undefined ? product.isActive : true,
+        //     category: product.category || 'Uncategorized',
+        //     pendingStock: product.pendingStock || 0,
+        //     reservedStock: product.reservedStock || 0,
+        //     unit: product.unit || 'pcs',
+        //     minStockLevel: product.minStockLevel || 0,
+        //     maxStockLevel: product.maxStockLevel || 0
+        //   }));
+        // }
+
+        // Normalize totalRecords key (support both totalRecords and total)
+        // const total = response.data.total;
+        // (response as any).totalRecords = total;
+
         return response;
       }),
+
       catchError(this.errorHandler)
     );
   }
@@ -112,7 +147,6 @@ export class ProductService {
   }
 
   deleteProduct(productId: string): Observable<any> {
-    
     return this.http.delete<any>(`${this.PRODUCTS_API_URL}/${productId}`).pipe(
       map(response => {
         if (response.success || response.status === 'success' || response.message) {
@@ -136,12 +170,13 @@ export class ProductService {
     );
   }
 
-
   public _search(productList: Array<ProductItem> = []): Observable<SearchResult> {
     const { sortColumn, sortDirection, pageSize, page, searchTerm } = this._state;
 
     // 1. Filter products based on search term
-    let data = productList.filter((item) => matches(item, searchTerm, this.pipe));
+    let data = searchTerm ? 
+      productList.filter((item) => matches(item, searchTerm, this.pipe)) : 
+      productList;
     
     // 2. Sort the filtered products
     data = sort(data, sortColumn, sortDirection);
@@ -168,34 +203,32 @@ export class ProductService {
   }
 
   private errorHandler(error: any) {
+    console.error('Product Service Error:', error);
     
     let errorMessage = 'An unknown error occurred';
     
     if (typeof error === 'string') {
       errorMessage = error;
     } else if (error.error instanceof ErrorEvent) {
-      // Client-side error
       errorMessage = `Client error: ${error.error.message}`;
     } else if (error.status) {
-      // HTTP error response
       switch (error.status) {
-        case 404:
-          errorMessage = 'Product not found';
-          break;
         case 401:
-          errorMessage = 'Unauthorized - Please login again';
+          errorMessage = 'Authentication failed. Please login again.';
           break;
         case 403:
-          errorMessage = 'Forbidden - You do not have permission';
+          errorMessage = 'You do not have permission to access products';
+          break;
+        case 404:
+          errorMessage = 'Products not found';
           break;
         case 500:
           errorMessage = 'Server error - Please try again later';
           break;
         default:
-          errorMessage = `Server Error: ${error.status} - ${error.message || 'Unknown error'}`;
+          errorMessage = `Error ${error.status}: ${error.message || 'Unknown error'}`;
       }
       
-      // Try to get error message from server response
       if (error.error && error.error.message) {
         errorMessage = error.error.message;
       }

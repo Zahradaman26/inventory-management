@@ -38,7 +38,7 @@ export class AddUserComponent implements OnInit {
     this.userForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.minLength(10)]],
+      contactNumber: ['', [Validators.required, Validators.minLength(10)]],
       role: ['', Validators.required],
       isActive: [true]
     });

@@ -44,7 +44,7 @@
             <a routerLink="/add-product"
                 class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
                 <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                Add New Product
+                Add New Product {{productsList.length}}
             </a>
         </div>
         
@@ -55,12 +55,12 @@
                 <p class="mt-2">Loading Products...</p>
             </div>
             <div *ngIf="error" class="alert alert-danger text-center">{{ error }}</div>
-            <div *ngIf="!loading && !error && productsList.length === 0" class="alert alert-warning text-center">
+            <!-- <div *ngIf="!loading && !error && productsList.length === 0" class="alert alert-warning text-center">
                 No products found.
-            </div>
+            </div> -->
 
-            <div *ngIf="productsList.length > 0" class="table-responsive scroll-sm">
-                <table class="table bordered-table sm-table mb-0">
+            <div class="table-responsive scroll-sm">
+                <table class="table bordered-table sm-table mb-0" id="dataTable" data-page-length='10'>
                     <thead>
                         <tr>
                             <th scope="col">
@@ -75,12 +75,12 @@
                                 </div>
                             </th>
                             
-                            <th scope="col" productSortable="sku" (sort)="onSort($event)">SKU</th>
+                            <th scope="col" productSortable="SKU" (sort)="onSort($event)">SKU</th>
                             <th scope="col">Image</th>
                             <th scope="col" productSortable="name" (sort)="onSort($event)">Product Name</th>
                             <th scope="col" productSortable="category" (sort)="onSort($event)">Category</th>
                             <th scope="col" productSortable="price" (sort)="onSort($event)">Price</th>
-                            <th scope="col" productSortable="stockQuantity" (sort)="onSort($event)">Stock</th>
+                            <th scope="col" productSortable="stock" (sort)="onSort($event)">Stock</th>
                             <th scope="col" class="text-center" productSortable="isActive" (sort)="onSort($event)">Status</th>
                             <th scope="col" class="text-center">Action</th>
                         </tr>
@@ -99,7 +99,7 @@
                                 </div>
                             </td>
                             
-                            <td>{{ product.sku }}</td>
+                            <td>{{ product.SKU }}</td>
                             <td>
                                 <img [src]="product.imgSrc" alt="{{product.name}}"
                                     class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
@@ -111,11 +111,11 @@
                             <td>${{ product.price | number: '1.2-2' }}</td>
                             <td>
                                 <span [ngClass]="{
-                                    'text-success': product.stockQuantity > 10,
-                                    'text-warning': product.stockQuantity <= 10 && product.stockQuantity > 0,
-                                    'text-danger': product.stockQuantity === 0
+                                    'text-success': product.stock > 10,
+                                    'text-warning': product.stock <= 10 && product.stock > 0,
+                                    'text-danger': product.stock === 0
                                 }">
-                                    {{ product.stockQuantity }}
+                                    {{ product.stock }}
                                 </span>
                             </td>
                             

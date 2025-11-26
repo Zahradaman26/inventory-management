@@ -12,7 +12,7 @@ import { ProductService } from '../services/product.service';
   imports: [CommonModule, ReactiveFormsModule, BreadcrumbComponent], 
   templateUrl: './add-product.component.html',
   styleUrl: './add-product.component.css',
-  providers: [ProductService, DecimalPipe]
+  providers: [DecimalPipe, ProductService]
 })
 export class AddProductComponent implements OnInit {
   title = 'Add New Product';
@@ -22,6 +22,7 @@ export class AddProductComponent implements OnInit {
   successMessage = '';
 
   categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Beauty', 'Toys', 'Other'];
+  warehouses = ['Begumwadi'];
 
   constructor(
     private fb: FormBuilder,
@@ -35,12 +36,13 @@ export class AddProductComponent implements OnInit {
 
   initializeForm(): void {
     this.productForm = this.fb.group({
-      sku: ['', [Validators.required, Validators.minLength(3)]],
+      SKU: ['', [Validators.required, Validators.minLength(3)]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
       category: ['', Validators.required],
       price: ['', [Validators.required, Validators.min(0)]],
-      stockQuantity: ['', [Validators.required, Validators.min(0)]],
+      warehouse: ['', [Validators.required, Validators.min(0)]],
+      stock: ['', [Validators.required, Validators.min(0)]],
       isActive: [true]
     });
   }
@@ -53,7 +55,7 @@ export class AddProductComponent implements OnInit {
     const prefix = 'PROD';
     const random = Math.floor(1000 + Math.random() * 9000);
     this.productForm.patchValue({
-      sku: `${prefix}-${random}`
+      SKU: `${prefix}-${random}`
     });
   }
 
@@ -68,6 +70,7 @@ export class AddProductComponent implements OnInit {
     this.successMessage = '';
 
     const productData = this.productForm.value;
+    productData.unit = "pcs";
 
     // Use the actual ProductService to save to API
     this.productService.addProduct(productData).subscribe({

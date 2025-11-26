@@ -9,7 +9,7 @@ export interface ProductItem {
     _id : mongoId;
     name : string;
     description : string;
-    sku : string;
+    SKU : string;
     category : string;
     price : number;
     stock : number;
@@ -20,14 +20,17 @@ export interface ProductItem {
     maxStockLevel : number;
     venue : mongoId;
     createdBy : mongoId;
+    products: any;
+    data: any;
     isActive : boolean;
     createdAt : number;
     updatedAt : number;
     imgSrc? : string;
+    warehouseId : mongoId;
 }
 
 export interface ProductApiResponse {
-    data: ProductItem[];
+    data: any;
     status? : string;
     totalRecords : number;
 }

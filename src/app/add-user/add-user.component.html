@@ -71,13 +71,13 @@
 
                                 <!--phone-->
                                 <div class="mb-20">
-                                    <label for="number"
+                                    <label for="contactNumber"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Phone</label>
-                                    <input type="phone" class="form-control radius-8" id="number" formControlName="phone"
+                                    <input type="phone" class="form-control radius-8" id="contactNumber" formControlName="contactNumber"
                                         placeholder="Enter phone number">
-                                    <div *ngIf="f['phone'].invalid && (f['phone'].dirty || f['phone'].touched)" 
+                                    <div *ngIf="f['contactNumber'].invalid && (f['contactNumber'].dirty || f['contactNumber'].touched)" 
                                         class="text-danger small mt-1">
-                                        <div *ngIf="f['phone'].errors?.['required']">Phone No. is required</div>
+                                        <div *ngIf="f['contactNumber'].errors?.['required']">Phone No. is required</div>
                                     </div>
                                 </div>
 
