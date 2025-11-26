@@ -26,9 +26,11 @@ export interface UserItem {
 }
 
 export interface UserApiResponse {
-    data: UserItem[];
+    data: any;
+    users: UserItem[];
     status?: string;
     totalRecords: number;
+    total: number;
     success?: boolean;
 }
 

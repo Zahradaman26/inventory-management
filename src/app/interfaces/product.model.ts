@@ -15,6 +15,7 @@ export interface ProductItem {
     stock : number;
     pendingStock: number,
     reservedStock : number,
+    stockQuantity: number,
     unit : string,
     minStockLevel : number;
     maxStockLevel : number;

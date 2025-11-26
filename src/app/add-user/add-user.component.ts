@@ -3,12 +3,12 @@ import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../services/user.service';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-add-user',
   standalone: true,
-  imports: [BreadcrumbComponent, CommonModule, ReactiveFormsModule],
+  imports: [BreadcrumbComponent, CommonModule, ReactiveFormsModule, RouterModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './add-user.component.html',
   styleUrl: './add-user.component.css',
@@ -83,8 +83,5 @@ export class AddUserComponent implements OnInit {
     Object.keys(this.userForm.controls).forEach(key => {
       this.userForm.get(key)?.markAsTouched();
     })
-  }
-  onCancel(): void {
-    this.router.navigate['/users-list']
   }
 }

@@ -2,68 +2,33 @@
 <div class="dashboard-main-body">
   <app-breadcrumb [title]="title"></app-breadcrumb>
 
-  <div class="card h-100 p-0 radius-12">
-    <div
-      class="card-header border-bottom bg-base py-16 px-24 d-flex align-items-center flex-wrap gap-3 justify-content-between">
-      <div class="d-flex align-items-center flex-wrap gap-3">
-        <span class="text-md fw-medium text-secondary-light mb-0">Show</span>
-        <select 
-          class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
-          (change)="onItemsPerPageChange($event)"
-          [disabled]="isLoading">
-          <option [value]="5">5</option>
-          <option [value]="10" selected>10</option>
-          <option [value]="15">15</option>
-          <option [value]="20">20</option>
-          <option [value]="25">25</option>
-        </select>
-        <form class="navbar-search">
-          <input 
-            type="text" 
-            class="bg-base h-40-px w-auto" 
-            name="search" 
-            placeholder="Search"
-            (input)="onSearchChange($event)"
-            [disabled]="isLoading">
-          <iconify-icon icon="ion:search-outline" class="icon"></iconify-icon>
-        </form>
-        <select 
-          class="form-select form-select-sm w-auto ps-12 py-6 radius-12 h-40-px"
-          (change)="onStatusFilterChange($event)"
-          [disabled]="isLoading">
-          <option value="">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
-      </div>
+  <div class="card basic-data-table">
+    <div class="card-body">
       <a routerLink="/add-user"
-        class="btn btn-primary text-sm btn-sm px-12 py-12 radius-8 d-flex align-items-center gap-2">
+        class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
         Add New User
       </a>
-    </div>
-    
-    <div class="card-body p-24">
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2 text-secondary">Loading users...</p>
-      </div>
 
-      <!-- Users Table -->
-      <div *ngIf="!isLoading" class="table-responsive scroll-sm">
-        <table class="table bordered-table sm-table mb-0">
+      <div class="overflow-x-auto">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-secondary">Loading users...</p>
+        </div>
+
+        <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
           <thead>
             <tr>
               <th scope="col">
                 <div class="d-flex align-items-center gap-10">
-                  <div class="form-check style-check d-flex align-items-center">
+                  <!-- <div class="form-check style-check d-flex align-items-center">
                     <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox"
                       id="selectAll">
-                  </div>
-                  S.L
+                  </div> -->
+                  Sr No.
                 </div>
               </th>
               <th scope="col">Join Date</th>
@@ -77,10 +42,10 @@
             <tr *ngFor="let user of users; let i = index">
               <td>
                 <div class="d-flex align-items-center gap-10">
-                  <div class="form-check style-check d-flex align-items-center">
+                  <!-- <div class="form-check style-check d-flex align-items-center">
                     <input class="form-check-input radius-4 border border-neutral-400" type="checkbox"
                       name="checkbox" />
-                  </div>
+                  </div> -->
                   {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
@@ -95,100 +60,38 @@
                 </div>
               </td>
               <td>
-                <select 
-                  [(ngModel)]="user.role"
-                  (change)="onRoleChange(user)"
-                  [disabled]="isUpdating"
+                <select [(ngModel)]="user.role" (change)="onRoleChange(user)" [disabled]="isUpdating"
                   class="form-control w-auto border border-neutral-900 fw-semibold text-primary-light text-sm">
-                  <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                  <option *ngFor="let role of roles" [value]="role">{{ role | titlecase}}</option>
                 </select>
               </td>
               <td class="text-center">
-                <span 
-                  (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')"
-                  [ngClass]="{
+                <span (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" [ngClass]="{
                     'bg-success-focus text-success-600 border border-success-main cursor-pointer': user.status === 'Active',
                     'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': user.status === 'Inactive'
-                  }" 
-                  class="px-24 py-4 radius-4 fw-medium text-sm">
+                  }" class="px-24 py-4 radius-4 fw-medium text-sm">
                   {{ user.status }}
                 </span>
               </td>
               <td class="text-center">
                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                  <button 
-                    type="button"
-                    (click)="onView(user)"
-                    [disabled]="isUpdating"
+                  <button type="button" (click)="onView(user)" [disabled]="isUpdating"
                     class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
                   </button>
-                  <button 
-                    type="button"
-                    (click)="onEdit(user)"
-                    [disabled]="isUpdating"
+                  <button type="button" (click)="onEdit(user)" [disabled]="isUpdating"
                     class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
                   </button>
-                  <button 
-                    type="button"
-                    (click)="onDelete(user)"
-                    [disabled]="isUpdating"
+                  <button type="button" (click)="onDelete(user)" [disabled]="isUpdating"
                     class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
                   </button>
                 </div>
               </td>
             </tr>
-            
-            <!-- Empty State -->
-            <tr *ngIf="users.length === 0">
-              <td colspan="6" class="text-center py-4">
-                <div class="text-secondary">
-                  <iconify-icon icon="mdi:account-off-outline" class="icon text-4xl"></iconify-icon>
-                  <p class="mt-2">No users found</p>
-                </div>
-              </td>
-            </tr>
           </tbody>
         </table>
-      </div>
-
-      <!-- Pagination -->
-      <div *ngIf="!isLoading && users.length > 0" class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-24">
-        <span>{{ showingText }}</span>
-        <ul class="pagination d-flex flex-wrap align-items-center gap-2 justify-content-center">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <a 
-              class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md"
-              (click)="previousPage()"
-              [class.disabled]="currentPage === 1">
-              <iconify-icon icon="ep:d-arrow-left"></iconify-icon>
-            </a>
-          </li>
-          
-          <li 
-            class="page-item" 
-            *ngFor="let page of paginationPages"
-            [class.active]="page === currentPage">
-            <a 
-              class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px"
-              (click)="goToPage(page)"
-              [class.bg-primary-600]="page === currentPage"
-              [class.text-white]="page === currentPage">
-              {{ page }}
-            </a>
-          </li>
-          
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <a 
-              class="page-link bg-neutral-200 text-secondary-light fw-semibold radius-8 border-0 d-flex align-items-center justify-content-center h-32-px w-32-px text-md"
-              (click)="nextPage()"
-              [class.disabled]="currentPage === totalPages">
-              <iconify-icon icon="ep:d-arrow-right"></iconify-icon>
-            </a>
-          </li>
-        </ul>
       </div>
     </div>
   </div>
