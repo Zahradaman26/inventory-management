@@ -1,10 +1,23 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnDestroy, OnInit, ViewChild, Renderer2 } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import {
+  AfterViewInit,
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  Renderer2,
+} from '@angular/core';
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterOutlet,
+} from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ThemeService } from '../services/theme.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../services/auth-service.service';
-
 
 @Component({
   selector: 'app-side-nav',
@@ -17,36 +30,46 @@ import { AuthService } from '../services/auth-service.service';
 export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
   title = 'SideNav';
   currentYear: number = new Date().getFullYear();
+  user: any;
   private routerSubscription!: Subscription;
   @ViewChild('themeButton') themeButton!: ElementRef<HTMLElement>;
 
   currentThemeSetting: string = 'light';
   isSidebarOpen = true;
+  sidebar: boolean = false;
 
-  constructor(private router: Router,
+  constructor(
+    private router: Router,
     private themeService: ThemeService,
     private renderer: Renderer2,
     private el: ElementRef,
     private authService: AuthService
-  ) { }
-  ngOnInit(): void {
+  ) {}
 
+  ngOnInit(): void {
     const localStorageTheme = localStorage.getItem('theme');
-    this.currentThemeSetting = this.themeService.calculateSettingAsThemeString(localStorageTheme);
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    this.user = user;
+
+    this.currentThemeSetting =
+      this.themeService.calculateSettingAsThemeString(localStorageTheme);
 
     setTimeout(() => {
       if (this.themeButton) {
-        this.themeService.updateButton(this.themeButton.nativeElement, this.currentThemeSetting === 'dark');
+        this.themeService.updateButton(
+          this.themeButton.nativeElement,
+          this.currentThemeSetting === 'dark'
+        );
       }
     });
 
-
-    this.routerSubscription = this.router.events.subscribe(event => {
+    this.routerSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.handleSidebarActiveClass(event);  // Call your function after route change
+        this.handleSidebarActiveClass(event); // Call your function after route change
       }
     });
   }
+
   ngOnDestroy() {
     // Unsubscribe to avoid memory leaks
     if (this.routerSubscription) {
@@ -55,7 +78,9 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    const submenuItems = document.querySelectorAll('.sidebar-menu .sidebar-submenu li');
+    const submenuItems = document.querySelectorAll(
+      '.sidebar-menu .sidebar-submenu li'
+    );
     submenuItems.forEach((item) => {
       item.addEventListener('click', (event) => {
         event.stopPropagation(); // Prevent the click from affecting the parent `.dropdown`
@@ -63,7 +88,9 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     });
 
     // Handle dropdown toggle
-    const dropdowns = document.querySelectorAll<HTMLElement>('.sidebar-menu .dropdown');
+    const dropdowns = document.querySelectorAll<HTMLElement>(
+      '.sidebar-menu .dropdown'
+    );
     dropdowns.forEach((dropdown) => {
       dropdown.addEventListener('click', (event) => {
         event.stopPropagation(); // Avoid further bubbling if necessary
@@ -71,12 +98,13 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
         const current = event.currentTarget as HTMLElement;
 
         // Close sibling dropdowns
-        const siblings = Array.from(current.parentElement?.children || []).filter(
-          (el) => el !== current && el.classList.contains('dropdown')
-        );
+        const siblings = Array.from(
+          current.parentElement?.children || []
+        ).filter((el) => el !== current && el.classList.contains('dropdown'));
 
         siblings.forEach((sibling) => {
-          const submenu = sibling.querySelector<HTMLElement>('.sidebar-submenu');
+          const submenu =
+            sibling.querySelector<HTMLElement>('.sidebar-submenu');
           if (submenu) {
             submenu.style.display = 'none';
           }
@@ -86,7 +114,8 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
         // Toggle current submenu
         const submenu = current.querySelector<HTMLElement>('.sidebar-submenu');
         if (submenu) {
-          submenu.style.display = submenu.style.display === 'block' ? 'none' : 'block';
+          submenu.style.display =
+            submenu.style.display === 'block' ? 'none' : 'block';
         }
 
         current.classList.toggle('dropdown-open');
@@ -94,31 +123,37 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-
   toggleSidebar(event: Event) {
     const toggleButton = event.currentTarget as HTMLElement;
 
     // Toggle 'active' on clicked button
     if (toggleButton.classList.contains('active')) {
       this.renderer.removeClass(toggleButton, 'active');
+      this.sidebar = false;
     } else {
       this.renderer.addClass(toggleButton, 'active');
+      this.sidebar = true;
     }
 
     // Toggle 'active' on .sidebar
     const sidebar = this.el.nativeElement.querySelector('.sidebar');
     if (sidebar.classList.contains('active')) {
       this.renderer.removeClass(sidebar, 'active');
+      this.sidebar = false;
     } else {
       this.renderer.addClass(sidebar, 'active');
+      this.sidebar = true;
     }
 
     // Toggle 'active' on .dashboard-main
-    const dashboardMain = this.el.nativeElement.querySelector('.dashboard-main');
+    const dashboardMain =
+      this.el.nativeElement.querySelector('.dashboard-main');
     if (dashboardMain.classList.contains('active')) {
       this.renderer.removeClass(dashboardMain, 'active');
+      this.sidebar = false;
     } else {
       this.renderer.addClass(dashboardMain, 'active');
+      this.sidebar = true;
     }
   }
   openSidebar() {
@@ -133,7 +168,6 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
   }
 
   handleSidebarActiveClass(event: NavigationEnd) {
-
     const sidebarMenu = document.querySelector('ul#sidebar-menu');
 
     if (!sidebarMenu) return;
@@ -198,7 +232,10 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
 
     // Update button and theme
     if (this.themeButton) {
-      this.themeService.updateButton(this.themeButton.nativeElement, newTheme === 'dark');
+      this.themeService.updateButton(
+        this.themeButton.nativeElement,
+        newTheme === 'dark'
+      );
       this.themeService.updateThemeOnHtmlEl(newTheme);
     }
 
@@ -211,8 +248,3 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     this.authService.logout();
   }
 }
-
-
-
-
-
