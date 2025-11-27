@@ -28,6 +28,14 @@ export interface ProductItem {
     updatedAt : number;
     imgSrc? : string;
     warehouseId : mongoId;
+    warehouse?: { // Populated warehouse data
+        _id: string;
+        name: string;
+        location: {
+            city: string;
+            state: string;
+        };
+    };
 }
 
 export interface ProductApiResponse {

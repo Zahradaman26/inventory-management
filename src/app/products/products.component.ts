@@ -124,13 +124,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.successMessage = null;
     this.error = null;
 
-    console.log('🔄 Updating status for product:', product.name, 'to:', newStatus ? 'Active' : 'Inactive');
 
     this.productService.updateProductStatus(productId, newStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Status update API response:', response);
           
           // Update the product in all arrays
           const updateProductInArray = (arr: any[]) => {

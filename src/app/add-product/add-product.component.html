@@ -126,19 +126,39 @@
                         </div>
                     </div>
 
-                    <!-- Warehouse -->
+                    <!-- Warehouse - Updated with Dynamic Loading -->
                     <div class="col-md-6 mb-3">
                         <label for="warehouseId" class="form-label">Warehouse *</label>
-                        <select class="form-select" 
+                        
+                        <!-- Loading State for Warehouses -->
+                        <div *ngIf="isloadingWarehouses" class="form-control">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Loading warehouses...
+                        </div>
+
+                        <!-- Warehouse Dropdown -->
+                        <select *ngIf="!isloadingWarehouses"
+                                class="form-select" 
                                 id="warehouseId"
                                 formControlName="warehouseId"
                                 [disabled]="isLoading">
                             <option value="">Select Warehouse</option>
-                            <option value="6923ead292734c79aa6891cf">Main Mumbai Warehouse</option>
+                            <option *ngFor="let warehouse of warehouses" [value]="warehouse._id">
+                                {{ warehouse.name }} - {{ warehouse.location?.city }} 
+                                <span *ngIf="warehouse.capacity">(Capacity: {{ warehouse.capacity | number }})</span>
+                            </option>
                         </select>
+
                         <div *ngIf="f['warehouseId'].invalid && (f['warehouseId'].dirty || f['warehouseId'].touched)" 
                             class="text-danger small mt-1">
                             <div *ngIf="f['warehouseId'].errors?.['required']">Warehouse is required</div>
+                        </div>
+
+                        <!-- No Warehouses Available Message -->
+                        <div *ngIf="!isloadingWarehouses && warehouses.length === 0" class="text-warning small mt-1">
+                            No warehouses available. Please create a warehouse first.
                         </div>
                     </div>
 
@@ -188,7 +208,7 @@
                     
                     <button type="submit" 
                             class="btn btn-primary"
-                            [disabled]="isLoading || productForm.invalid">
+                            [disabled]="isLoading || productForm.invalid || isloadingWarehouses">
                         <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
                         {{ isEditMode ? 'Update Product' : 'Add Product' }}
                     </button>

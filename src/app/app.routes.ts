@@ -130,6 +130,7 @@ export const routes: Routes = [
             { path: 'add-product', component: AddProductComponent },
             { path: 'add-product/:id', component: AddProductComponent },
             { path: 'add-warehouse', component: AddWarehouseComponent },
+            { path: 'add-warehouse/:id', component: AddWarehouseComponent },
             { path: 'alert', component: AlertComponent },
             { path: 'assign-role', component: AssignRoleComponent },
             // { path: 'avatar', component: AvatarComponent },

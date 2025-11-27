@@ -37,7 +37,6 @@ export class AddUserComponent implements OnInit {
   ngOnInit(): void {
     // Check if we're in edit mode (has ID parameter)
     this.userId = this.route.snapshot.paramMap.get('id');
-    console.log('User ID from route:', this.userId);
 
     if (this.userId) {
       this.isEditMode = true;
@@ -59,11 +58,9 @@ export class AddUserComponent implements OnInit {
 
   loadUserData(): void {
     this.loading = true;
-    console.log('Loading user data for ID:', this.userId);
 
     this.userService.getUserById(this.userId!).subscribe({
       next: (response) => {
-        console.log('User data loaded:', response); 
         const user = response.data;
         this.userForm.patchValue({
           name: user.name,
@@ -104,10 +101,8 @@ export class AddUserComponent implements OnInit {
 
     if (this.isEditMode) {
       // Update existing user
-      console.log('Updating user:', formData);
       this.userService.updateUser(this.userId!, formData).subscribe({
         next: (response) => {
-          console.log('User updated successfully:', response);
 
           this.loading = false;
           this.successMessage = 'User updated successfully!';
@@ -123,10 +118,8 @@ export class AddUserComponent implements OnInit {
       });
     } else {
       // Add new user
-      console.log('Adding new user:', formData);
       this.userService.addUser(formData).subscribe({
         next: (response) => {
-          console.log('User added successfully:', response);
           this.loading = false;
           this.successMessage = 'User added successfully!';
           this.userForm.reset();

@@ -9,6 +9,9 @@ import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { ProductService } from '../services/product.service';
 import { ProductItem } from '../interfaces/product.model';
 
+import { WarehouseService } from '../services/warehouse.service';
+import { WarehouseItem } from '../interfaces/warehouse.model';
+
 @Component({
   selector: 'app-add-product',
   standalone: true,
@@ -28,7 +31,9 @@ export class AddProductComponent implements OnInit, OnDestroy {
   successMessage = '';
 
   categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Beauty', 'Toys', 'Other'];
-  warehouses = ['Begumwadi'];
+  // Warehouse dropdown data
+  warehouses: WarehouseItem[] = [];
+  isloadingWarehouses = false;
 
   private destroy$ = new Subject<void>();
 
@@ -36,7 +41,8 @@ export class AddProductComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
-    private productService: ProductService
+    private productService: ProductService,
+    private warehouseService: WarehouseService
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +56,9 @@ export class AddProductComponent implements OnInit, OnDestroy {
         this.loadProductData(this.productId);
       }
     });
+
+    // Load warehouses for dropdown
+    this.loadWarehouses();
   }
 
   initializeForm(): void {
@@ -63,6 +72,25 @@ export class AddProductComponent implements OnInit, OnDestroy {
       stock: [0, [Validators.required, Validators.min(0)]],
       isActive: [true]
     });
+  }
+
+  loadWarehouses(): void {
+    this.isloadingWarehouses = true;
+    
+    // Use getAllWarehouses() or getActiveWarehouses() based on your requirement
+    this.warehouseService.getActiveWarehouses()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (warehouses) => {
+          this.warehouses = warehouses;
+          this.isloadingWarehouses = false;
+        },
+        error: (error) => {
+          console.error('Error loading warehouses:', error);
+          this.errorMessage = 'Failed to load warehouses. Please try again.';
+          this.isloadingWarehouses = false;
+        }
+      });
   }
 
   loadProductData(productId: string): void {

@@ -145,14 +145,12 @@ export class UserService {
   // UPDATE USER STATUS
   // -----------------------------------------
   updateUserStatus(id: string, statusData: { status: 'Active' | 'Inactive' }): Observable<any> {
-    console.log('🔧 updateUserStatus called with:', { id, statusData });
     
      const apiData = {
       isActive: statusData.status === 'Active'
     };
     return this.http.put<any>(`${this.apiUrl}/users/${id}`, statusData).pipe(
       map((response) => {
-        console.log('🔧 updateUserStatus response:', response);
         return {
           data: this.transformUserData(response.data, 0),
           status: response.status || 'success',
