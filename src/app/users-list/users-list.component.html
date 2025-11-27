@@ -4,6 +4,17 @@
 
   <div class="card basic-data-table">
     <div class="card-body">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
       <a routerLink="/add-user"
         class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
@@ -49,7 +60,7 @@
                   {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
-              <td>{{ user.joinDate }}</td>
+              <td>{{ user.joinDate | date}}</td>
               <td>
                 <div class="d-flex align-items-center">
                   <img [src]="user.imgSrc" [alt]="user.name"
@@ -66,12 +77,17 @@
                 </select>
               </td>
               <td class="text-center">
-                <span (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" [ngClass]="{
+                <button 
+                  (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" 
+                  [ngClass]="{
                     'bg-success-focus text-success-600 border border-success-main cursor-pointer': user.status === 'Active',
                     'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': user.status === 'Inactive'
-                  }" class="px-24 py-4 radius-4 fw-medium text-sm">
+                  }" 
+                  class="px-24 py-4 radius-4 fw-medium text-sm"
+                  [class.opacity-50]="isUpdating"
+                >
                   {{ user.status }}
-                </span>
+                </button>
               </td>
               <td class="text-center">
                 <div class="d-flex align-items-center gap-10 justify-content-center">
@@ -96,3 +112,6 @@
     </div>
   </div>
 </div>
+
+
+

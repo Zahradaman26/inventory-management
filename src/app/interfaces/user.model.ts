@@ -6,13 +6,14 @@ interface mongoId {
 
 export interface UserItem {
     srNo: number;
-    _id: mongoId;
+    _id: string;
     name: string;
     contactNumber: string;
+    email: string,
     role: string;
     status: 'Active' | 'Inactive';
-    department?: string;
-    position?: string;
+    // department?: string;
+    // position?: string;
     joinDate: string;
     lastLogin?: number;
     venue?: mongoId;

@@ -126,6 +126,7 @@ export const routes: Routes = [
             // { path: 'home', component: HomeComponent },
             // { path: 'add-blog', component: AddBlogComponent },
             { path: 'add-user', component: AddUserComponent },
+            { path: 'add-user/:id', component: AddUserComponent },
             { path: 'add-product', component: AddProductComponent },
             { path: 'add-warehouse', component: AddWarehouseComponent },
             { path: 'alert', component: AlertComponent },

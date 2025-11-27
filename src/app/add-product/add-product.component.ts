@@ -41,7 +41,7 @@ export class AddProductComponent implements OnInit {
       description: [''],
       category: ['', Validators.required],
       price: ['', [Validators.required, Validators.min(0)]],
-      warehouse: ['', [Validators.required, Validators.min(0)]],
+      warehouseId: ['', [Validators.required, Validators.min(0)]],
       stock: ['', [Validators.required, Validators.min(0)]],
       isActive: [true]
     });
@@ -60,6 +60,9 @@ export class AddProductComponent implements OnInit {
   }
 
   onSubmit(): void {
+    console.log('Form values:', this.productForm.value);
+    console.log('Form valid:', this.productForm.valid);
+    
     if (this.productForm.invalid) {
       this.markFormGroupTouched();
       return;

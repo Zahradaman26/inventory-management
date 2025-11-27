@@ -1,10 +1,4 @@
-import {
-  Component,
-  CUSTOM_ELEMENTS_SCHEMA,
-  OnInit,
-  OnDestroy,
-  AfterViewInit,
-} from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { RouterLink, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -43,17 +37,17 @@ export class UsersListComponent implements OnInit, OnDestroy {
   isLoading = false;
   isUpdating = false;
   error: string | null = null;
+  successMessage: string | null = null;
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
   private dataTable: any;
-
+  
   constructor(private userService: UserService, private router: Router) {}
 
   ngOnInit(): void {
     // Debug: Check authentication status
     const token = localStorage.getItem('authToken');
-
     this.loadUsers();
   }
 
@@ -111,12 +105,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
   onRoleChange(user: UserItem): void {
     this.isUpdating = true;
     this.userService
-      .updateUserRole(user._id.$oid, { role: user.role })
+      .updateUserRole(user._id, { role: user.role })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           const index = this.users.findIndex(
-            (u) => u._id.$oid === user._id.$oid
+            (u) => u._id === user._id
           );
           if (index !== -1) {
             this.users[index] = { ...this.users[index], ...response.data };
@@ -131,48 +125,94 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
   onStatusChange(user: UserItem, newStatus: 'Active' | 'Inactive'): void {
+    if (this.isUpdating) return;
+    
+    const userId = user._id;
+    
+    if (!userId) {
+      this.error = 'User ID is missing. Cannot update status.';
+      return;
+    }
+
     this.isUpdating = true;
+    this.successMessage = null;
+    this.error = null;
+
+    console.log('🔄 Updating status for user:', user.name, 'to:', newStatus);
+
     this.userService
-      .updateUserStatus(user._id.$oid, { status: newStatus })
+      .updateUserStatus(userId, { status: newStatus })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          const index = this.users.findIndex(
-            (u) => u._id.$oid === user._id.$oid
-          );
+          console.log('✅ Status update API response:', response);
+          
+          // Update the user in the local array
+          const index = this.users.findIndex(u => u._id === userId);
           if (index !== -1) {
-            this.users[index] = { ...this.users[index], ...response.data };
+            this.users[index].status = newStatus;
+            this.users[index].isActive = newStatus === 'Active';
           }
+          
           this.isUpdating = false;
+          this.successMessage = `${user.name}'s status updated to ${newStatus} successfully!`;
+          
+          setTimeout(() => {
+            this.successMessage = null;
+          }, 3000);
         },
         error: (error) => {
-          console.error('Error updating user status:', error);
+          console.error('❌ Error updating user status:', error);
           this.isUpdating = false;
+          this.error = `Failed to update status: ${error.message || error}`;
+          
+          // Revert the UI change if API call failed
+          const index = this.users.findIndex(u => u._id === userId);
+          if (index !== -1) {
+            this.users[index].status = user.status; // Revert to original status
+            this.users[index].isActive = user.isActive;
+          }
         },
       });
   }
 
   onEdit(user: UserItem): void {
-    console.log('Edit user:', user);
+    this.router.navigate(['/add-user', user._id]);
   }
 
-  onView(user: UserItem): void {
-    console.log('View user:', user);
-  }
+  onView(user: UserItem): void { }
 
   onDelete(user: UserItem): void {
-    if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+    if (confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone.`)) {
       this.isUpdating = true;
+      this.successMessage = null;
+      this.error = null;
+
       this.userService
-        .deleteUser(user._id.$oid)
+        .deleteUser(user._id)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: () => {
-            this.loadUsers(); // Reload to get updated list
+          next: (response) => {
+            this.isUpdating = false;
+            
+            // Remove the user from the local array immediately
+            this.users = this.users.filter(u => u._id !== user._id);
+            
+            // Update the serial numbers
+            this.users.forEach((user, index) => {
+              user.srNo = index + 1;
+            });
+            
+            this.successMessage = `User ${user.name} has been deleted permanently!`;
+            
+            setTimeout(() => {
+              this.successMessage = null;
+            }, 3000);
           },
           error: (error) => {
             console.error('Error deleting user:', error);
             this.isUpdating = false;
+            this.error = `Failed to delete user: ${error.message || error}`;
           },
         });
     }

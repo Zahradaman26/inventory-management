@@ -3,7 +3,7 @@
 
     <div class="card h-100 p-0 radius-12">
         <div class="card-header border-bottom bg-base py-16 px-24">
-            <h5 class="mb-0">Add New User</h5>
+            <h5 class="mb-0">{{ isEditMode ? 'Edit User' : 'Add New User' }}</h5>
         </div>
         <div class="card-body p-24">
             <!-- Success Message -->
@@ -53,6 +53,7 @@
                                     <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
                                         class="text-danger small mt-1">
                                         <div *ngIf="f['name'].errors?.['required']">Name is required</div>
+                                        <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters</div>
                                     </div>
                                 </div>
 
@@ -66,30 +67,61 @@
                                     <div *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" 
                                         class="text-danger small mt-1">
                                         <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+                                        <div *ngIf="f['email'].errors?.['email']">Enter a valid email</div>
                                     </div>
                                 </div>
 
-                                <!--phone-->
+                                <!--password-->
+                                <div class="mb-20">
+                                    <label for="password"
+                                        class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Password <span *ngIf="!isEditMode" class="text-danger-600">*</span>
+                                        <span *ngIf="isEditMode" class="text-muted">(Leave blank to keep current)</span>
+                                    </label>
+                                    <div class="position-relative">
+                                        <input #passwordInput 
+                                            [type]="'password'" 
+                                            class="form-control radius-8" 
+                                            id="password" 
+                                            formControlName="password"
+                                            [placeholder]="isEditMode ? 'Enter new password if changing' : 'Enter password'">
+                                        <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" 
+                                            (click)="togglePassword(passwordInput, $event)"></span>
+                                    </div>
+                                    <div *ngIf="f['password'].invalid && (f['password'].dirty || f['password'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['password'].errors?.['required'] && !isEditMode">Password is required</div>
+                                        <div *ngIf="f['password'].errors?.['minlength']">Password must be at least 6 characters</div>
+                                    </div>
+                                </div>
+
+                                <!--contactNumber-->
                                 <div class="mb-20">
                                     <label for="contactNumber"
-                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Phone</label>
-                                    <input type="phone" class="form-control radius-8" id="contactNumber" formControlName="contactNumber"
-                                        placeholder="Enter phone number">
+                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Contact Number <span
+                                            class="text-danger-600">*</span></label>
+                                    <input type="text" class="form-control radius-8" id="contactNumber" formControlName="contactNumber"
+                                        placeholder="Enter contact number">
                                     <div *ngIf="f['contactNumber'].invalid && (f['contactNumber'].dirty || f['contactNumber'].touched)" 
                                         class="text-danger small mt-1">
-                                        <div *ngIf="f['contactNumber'].errors?.['required']">Phone No. is required</div>
+                                        <div *ngIf="f['contactNumber'].errors?.['required']">Contact No. is required</div>
+                                        <div *ngIf="f['contactNumber'].errors?.['minlength']">Contact number must be at least 10 digits</div>
+                                        <div *ngIf="f['contactNumber'].errors?.['pattern']">
+                                            Contact number must start with + and country code (e.g., +919876543210)
+                                        </div>
                                     </div>
+                                    <small class="form-text text-muted">Format: +[country code][number] (e.g., +919876543210)</small>
                                 </div>
 
                                 <!--role-->
                                 <div class="mb-20">
-                                    <label for="depart"
+                                    <label for="role"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Role <span
                                             class="text-danger-600">*</span> </label>
                                     <select class="form-control radius-8 form-select" id="role" formControlName="role">
-                                        <option value="">Select Category</option>
+                                        <option value="">Select Role</option>
                                         <option *ngFor="let role of roles" [value]="role">
-                                            {{ role }}
+                                            {{ role | titlecase }}
                                         </option>
                                     </select>
                                     <div *ngIf="f['role'].invalid && (f['role'].dirty || f['role'].touched)" 
@@ -98,9 +130,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Status -->
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Status</label>
+                                <!-- Status (Show only in edit mode) -->
+                                <div class="mb-20" *ngIf="isEditMode">
+                                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">Status</label>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" 
                                             type="checkbox" 
@@ -111,22 +143,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <!-- <div class="mb-20">
-                                    <label for="desig"
-                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Designation <span
-                                            class="text-danger-600">*</span> </label>
-                                    <select class="form-control radius-8 form-select" id="desig">
-                                        <option>Enter Designation Title </option>
-                                        <option>Enter Designation Title One </option>
-                                        <option>Enter Designation Title Two</option>
-                                    </select>
-                                </div>
-                                <div class="mb-20">
-                                    <label for="desc"
-                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Description</label>
-                                    <textarea name="#0" class="form-control radius-8" id="desc"
-                                        placeholder="Write description..."></textarea>
-                                </div> -->
+
                                 <div class="d-flex align-items-center justify-content-center gap-3">
                                     <button type="button" routerLink="/users-list"
                                         class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
@@ -136,7 +153,10 @@
                                         class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
                                         [disabled]="loading || userForm.invalid">
                                         <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-                                            {{ loading ? 'Adding User...' : 'Add User' }}
+                                        {{ loading ? 
+                                          (isEditMode ? 'Updating User...' : 'Adding User...') : 
+                                          (isEditMode ? 'Update User' : 'Add User') 
+                                        }}
                                     </button>
                                 </div>
                             </form>

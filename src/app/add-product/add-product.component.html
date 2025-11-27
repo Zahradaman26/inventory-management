@@ -111,20 +111,18 @@
                         </div>
                     </div>
 
-                    <!-- Category -->
+                    <!-- Warehouse -->
                     <div class="col-md-6 mb-3">
-                        <label for="warehouse" class="form-label">Warehouse *</label>
+                        <label for="warehouseId" class="form-label">Warehouse *</label>
                         <select class="form-select" 
-                                id="warehouse"
-                                formControlName="warehouse">
+                                id="warehouseId"
+                                formControlName="warehouseId"> <!-- CHANGED: warehouse -> warehouseId -->
                             <option value="">Select Warehouse</option>
-                            <option *ngFor="let warehouse of warehouses" [value]="warehouse">
-                                {{ warehouse }}
-                            </option>
+                            <option value="6923ead292734c79aa6891cf">Main Mumbai Warehouse</option>
                         </select>
-                        <div *ngIf="f['warehouse'].invalid && (f['warehouse'].dirty || f['warehouse'].touched)" 
-                             class="text-danger small mt-1">
-                            <div *ngIf="f['warehouse'].errors?.['required']">Warehouse is required</div>
+                        <div *ngIf="f['warehouseId'].invalid && (f['warehouseId'].dirty || f['warehouseId'].touched)" 
+                            class="text-danger small mt-1">
+                            <div *ngIf="f['warehouseId'].errors?.['required']">Warehouse is required</div>
                         </div>
                     </div>
 
