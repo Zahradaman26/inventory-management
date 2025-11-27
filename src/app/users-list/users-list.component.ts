@@ -138,14 +138,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
     this.successMessage = null;
     this.error = null;
 
-    console.log('🔄 Updating status for user:', user.name, 'to:', newStatus);
 
     this.userService
       .updateUserStatus(userId, { status: newStatus })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('✅ Status update API response:', response);
           
           // Update the user in the local array
           const index = this.users.findIndex(u => u._id === userId);

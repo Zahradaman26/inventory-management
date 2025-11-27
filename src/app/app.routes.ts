@@ -128,6 +128,7 @@ export const routes: Routes = [
             { path: 'add-user', component: AddUserComponent },
             { path: 'add-user/:id', component: AddUserComponent },
             { path: 'add-product', component: AddProductComponent },
+            { path: 'add-product/:id', component: AddProductComponent },
             { path: 'add-warehouse', component: AddWarehouseComponent },
             { path: 'alert', component: AlertComponent },
             { path: 'assign-role', component: AssignRoleComponent },

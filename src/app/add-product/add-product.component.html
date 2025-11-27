@@ -1,25 +1,33 @@
 <div class="dashboard-main-body">
-    <app-breadcrumb [title]="title"></app-breadcrumb> <!-- Add this line -->
+    <app-breadcrumb [title]="title"></app-breadcrumb>
 
     <div class="card h-100 p-0 radius-12">
         <div class="card-header border-bottom bg-base py-16 px-24">
-            <h5 class="mb-0">Add New Product</h5>
+            <h5 class="mb-0">{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h5>
         </div>
         
         <div class="card-body p-24">
+            <!-- Loading State for Edit Mode -->
+            <div *ngIf="isEditMode && isLoading" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-secondary">Loading product data...</p>
+            </div>
+
             <!-- Success Message -->
             <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ successMessage }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" (click)="successMessage = ''"></button>
             </div>
 
             <!-- Error Message -->
             <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ errorMessage }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
             </div>
 
-            <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+            <form [formGroup]="productForm" (ngSubmit)="onSubmit()" *ngIf="!isEditMode || !isLoading">
                 <div class="row">
                     <!-- SKU -->
                     <div class="col-md-6 mb-3">
@@ -29,10 +37,13 @@
                                    class="form-control" 
                                    id="SKU"
                                    formControlName="SKU"
-                                   placeholder="Product sku">
-                            <button type="button" 
+                                   placeholder="Product sku"
+                                   [readonly]="isEditMode">
+                            <button *ngIf="!isEditMode"
+                                    type="button" 
                                     class="btn btn-outline-secondary" 
-                                    (click)="generateSKU()">
+                                    (click)="generateSKU()"
+                                    [disabled]="isLoading">
                                 Generate
                             </button>
                         </div>
@@ -50,7 +61,8 @@
                                class="form-control" 
                                id="name"
                                formControlName="name"
-                               placeholder="Enter product name">
+                               placeholder="Enter product name"
+                               [disabled]="isLoading">
                         <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
                              class="text-danger small mt-1">
                             <div *ngIf="f['name'].errors?.['required']">Product name is required</div>
@@ -63,7 +75,8 @@
                         <label for="category" class="form-label">Category *</label>
                         <select class="form-select" 
                                 id="category"
-                                formControlName="category">
+                                formControlName="category"
+                                [disabled]="isLoading">
                             <option value="">Select Category</option>
                             <option *ngFor="let category of categories" [value]="category">
                                 {{ category }}
@@ -86,7 +99,8 @@
                                    formControlName="price"
                                    placeholder="0.00"
                                    step="0.01"
-                                   min="0">
+                                   min="0"
+                                   [disabled]="isLoading">
                         </div>
                         <div *ngIf="f['price'].invalid && (f['price'].dirty || f['price'].touched)" 
                              class="text-danger small mt-1">
@@ -103,7 +117,8 @@
                                id="stock"
                                formControlName="stock"
                                placeholder="0"
-                               min="0">
+                               min="0"
+                               [disabled]="isLoading">
                         <div *ngIf="f['stock'].invalid && (f['stock'].dirty || f['stock'].touched)" 
                              class="text-danger small mt-1">
                             <div *ngIf="f['stock'].errors?.['required']">Stock quantity is required</div>
@@ -116,7 +131,8 @@
                         <label for="warehouseId" class="form-label">Warehouse *</label>
                         <select class="form-select" 
                                 id="warehouseId"
-                                formControlName="warehouseId"> <!-- CHANGED: warehouse -> warehouseId -->
+                                formControlName="warehouseId"
+                                [disabled]="isLoading">
                             <option value="">Select Warehouse</option>
                             <option value="6923ead292734c79aa6891cf">Main Mumbai Warehouse</option>
                         </select>
@@ -133,7 +149,8 @@
                             <input class="form-check-input" 
                                    type="checkbox" 
                                    id="isActive"
-                                   formControlName="isActive">
+                                   formControlName="isActive"
+                                   [disabled]="isLoading">
                             <label class="form-check-label" for="isActive">
                                 {{ productForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
                             </label>
@@ -147,7 +164,8 @@
                                   id="description"
                                   formControlName="description"
                                   rows="3"
-                                  placeholder="Enter product description"></textarea>
+                                  placeholder="Enter product description"
+                                  [disabled]="isLoading"></textarea>
                     </div>
                 </div>
 
@@ -155,14 +173,24 @@
                 <div class="d-flex gap-2 justify-content-end mt-4">
                     <button type="button" 
                             class="btn btn-secondary"
-                            (click)="onCancel()">
+                            (click)="onCancel()"
+                            [disabled]="isLoading">
                         Cancel
                     </button>
+                    
+                    <button *ngIf="isEditMode"
+                            type="button" 
+                            class="btn btn-danger me-auto"
+                            (click)="onDelete()"
+                            [disabled]="isLoading">
+                        Delete Product
+                    </button>
+                    
                     <button type="submit" 
                             class="btn btn-primary"
-                            [disabled]="loading || productForm.invalid">
-                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-                        {{ loading ? 'Adding Product...' : 'Add Product' }}
+                            [disabled]="isLoading || productForm.invalid">
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ isEditMode ? 'Update Product' : 'Add Product' }}
                     </button>
                 </div>
             </form>

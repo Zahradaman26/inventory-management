@@ -100,7 +100,13 @@ export class ProductService {
     return this.http.get<any>(`${this.PRODUCTS_API_URL}/${productId}`).pipe(
       map(response => {
         if (response.success && response.data) {
-          return response.data;
+          const productData = response.data.product || response.data;
+          
+          if (!productData) {
+            throw new Error('Product data not found in response');
+          }
+          
+          return productData as ProductItem;
         }
         throw new Error('Product not found');
       }),
@@ -135,7 +141,7 @@ export class ProductService {
   updateProductStatus(productId: string, isActive: boolean): Observable<any> {
     const payload = { isActive };
     
-    return this.http.patch<any>(`${this.PRODUCTS_API_URL}/${productId}`, payload).pipe(
+    return this.http.put<any>(`${this.PRODUCTS_API_URL}/${productId}`, payload).pipe(
       map(response => {
         if (response.success) {
           return response.data || { message: 'Status updated successfully' };

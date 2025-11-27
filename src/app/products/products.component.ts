@@ -5,7 +5,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { SearchResult } from '../interfaces/product.model';
+import { ProductItem, SearchResult } from '../interfaces/product.model';
 import { ProductService } from '../services/product.service';
 import { FormsModule } from '@angular/forms';
 import { ProductSortableHeader, SortEvent } from './product-sortable.directive';
@@ -111,36 +111,62 @@ export class ProductsComponent implements OnInit, OnDestroy {
   updateStatus(product: any): void {
     if (this.isUpdating) return;
     
-    const newIsActive = !product.isActive;
     const productId = product._id?.$oid ?? (product as any)._id ?? '';
+    
+    if (!productId) {
+      this.error = 'Product ID is missing. Cannot update status.';
+      return;
+    }
 
+    const newStatus = !product.isActive;
+    
     this.isUpdating = true;
     this.successMessage = null;
     this.error = null;
 
-    this.productService.updateProductStatus(productId, newIsActive)
+    console.log('🔄 Updating status for product:', product.name, 'to:', newStatus ? 'Active' : 'Inactive');
+
+    this.productService.updateProductStatus(productId, newStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          const index = this.backupProductsList.findIndex(p => (p._id?.$oid ?? (p as any)._id) === productId);
-          if (index > -1) {
-            this.backupProductsList[index].isActive = newIsActive;
-            this.filterData(this.backupProductsList);
-          }
+        next: (response) => {
+          console.log('✅ Status update API response:', response);
+          
+          // Update the product in all arrays
+          const updateProductInArray = (arr: any[]) => {
+            const index = arr.findIndex(p => (p._id?.$oid ?? (p as any)._id) === productId);
+            if (index !== -1) {
+              arr[index].isActive = newStatus;
+            }
+          };
+
+          updateProductInArray(this.productsList);
+          updateProductInArray(this.backupProductsList);
+          updateProductInArray(this.selectedProducts);
+          
           this.isUpdating = false;
-          this.successMessage = `Product "${product.name}" status updated to ${newIsActive ? 'Active' : 'Inactive'} successfully!`;
+          this.successMessage = `Product "${product.name}" status updated to ${newStatus ? 'Active' : 'Inactive'} successfully!`;
           
           setTimeout(() => {
             this.successMessage = null;
           }, 3000);
         },
-        error: (err: any) => {
-          console.error('Error updating product status:', err);
+        error: (error) => {
+          console.error('❌ Error updating product status:', error);
           this.isUpdating = false;
-          const errMsg = typeof err === 'string' ? err : (err?.toString ? err.toString() : '');
-          if (!errMsg.includes('401')) {
-            this.error = 'Could not update status. Try again.';
-          }
+          this.error = `Failed to update status: ${error.message || error}`;
+          
+          // Revert the UI change if API call failed
+          const revertProductInArray = (arr: any[]) => {
+            const index = arr.findIndex(p => (p._id?.$oid ?? (p as any)._id) === productId);
+            if (index !== -1) {
+              arr[index].isActive = product.isActive; // Revert to original status
+            }
+          };
+
+          revertProductInArray(this.productsList);
+          revertProductInArray(this.backupProductsList);
+          revertProductInArray(this.selectedProducts);
         }
       });
   }
@@ -175,8 +201,8 @@ export class ProductsComponent implements OnInit, OnDestroy {
     // navigate if needed
   }
 
-  editProduct(product: any): void { 
-    // navigate if needed
+  editProduct(product: ProductItem): void {
+    this.router.navigate(['/add-product', product._id]);
   }
 
   // Enhanced delete functionality matching users pattern

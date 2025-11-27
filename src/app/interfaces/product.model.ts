@@ -6,7 +6,7 @@ interface mongoId {
 
 export interface ProductItem {
     srNo : number;
-    _id : mongoId;
+    _id : string;
     name : string;
     description : string;
     SKU : string;
