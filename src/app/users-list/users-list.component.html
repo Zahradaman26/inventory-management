@@ -42,8 +42,8 @@
                   Sr No.
                 </div>
               </th>
-              <th scope="col">Join Date</th>
               <th scope="col">Name</th>
+              <th scope="col">Join Date</th>
               <th scope="col">Role</th>
               <th scope="col" class="text-center">Status</th>
               <th scope="col" class="text-center">Action</th>
@@ -60,7 +60,6 @@
                   {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
-              <td>{{ user.joinDate | date}}</td>
               <td>
                 <div class="d-flex align-items-center">
                   <img [src]="user.imgSrc" [alt]="user.name"
@@ -70,6 +69,7 @@
                   </div>
                 </div>
               </td>
+              <td>{{ user.joinDate | date}}</td>
               <td>
                 <select [(ngModel)]="user.role" (change)="onRoleChange(user)" [disabled]="isUpdating"
                   class="form-control w-auto border border-neutral-900 fw-semibold text-primary-light text-sm">

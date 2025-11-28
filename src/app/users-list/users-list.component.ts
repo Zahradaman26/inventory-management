@@ -23,7 +23,7 @@ import { UserItem, UserApiResponse } from '../interfaces/user.model';
 export class UsersListComponent implements OnInit, OnDestroy {
   title = 'Users Lists';
   users: UserItem[] = [];
-  roles: string[] = ['User', 'Admin', 'Viewer'];
+  roles: string[] = ['user', 'super_admin', 'viewer'];
 
   // Pagination and filtering
   currentPage = 1;
