@@ -35,7 +35,6 @@ export class AddUserComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Check if we're in edit mode (has ID parameter)
     this.userId = this.route.snapshot.paramMap.get('id');
 
     if (this.userId) {
@@ -72,7 +71,7 @@ export class AddUserComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading user:', error);
+        // console.error('Error loading user:', error);
         this.loading = false;
         this.errorMessage = 'Failed to load user data';
       }
@@ -92,8 +91,7 @@ export class AddUserComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.successMessage = '';
-
-    // For edit mode, remove password if empty (don't update password)
+    
     const formData = { ...this.userForm.value };
     if (this.isEditMode && !formData.password) {
       delete formData.password;
@@ -111,7 +109,7 @@ export class AddUserComponent implements OnInit {
           }, 1500);
         },
         error: (error) => {
-          console.error('Error updating user:', error); 
+          // console.error('Error updating user:', error); 
           this.loading = false;
           this.errorMessage = error || 'Failed to update user. Please try again.';
         }
@@ -129,7 +127,7 @@ export class AddUserComponent implements OnInit {
           }, 1500);
         },
         error: (error) => {
-          console.error('Error adding user:', error);
+          // console.error('Error adding user:', error);
           this.loading = false;
           this.errorMessage = error || 'Failed to add user. Please try again.';
         }

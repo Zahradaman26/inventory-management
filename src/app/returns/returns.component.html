@@ -1,1 +1,279 @@
-<p>returns works!</p>
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card basic-data-table">
+        <!-- <div class="card-header">
+            <a data-bs-toggle="modal" data-bs-target="#returnModal"
+                class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                Return Order
+            </a>
+        </div> -->
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table bordered-table mb-0" id="dataTable" data-page-length="10">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="form-check style-check d-flex align-items-center">
+                                    <!-- <input class="form-check-input" type="checkbox" /> -->
+                                    <label class="form-check-label"> Sr No. </label>
+                                </div>
+                            </th>
+                            <th scope="col">Return No</th>
+                            <th scope="col">Order No</th>
+                            <th scope="col">Return Date</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let return of returnsList; let i = index">
+                            <td>
+                                <div class="form-check style-check d-flex align-items-center">
+                                    <!-- <input class="form-check-input" type="checkbox" /> -->
+                                    <label class="form-check-label"> {{ i + 1 | number:'2.0' }} </label>
+                                </div>
+                            </td>
+                            <td>
+                                {{ return.returnNumber }}
+                            </td>
+                            <td>
+                                {{ return.orderId.orderNumber }}
+                                <!-- <div class="d-flex align-items-center">
+                                    <img [src]="return.img" alt="" class="flex-shrink-0 me-12 radius-8" />
+                                    <h6 class="text-md mb-0 fw-medium flex-grow-1">{{ return.name }}</h6>
+                                </div> -->
+                            </td>
+                            <td>{{ return.requestedAt | date: "dd/mm/yyyy"}}</td>
+                            <td>{{ (return.returnReason) ? return.returnReason : "NA" }}</td>
+                            <td>
+                                <span [ngClass]="{
+                      'bg-success-focus text-success-main': ['approved', 'fullyReturned'].includes(return.status),
+                      'bg-warning-focus text-warning-main': ['pending', 'partiallyReturned'].includes(return.status)
+                    }" class="px-24 py-4 rounded-pill fw-medium text-sm">
+                                    {{ return.status | titlecase}}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center justify-content-end gap-1 w-100">
+                                    <a style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#viewReturnModal" (click)="openReturnDetails(return)"
+                                        class=" w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle
+                                        d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                                    </a>
+                                    <!-- <a href="javascript:void(0)"
+                                        class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="lucide:edit"></iconify-icon>
+                                    </a> -->
+                                    <a *ngIf="return.status == 'pending'" href="javascript:void(0)"
+                                        class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Return</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form [formGroup]="returnForm" (ngSubmit)="submitReturn()">
+
+                <div class="modal-body">
+
+                    <!-- Order Select -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Order</label>
+                        <select formControlName="orderId" class="form-select" (change)="onOrderChange()">
+                            <option value="">-- Select Order --</option>
+                            <option *ngFor="let o of ordersList" [value]="o._id">
+                                {{ o.orderNumber }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Event ID -->
+                    <div class="mb-3">
+                        <label class="form-label">Event Name</label>
+                        <input formControlName="eventName" class="form-control" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Venue Name</label>
+                        <input formControlName="venueName" class="form-control" readonly>
+                    </div>
+
+                    <hr>
+
+                    <!-- Items Section -->
+                    <div formArrayName="items">
+
+                        <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i"
+                            class="border rounded p-3 mb-3">
+
+                            <h6>Product: {{ item.value.productName }}</h6>
+
+                            <div class="row g-2">
+
+                                <!-- Quantity Returned -->
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <label class="form-label">Returned</label>
+                                    <input type="number" formControlName="quantityReturned" class="form-control"
+                                        (input)="validateQuantity(i)" />
+                                </div>
+
+                                <!-- Quantity Pending -->
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <label class="form-label">Pending</label>
+                                    <input type="number" formControlName="quantityPending" class="form-control"
+                                        (input)="validateQuantity(i)" />
+                                </div>
+
+                                <!-- Quantity Lost -->
+                                <div class="col-12 col-sm-6 col-md-4">
+                                    <label class="form-label">Lost</label>
+                                    <input type="number" formControlName="quantityLost" class="form-control"
+                                        (input)="validateQuantity(i)" />
+                                </div>
+
+                            </div>
+
+
+                            <!-- Error -->
+                            <div class="text-danger small" *ngIf="item.get('invalidQty')?.value">
+                                Total quantity cannot exceed ordered quantity ({{ item.value.orderQuantity }}).
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label">Loss Reason (optional)</label>
+                                <input formControlName="lossReason" class="form-control">
+                            </div>
+
+                            <!-- <div class="mb-2">
+                <label class="form-label">Condition</label>
+                <select formControlName="condition" class="form-select">
+                  <option value="good">Good</option>
+                  <option value="damaged">Damaged</option>
+                </select>
+              </div> -->
+
+                        </div>
+                    </div>
+
+                    <!-- Return Reason -->
+                    <div class="mb-3">
+                        <label class="form-label">Return Reason</label>
+                        <textarea formControlName="returnReason" rows="3" class="form-control"></textarea>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea formControlName="notes" rows="3" class="form-control"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" [disabled]="returnForm.invalid">Submit Return</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Modal -->
+<div class="modal fade" id="viewReturnModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">Return Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body" *ngIf="selectedReturn">
+
+        <h6 class="mb-2">Return Number: 
+          <strong>{{ selectedReturn.returnNumber }}</strong>
+        </h6>
+
+        <p class="text-muted mb-2">
+          <strong>Event:</strong> {{ selectedReturn.eventId?.eventName }}
+        </p>
+
+        <p class="text-muted mb-2">
+          <strong>Order:</strong> {{ selectedReturn.orderId?.orderNumber }}
+        </p>
+
+        <p class="text-muted mb-2">
+          <strong>Status:</strong> {{ selectedReturn.status }}
+        </p>
+
+        <p class="text-muted mb-3">
+          <strong>Return Reason:</strong> {{ selectedReturn.returnReason }}
+        </p>
+
+        <p class="text-muted mb-3">
+          <strong>Notes:</strong> {{ selectedReturn.notes }}
+        </p>
+
+        <hr>
+
+        <!-- ITEMS TABLE -->
+        <h6 class="mb-3">Returned Items</h6>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th>Returned</th>
+              <th>Pending</th>
+              <th>Lost</th>
+              <th>Condition</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of selectedReturn.items">
+              <td>{{ item.productId?.name }}</td>
+              <td>{{ item.productId?.SKU }}</td>
+              <td>{{ item.quantityReturned }}</td>
+              <td>{{ item.quantityPending }}</td>
+              <td>{{ item.quantityLost }}</td>
+              <td>{{ item.condition }}</td>
+              <td>{{ item.lossReason }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+

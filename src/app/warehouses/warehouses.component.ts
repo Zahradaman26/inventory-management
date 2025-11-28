@@ -113,7 +113,7 @@ export class WarehousesComponent implements OnInit, OnDestroy {
             const index = arr.findIndex(w => w._id === warehouseId);
             if (index !== -1) {
               arr[index].isActive = newStatus;
-              arr[index].status = newStatus ? 'Active' : 'Inactive';
+              // arr[index].status = newStatus ? 'Active' : 'Inactive';
             }
           };
 
@@ -128,7 +128,7 @@ export class WarehousesComponent implements OnInit, OnDestroy {
           }, 3000);
         },
         error: (error) => {
-          console.error('❌ Error updating warehouse status:', error);
+          // console.error('❌ Error updating warehouse status:', error);
           this.isUpdating = false;
           this.error = `Failed to update status: ${error}`; // REMOVE .message
           
@@ -137,7 +137,7 @@ export class WarehousesComponent implements OnInit, OnDestroy {
             const index = arr.findIndex(w => w._id === warehouseId);
             if (index !== -1) {
               arr[index].isActive = warehouse.isActive; // Revert to original status
-              arr[index].status = warehouse.status;
+              // arr[index].status = warehouse.status;
             }
           };
 
@@ -179,7 +179,7 @@ export class WarehousesComponent implements OnInit, OnDestroy {
             }, 3000);
           },
           error: (error) => {
-            console.error('Error deleting warehouse:', error);
+            // console.error('Error deleting warehouse:', error);
             this.isUpdating = false;
             this.error = `Failed to delete warehouse: ${error}`; // REMOVE .message
           },

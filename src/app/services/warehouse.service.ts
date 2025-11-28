@@ -175,11 +175,11 @@ export class WarehouseService {
   // -----------------------------------------
   // UPDATE WAREHOUSE STATUS - SIMPLE AND CLEAN
   // -----------------------------------------
+  // If you can get a dedicated status endpoint from backend
   updateWarehouseStatus(id: string, isActive: boolean): Observable<any> {
-    const payload = {
-      isActive: isActive
-    };
+    const payload = { isActive: isActive };
     
+    // This would be ideal - a dedicated endpoint that only needs status
     return this.http.put<any>(`${this.apiUrl}/warehouses/${id}`, payload).pipe(
       map((response) => {
         if (response.success && response.data) {
@@ -231,7 +231,7 @@ export class WarehouseService {
   // ERROR HANDLER
   // -----------------------------------------
   private errorHandler(error: any) {
-    console.error('🔥 Warehouse Service Error:', error);
+    // console.error('🔥 Warehouse Service Error:', error);
     return throwError(() => error?.message || 'An unknown error occurred');
   }
 }

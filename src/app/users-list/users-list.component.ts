@@ -118,7 +118,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
           this.isUpdating = false;
         },
         error: (error) => {
-          console.error('Error updating user role:', error);
+          // console.error('Error updating user role:', error);
           this.isUpdating = false;
         },
       });
@@ -160,7 +160,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
           }, 3000);
         },
         error: (error) => {
-          console.error('❌ Error updating user status:', error);
+          // console.error('❌ Error updating user status:', error);
           this.isUpdating = false;
           this.error = `Failed to update status: ${error.message || error}`;
           
@@ -208,7 +208,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
             }, 3000);
           },
           error: (error) => {
-            console.error('Error deleting user:', error);
+            // console.error('Error deleting user:', error);
             this.isUpdating = false;
             this.error = `Failed to delete user: ${error.message || error}`;
           },

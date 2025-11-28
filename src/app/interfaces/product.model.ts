@@ -28,7 +28,7 @@ export interface ProductItem {
     updatedAt : number;
     imgSrc? : string;
     warehouseId : mongoId;
-    warehouse?: { // Populated warehouse data
+    warehouse?: { 
         _id: string;
         name: string;
         location: {

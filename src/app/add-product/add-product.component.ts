@@ -77,7 +77,6 @@ export class AddProductComponent implements OnInit, OnDestroy {
   loadWarehouses(): void {
     this.isloadingWarehouses = true;
     
-    // Use getAllWarehouses() or getActiveWarehouses() based on your requirement
     this.warehouseService.getActiveWarehouses()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -86,7 +85,7 @@ export class AddProductComponent implements OnInit, OnDestroy {
           this.isloadingWarehouses = false;
         },
         error: (error) => {
-          console.error('Error loading warehouses:', error);
+          // console.error('Error loading warehouses:', error);
           this.errorMessage = 'Failed to load warehouses. Please try again.';
           this.isloadingWarehouses = false;
         }

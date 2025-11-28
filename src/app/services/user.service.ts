@@ -157,7 +157,7 @@ export class UserService {
         };
       }),
       catchError((error) => {
-        console.error('🔧 updateUserStatus error:', error);
+        // console.error('🔧 updateUserStatus error:', error);
         return this.errorHandler(error);
       })
     );
@@ -210,7 +210,7 @@ export class UserService {
   // ERROR HANDLER
   // -----------------------------------------
   private errorHandler(error: any) {
-    console.error('🔥 User Service Error:', error);
+    // console.error('🔥 User Service Error:', error);
     return throwError(() => error?.message || 'An unknown error occurred');
   }
 }
