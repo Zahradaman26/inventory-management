@@ -79,7 +79,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           }, 100);
         },
         error: (err: any) => {
-          console.error('Error loading products:', err);
+          // console.error('Error loading products:', err);
           const errMsg = (typeof err === 'string') ? err : (err?.toString ? err.toString() : 'Failed to load products');
           if (errMsg.includes && errMsg.includes('401')) {
             this.error = 'Authentication required. Please login again.';
@@ -150,7 +150,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           }, 3000);
         },
         error: (error) => {
-          console.error('❌ Error updating product status:', error);
+          // console.error('❌ Error updating product status:', error);
           this.isUpdating = false;
           this.error = `Failed to update status: ${error.message || error}`;
           
@@ -235,7 +235,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           }, 3000);
         },
         error: (err: any) => {
-          console.error('Error deleting product:', err);
+          // console.error('Error deleting product:', err);
           this.isUpdating = false;
           this.error = `Failed to delete product: ${err?.toString ? err.toString() : err}`;
         }
@@ -275,7 +275,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           }, 3000);
         },
         error: (err: any) => {
-          console.error('Error deleting products:', err);
+          // console.error('Error deleting products:', err);
           this.isUpdating = false;
           this.error = `Failed to delete products: ${err?.toString ? err.toString() : err}`;
         }

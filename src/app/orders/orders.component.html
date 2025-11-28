@@ -1,1 +1,344 @@
-<p>orders works!</p>
+<div *ngIf="showSuccess"
+    class="alert alert-primary bg-primary-50 text-primary-600 border-primary-50 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between"
+    role="alert">
+    {{respMessage}}
+    <button class="remove-button text-primary-600 text-xxl line-height-1"> <iconify-icon
+            icon="iconamoon:sign-times-light" class="icon"></iconify-icon></button>
+</div>
+<div *ngIf="showError"
+    class="alert alert-danger bg-danger-100 text-danger-600 border-danger-100 px-24 py-11 mb-0 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between"
+    role="alert">
+    {{(respMessage ? respMessage : "Something Went Wrong, Please Reload!")}}
+    <button class="remove-button text-danger-600 text-xxl line-height-1"> <iconify-icon
+            icon="iconamoon:sign-times-light" class="icon"></iconify-icon></button>
+</div>
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card basic-data-table">
+        <div class="card-header">
+            <button data-bs-toggle="modal" data-bs-target="#orderModal" (click)="openAddOrder()"
+                class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                Add New Order
+            </button>
+        </div>
+        <div class="card-body">
+            <div *ngIf="loading" class="text-center p-4 alert alert-info">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Loading Products...</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table bordered-table mb-0" id="dataTable" data-page-length="10">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="form-check style-check d-flex align-items-center">
+                                    <input class="form-check-input" type="checkbox" [(ngModel)]="selectAll"
+                                        (change)="toggleSelectAll($event)" />
+                                    <label class="form-check-label"> Sr No. </label>
+                                </div>
+                            </th>
+                            <th scope="col">Order No.</th>
+                            <th scope="col">Products</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Priority</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Approval</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let order of ordersList; let i = index">
+                            <td>
+                                <div class="form-check style-check d-flex align-items-center">
+                                    <input class="form-check-input" type="checkbox"
+                                        [checked]="selectedOrders.has(order._id)"
+                                        (change)="toggleOrderSelection($event, order._id)" />
+                                    <label class="form-check-label"> {{ i + 1 | number:'2.0' }} </label>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" class="text-primary-600">{{ order.orderNumber }}</a>
+                            </td>
+                            <td>
+                                <!-- <div class="d-flex align-items-center"> -->
+                                <!-- <img [src]="order.img" alt="" class="flex-shrink-0 me-12 radius-8" /> -->
+                                <h6 class="text-md mb-0 fw-medium flex-grow-1">{{ (order.items) ? order.items.length : 0
+                                    }}</h6>
+                                <!-- </div> -->
+                            </td>
+                            <td>{{ order.requestedAt | date: "dd/mm/yyyy"}}</td>
+                            <td>{{ order.priority | titlecase}}</td>
+                            <td>
+                                <span [ngClass]="{
+      'bg-success-focus text-success-main': ['approved', 'issued'].includes(order.status),
+      'bg-warning-focus text-danger-main': ['rejected', 'fullyReturned'].includes(order.status),
+      'bg-warning-focus text-warning-main': ['partiallyReturned', 'requested'].includes(order.status)
+    }
+    " class="px-24 py-4 rounded-pill fw-medium text-sm">
+                                    {{ order.status | titlecase}}
+                                </span>
+                            </td>
+                            <td>
+                            <!-- For requested orders - Show Approve/Reject buttons -->
+                            <div *ngIf="order.status === 'requested'">
+                                <button (click)="approveOrder(order._id)" 
+                                        class="btn btn-success btn-sm me-1"
+                                        [disabled]="isUpdating">
+                                Approve
+                                </button>
+                                <button (click)="rejectOrder(order._id)" 
+                                        class="btn btn-danger btn-sm"
+                                        [disabled]="isUpdating">
+                                Reject
+                                </button>
+                            </div>
+
+                            <!-- For approved orders - Show Issue button -->
+                            <div *ngIf="order.status === 'approved'">
+                                <button (click)="issueOrder(order._id)" 
+                                        class="btn btn-primary btn-sm"
+                                        [disabled]="isUpdating">
+                                Issue
+                                </button>
+                            </div>
+
+                            <!-- For issued/rejected orders - Show nothing or status text -->
+                            <div *ngIf="['issued', 'rejected'].includes(order.status)">
+                                <span class="text-muted text-sm">{{ order.status | titlecase }}</span>
+                            </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-1 w-100">
+                                    <a (click)="openOrderDetails(order)" data-bs-toggle="modal"
+                                        data-bs-target="#viewOrderModal" style="cursor: pointer;"
+                                        class="w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                                    </a>
+                                    <a *ngIf="order.status == 'requested'" data-bs-toggle="modal"
+                                        data-bs-target="#orderModal" (click)="openEditOrder(order)" style="cursor: pointer;"
+                                        class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="lucide:edit"></iconify-icon>
+                                    </a>
+                                    <a *ngIf="order.status == 'approved'" (click)="printReciept(order)"
+                                        data-bs-toggle="modal" data-bs-target="#viewOrderModal" style="cursor: pointer;"
+                                        class="w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="uiw:file-pdf"></iconify-icon>
+                                    </a>
+                                    <!-- <a href="javascript:void(0)"
+                                        class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
+                                    </a> -->
+                                </div>
+                            </td>
+                        </tr>
+    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    {{ isEditMode ? 'Update Order' : 'Add New Order' }}
+                </h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" (click)="onCloseModal()"></button>
+            </div>
+
+            <form [formGroup]="orderForm" (ngSubmit)="submitOrder()">
+                <div class="modal-body">
+
+                    <!-- Product Rows -->
+                    <div formArrayName="products">
+
+                        <div class="row mb-3" *ngFor="let item of products.controls; let i = index" [formGroupName]="i">
+
+                            <!-- Product Dropdown -->
+                            <div class="col-7">
+                                <label class="form-label">Product</label>
+                                <select class="form-select" formControlName="productId">
+                                    <option value="" disabled>Select Product</option>
+                                    <option *ngFor="let p of getAvailableProducts(i)" [value]="p._id">
+                                        {{ p.name }} (Stock: {{ p.availableStock }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- Qty -->
+                            <div class="col-4">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" formControlName="quantityRequested" min="1">
+                            </div>
+
+                            <!-- Remove Row -->
+                            <div class="col-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm" (click)="removeItem(i)"
+                                    *ngIf="products.length > 1">
+                                    ×
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Add More -->
+                    <button type="button" [disabled]="!canAddMore" class="btn btn-outline-primary btn-sm"
+                        (click)="addItem()">
+                        + Select More Products
+                    </button>
+
+                    <hr>
+
+                    <!-- Priority -->
+                    <div class="my-3">
+                        <label class="form-label">Event</label>
+                        <select formControlName="eventId" class="form-select" (change)="onEventChange($event)">
+                            <option value="" disabled>Select Event</option>
+                            <option *ngFor="let event of eventList" [value]="event._id">
+                                {{ event.eventName }}</option>
+                        </select>
+                    </div>
+
+                    <div class="my-3">
+                        <label class="form-label">Venue</label>
+                        <select formControlName="venueId" class="form-select">
+                            <option value="" disabled>Select venue</option>
+                            <option *ngFor="let venue of venuesList" [value]="venue.venueId._id">
+                                {{ venue.venueId.name }}</option>
+                        </select>
+                    </div>
+
+                    <div class="my-3">
+                        <label class="form-label">Priority</label>
+                        <select formControlName="priority" class="form-select">
+                            <option value="" disabled>Select Priority</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea formControlName="notes" rows="3" class="form-control"
+                            placeholder="Enter notes about this order..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success" [disabled]="orderForm.invalid">
+
+                        {{ isEditMode ? 'Update Order' : 'Submit Order' }}
+
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- // View Modal -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Order Details - {{ selectedOrder?.orderNumber }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" *ngIf="selectedOrder">
+
+                <!-- Event Info -->
+                <div class="mb-3">
+                    <h6 class="fw-bold">Event</h6>
+                    <p style="margin: auto;" class="mb-1"><strong>Name:</strong> {{ selectedOrder?.eventId?.eventName }}</p>
+                    <!-- <p class="mb-1"><strong>Start:</strong> {{ selectedOrder?.eventId?.startDate | date }}</p>
+                    <p><strong>End:</strong> {{ selectedOrder?.eventId?.endDate | date }}</p> -->
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">Venue</h6>
+                    <p style="margin: auto;" class="mb-1"><strong>Name:</strong> {{ selectedOrder?.venueId?.venueName }}</p>
+                    <!-- <p class="mb-1"><strong>Start:</strong> {{ selectedOrder?.eventId?.startDate | date }}</p>
+                    <p><strong>End:</strong> {{ selectedOrder?.eventId?.endDate | date }}</p> -->
+                </div>
+
+                <!-- Priority & Status -->
+                <div class="mb-3">
+                    <h6 class="fw-bold">Order Info</h6>
+                    <p style="margin: auto;"><strong>Priority:</strong> <span class="text-capitalize">{{
+                            selectedOrder?.priority }}</span></p>
+                    <p style="margin: auto;"><strong>Status:</strong> <span class="text-capitalize">{{
+                            selectedOrder?.status }}</span></p>
+                    <p style="margin: auto;"><strong>Requested At:</strong> {{ selectedOrder?.requestedAt |
+                        date:'medium' }}</p>
+                </div>
+
+                <!-- Items -->
+                <h6 class="fw-bold">Items</h6>
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Requested</th>
+                            <th>Approved</th>
+                            <th>Issued</th>
+                            <!-- <th>Notes</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of selectedOrder.items">
+                            <td>
+                                <strong *ngIf="item.productId; else noProduct">
+                                    {{ item.productId.name }}
+                                </strong>
+                                <ng-template #noProduct>
+                                    <span class="text-danger">No Product Linked</span>
+                                </ng-template>
+                                <div *ngIf="item.productId">
+                                    SKU: {{ item.productId.SKU }}<br>
+                                    Unit: {{ item.productId.unit }}<br>
+                                    Stock: {{ item.productId.availableStock }}
+                                </div>
+                            </td>
+                            <td>{{ item.quantityRequested }}</td>
+                            <td>{{ item.quantityApproved }}</td>
+                            <td>{{ item.quantityIssued }}</td>
+                            <!-- <td>{{ item.notes }}</td> -->
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Order Notes -->
+                <div class="mt-3">
+                    <h6 class="fw-bold">Order Notes</h6>
+                    <p>{{ selectedOrder?.notes }}</p>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -32,7 +32,7 @@ export class AuthService {
       try {
         this.currentUser = JSON.parse(userData);
       } catch (e) {
-        console.error('Error parsing user data:', e);
+        // console.error('Error parsing user data:', e);
         this.logout();
       }
     }
@@ -66,7 +66,7 @@ export class AuthService {
           response?.data?.user || null;
 
         if (!token || !user) {
-          console.error("Invalid response structure:", response);
+          // console.error("Invalid response structure:", response);
           throw new Error(response.message || 'Invalid response format from server');
         }
 
@@ -102,7 +102,7 @@ export class AuthService {
       next: () => {
       },
       error: (error) => {
-        console.error('Error during server logout:', error);
+        // console.error('Error during server logout:', error);
       },
       complete: () => {
         this.clearLocalStorage();
@@ -174,13 +174,13 @@ export class AuthService {
       // For non-JWT tokens, we assume they're valid if they exist
       return true;
     } catch (e) {
-      console.error('Error decoding token:', e);
+      // console.error('Error decoding token:', e);
       return false;
     }
   }
 
   private errorHandler(error: any) {
-    console.error('Auth Service Error:', error);
+    // console.error('Auth Service Error:', error);
     
     let errorMessage = 'An unknown error occurred!';
     if (error.error instanceof ErrorEvent) {

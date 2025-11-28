@@ -209,7 +209,7 @@ export class ProductService {
   }
 
   private errorHandler(error: any) {
-    console.error('Product Service Error:', error);
+    // console.error('Product Service Error:', error);
     
     let errorMessage = 'An unknown error occurred';
     
