@@ -25,6 +25,7 @@
                             <th scope="col">Return Date</th>
                             <th scope="col">Reason</th>
                             <th scope="col">Status</th>
+                            <th scope="col">Approval</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -55,6 +56,26 @@
                     }" class="px-24 py-4 rounded-pill fw-medium text-sm">
                                     {{ return.status | titlecase}}
                                 </span>
+                            </td>
+                            <td>
+                                <!-- For pending returns - Show Approve/Reject buttons -->
+                                <div *ngIf="return.status === 'pending'">
+                                    <button (click)="approveReturn(return._id)" 
+                                            class="btn btn-success btn-sm me-1"
+                                            [disabled]="isUpdating">
+                                        Approve
+                                    </button>
+                                    <button (click)="rejectReturn(return._id)" 
+                                            class="btn btn-danger btn-sm"
+                                            [disabled]="isUpdating">
+                                        Reject
+                                    </button>
+                                </div>
+
+                                <!-- For approved/rejected returns - Show nothing or status text -->
+                                <div *ngIf="['approved', 'rejected', 'fullyReturned', 'partiallyReturned'].includes(return.status)">
+                                    <span class="text-muted text-sm">{{ return.status | titlecase }}</span>
+                                </div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center justify-content-end gap-1 w-100">

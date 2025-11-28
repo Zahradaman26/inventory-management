@@ -21,6 +21,19 @@ export class ReturnsService {
     );
   }
 
+  approveReturn(returnId: string): Observable<any> {
+    return this.http.post<any>(`${this.PRODUCTS_API_URL}/${returnId}/approve`, {}).pipe(
+      map((response) => response),
+      catchError(this.errorHandler)
+    );
+  }
+
+  rejectReturn(returnId: string): Observable<any> {
+    return this.http.post<any>(`${this.PRODUCTS_API_URL}/${returnId}/reject`, {}).pipe(
+      map((response) => response),
+      catchError(this.errorHandler)
+    );
+  }
   errorHandler(error: any) {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {

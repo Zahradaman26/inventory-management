@@ -44,6 +44,9 @@ export class ReturnsComponent implements OnInit {
   selectedReturn: any = null;
   private dataTable: any;
 
+  isUpdating = false;
+  respMessage: string = '';
+
   constructor(
     private formBuilder: FormBuilder,
     private ordersService: OrdersService,
@@ -156,6 +159,85 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
+  // Add this method to approve return
+  approveReturn(returnId: string): void {
+    this.isUpdating = true;
+    this.returnsService.approveReturn(returnId).subscribe({
+      next: (resp: any) => {
+        if (resp.success === true) {
+          this.updateReturnStatus(returnId, 'approved');
+          this.showSuccess = true;
+          this.respMessage = 'Return approved successfully!';
+        } else {
+          this.showError = true;
+          this.respMessage = resp.message || 'Failed to approve return';
+        }
+        this.isUpdating = false;
+        
+        // Hide alerts after 3 seconds
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
+      },
+      error: (err: any) => {
+        this.showError = true;
+        this.respMessage = 'Error approving return';
+        this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
+      }
+    });
+  }
+
+  // Add this method to reject return
+  rejectReturn(returnId: string): void {
+    this.isUpdating = true;
+    this.returnsService.rejectReturn(returnId).subscribe({
+      next: (resp: any) => {
+        if (resp.success === true) {
+          this.updateReturnStatus(returnId, 'rejected');
+          this.showSuccess = true;
+          this.respMessage = 'Return rejected successfully!';
+        } else {
+          this.showError = true;
+          this.respMessage = resp.message || 'Failed to reject return';
+        }
+        this.isUpdating = false;
+        
+        // Hide alerts after 3 seconds
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
+      },
+      error: (err: any) => {
+        this.showError = true;
+        this.respMessage = 'Error rejecting return';
+        this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
+      }
+    });
+  }
+
+  // Helper method to update return status in the local array
+  private updateReturnStatus(returnId: string, newStatus: string): void {
+    const returnIndex = this.returnsList.findIndex(returnItem => returnItem._id === returnId);
+    if (returnIndex !== -1) {
+      this.returnsList[returnIndex].status = newStatus;
+      
+      // Also update backup list if needed
+      const backupIndex = this.backupReturnsList.findIndex(returnItem => returnItem._id === returnId);
+      if (backupIndex !== -1) {
+        this.backupReturnsList[backupIndex].status = newStatus;
+      }
+    }
+  }
   validateQuantity(i: number) {
     const item = this.items.at(i);
 
