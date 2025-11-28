@@ -241,7 +241,7 @@
                                         class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
                                         [disabled]="loading || warehouseForm.invalid">
                                         <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-                                        {{ loading ? 'Adding Warehouse...' : 'Add Warehouse' }}
+                                        {{ isEditMode ? 'Update Warehouse' : 'Add Warehouse' }}
                                     </button>
                                 </div>
                             </form>

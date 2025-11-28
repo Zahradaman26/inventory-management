@@ -44,7 +44,7 @@
               <th scope="col">Location</th>
               <th scope="col">Contact Person</th>
               <th scope="col">Phone</th>
-              <th scope="col">Capacity</th>
+              <!-- <th scope="col">Capacity</th> -->
               <th scope="col">Type</th>
               <th scope="col" class="text-center">Status</th>
               <th scope="col" class="text-center">Action</th>
@@ -82,11 +82,11 @@
                   {{ warehouse.contactPerson?.contactNumber }}
                 </span>
               </td>
-              <td>
+              <!-- <td>
                 <span class="text-md mb-0 fw-normal text-secondary-light">
                   {{ warehouse.capacity | number }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <span class="text-md mb-0 fw-normal text-secondary-light text-capitalize">
                   {{ warehouse.warehouseType }}
@@ -108,10 +108,10 @@
               </td>
               <td class="text-center">
                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                  <button type="button" (click)="onView(warehouse)" [disabled]="isUpdating"
+                  <!-- <button type="button" (click)="onView(warehouse)" [disabled]="isUpdating"
                     class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                  </button>
+                  </button> -->
                   <button type="button" (click)="onEdit(warehouse)" [disabled]="isUpdating"
                     class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
