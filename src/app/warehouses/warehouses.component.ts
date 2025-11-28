@@ -1,4 +1,9 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { RouterLink, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,7 +15,10 @@ import DataTable from 'datatables.net';
 
 // Import services and models
 import { WarehouseService } from '../services/warehouse.service';
-import { WarehouseItem, WarehouseApiResponse } from '../interfaces/warehouse.model';
+import {
+  WarehouseItem,
+  WarehouseApiResponse,
+} from '../interfaces/warehouse.model';
 
 @Component({
   selector: 'app-warehouse-list',
@@ -42,8 +50,11 @@ export class WarehousesComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private dataTable: any;
-  
-  constructor(private warehouseService: WarehouseService, private router: Router) {}
+
+  constructor(
+    private warehouseService: WarehouseService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadWarehouses();
@@ -57,14 +68,16 @@ export class WarehousesComponent implements OnInit, OnDestroy {
       .getWarehouses(this.currentPage, this.itemsPerPage, this.searchTerm)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => { this.isLoading = false; }) // ADD THIS LINE - same as products
+        finalize(() => {
+          this.isLoading = false;
+        }) // ADD THIS LINE - same as products
       )
       .subscribe({
         next: (response: WarehouseApiResponse) => {
           this.warehouses = response.data || [];
           this.backupWarehouses = response.data || []; // ADD THIS LINE - same as products
           this.totalItems = response.total || this.warehouses.length;
-          
+
           if (this.dataTable) {
             this.dataTable.destroy();
           }
@@ -88,107 +101,84 @@ export class WarehousesComponent implements OnInit, OnDestroy {
   }
 
   // REPLACE THE ENTIRE onStatusChange METHOD WITH THIS:
-  updateStatus(warehouse: WarehouseItem): void { // CHANGE METHOD NAME to updateStatus
+  updateStatus(warehouse: WarehouseItem): void {
+    // CHANGE METHOD NAME to updateStatus
     if (this.isUpdating) return;
-    
+
     const warehouseId = warehouse._id;
-    
+
     if (!warehouseId) {
       this.error = 'Warehouse ID is missing. Cannot update status.';
       return;
     }
 
-    const newStatus = !warehouse.isActive;
-    
+    const updatedData = { ...warehouse, isActive: !warehouse.isActive };
+
     this.isUpdating = true;
     this.successMessage = null;
     this.error = null;
 
-    this.warehouseService.updateWarehouseStatus(warehouseId, newStatus) // CHANGE THIS CALL
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          // Update the warehouse in all arrays (same as products pattern)
-          const updateWarehouseInArray = (arr: WarehouseItem[]) => {
-            const index = arr.findIndex(w => w._id === warehouseId);
-            if (index !== -1) {
-              arr[index].isActive = newStatus;
-              // arr[index].status = newStatus ? 'Active' : 'Inactive';
-            }
-          };
+    this.warehouseService.updateWarehouse(warehouseId, updatedData).subscribe({
+      next: (response) => {
+        // Update the warehouse in all arrays (same as products pattern)
+        const index = this.warehouses.findIndex((w) => w._id === warehouseId);
+        if (index !== -1) {
+          this.warehouses[index].isActive = updatedData.isActive;
+        } // ADD THIS LINE
 
-          updateWarehouseInArray(this.warehouses);
-          updateWarehouseInArray(this.backupWarehouses); // ADD THIS LINE
-          
-          this.isUpdating = false;
-          this.successMessage = `Warehouse "${warehouse.name}" status updated to ${newStatus ? 'Active' : 'Inactive'} successfully!`; // SAME MESSAGE FORMAT
-          
-          setTimeout(() => {
-            this.successMessage = null;
-          }, 3000);
-        },
-        error: (error) => {
-          // console.error('❌ Error updating warehouse status:', error);
-          this.isUpdating = false;
-          this.error = `Failed to update status: ${error}`; // REMOVE .message
-          
-          // Revert the UI change if API call failed (same as products pattern)
-          const revertWarehouseInArray = (arr: WarehouseItem[]) => {
-            const index = arr.findIndex(w => w._id === warehouseId);
-            if (index !== -1) {
-              arr[index].isActive = warehouse.isActive; // Revert to original status
-              // arr[index].status = warehouse.status;
-            }
-          };
-
-          revertWarehouseInArray(this.warehouses);
-          revertWarehouseInArray(this.backupWarehouses); // ADD THIS LINE
-        },
-      });
+        this.isUpdating = false;
+        this.successMessage = response.message;
+        setTimeout(() => {
+          this.successMessage = null;
+        }, 3000);
+      },
+      error: (error) => {
+        this.isUpdating = false;
+        this.error = `Failed to update status: ${error}`;
+      },
+    });
   }
 
   onEdit(warehouse: WarehouseItem): void {
     this.router.navigate(['/add-warehouse', warehouse._id]);
   }
 
-  onView(warehouse: WarehouseItem): void {
-    
-  }
-
   onDelete(warehouse: WarehouseItem): void {
-    if (confirm(`Are you sure you want to permanently delete "${warehouse.name}"? This action cannot be undone.`)) { // ADD QUOTES like products
+    if (
+      confirm(
+        `Are you sure you want to permanently delete "${warehouse.name}"? This action cannot be undone.`
+      )
+    ) {
+      // ADD QUOTES like products
       this.isUpdating = true;
       this.successMessage = null;
       this.error = null;
 
-      this.warehouseService
-        .deleteWarehouse(warehouse._id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (response) => {
-            this.isUpdating = false;
-            
-            // Remove from both arrays (same as products)
-            this.warehouses = this.warehouses.filter(w => w._id !== warehouse._id);
-            this.backupWarehouses = this.backupWarehouses.filter(w => w._id !== warehouse._id); // ADD THIS LINE
-            
-            this.successMessage = `Warehouse "${warehouse.name}" has been deleted permanently!`; // ADD QUOTES
-            
-            setTimeout(() => {
-              this.successMessage = null;
-            }, 3000);
-          },
-          error: (error) => {
-            // console.error('Error deleting warehouse:', error);
-            this.isUpdating = false;
-            this.error = `Failed to delete warehouse: ${error}`; // REMOVE .message
-          },
-        });
-    }
-  }
+      this.warehouseService.deleteWarehouse(warehouse._id).subscribe({
+        next: (response) => {
+          this.isUpdating = false;
 
-  refreshWarehouses(): void {
-    this.loadWarehouses();
+          // Remove from both arrays (same as products)
+          this.warehouses = this.warehouses.filter(
+            (w) => w._id !== warehouse._id
+          );
+          this.backupWarehouses = this.backupWarehouses.filter(
+            (w) => w._id !== warehouse._id
+          ); // ADD THIS LINE
+
+          this.successMessage = `Warehouse "${warehouse.name}" has been deleted permanently!`; // ADD QUOTES
+
+          setTimeout(() => {
+            this.successMessage = null;
+          }, 3000);
+        },
+        error: (error) => {
+          // console.error('Error deleting warehouse:', error);
+          this.isUpdating = false;
+          this.error = `Failed to delete warehouse: ${error}`; // REMOVE .message
+        },
+      });
+    }
   }
 
   ngOnDestroy(): void {

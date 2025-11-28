@@ -1,0 +1,154 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">{{ isEditMode ? 'Update Venue' : 'Add Venue' }}</h5>
+        </div>
+
+        <div class="card-body p-24">
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-xxl-8 col-xl-10 col-lg-12">
+                    <div class="card border">
+                        <div class="card-body">
+
+                            <form [formGroup]="venueForm" (ngSubmit)="onSubmit()">
+
+                                <!-- Basic Information -->
+                                <h6 class="text-md text-primary-light mb-16">Basic Information</h6>
+
+                                <!-- Venue Name -->
+                                <div class="mb-20">
+                                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Venue Name <span class="text-danger-600">*</span>
+                                    </label>
+                                    <input type="text" class="form-control radius-8" placeholder="Enter Venue Name"
+                                        formControlName="name">
+
+                                    <div *ngIf="f['name'].touched && f['name'].invalid" class="text-danger small mt-1">
+                                        <div *ngIf="f['name'].errors?.['required']">Venue name is required</div>
+                                    </div>
+                                </div>
+
+                                <!-- Location Section -->
+                                <h6 class="text-md text-primary-light mb-16 mt-32">Location Information</h6>
+
+                                <div formGroupName="location">
+                                    <div class="row">
+
+                                        <!-- Address -->
+                                        <div class="col-md-6">
+                                            <div class="mb-20">
+                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Address <span class="text-danger-600">*</span>
+                                                </label>
+                                                <input type="text" class="form-control radius-8"
+                                                    formControlName="address" placeholder="Enter full address">
+
+                                                <div *ngIf="locationControls['address'].touched && locationControls['address'].invalid"
+                                                    class="text-danger small mt-1">
+                                                    Address is required
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- City -->
+                                        <div class="col-md-6">
+                                            <div class="mb-20">
+                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    City <span class="text-danger-600">*</span>
+                                                </label>
+                                                <input type="text" class="form-control radius-8" formControlName="city"
+                                                    placeholder="Enter city">
+
+                                                <div *ngIf="locationControls['city'].touched && locationControls['city'].invalid"
+                                                    class="text-danger small mt-1">
+                                                    City is required
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Contact Section -->
+                                <h6 class="text-md text-primary-light mb-16 mt-32">Contact Information</h6>
+
+                                <div formGroupName="contactPerson">
+                                    <div class="row">
+                                        <!-- Contact Person -->
+                                        <div class="col-md-6">
+                                            <div class="mb-20">
+                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Contact Person <span class="text-danger-600">*</span>
+                                                </label>
+                                                <input type="text" class="form-control radius-8" formControlName="name"
+                                                    placeholder="Enter contact person name">
+
+                                                <div *ngIf="contactControls['name'].touched && contactControls['name'].invalid"
+                                                    class="text-danger small mt-1">
+                                                    Contact person is required
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Phone -->
+                                        <div class="col-md-6">
+                                            <div class="mb-20">
+                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                                    Contact Number <span class="text-danger-600">*</span>
+                                                </label>
+                                                <input type="text" class="form-control radius-8" formControlName="contactNumber"
+                                                    placeholder="Enter Contact Number">
+
+                                                <div *ngIf="contactControls['contactNumber'].touched && contactControls['contactNumber'].invalid"
+                                                    class="text-danger small mt-1">
+                                                    <div *ngIf="contactControls['contactNumber'].errors?.['required']">
+                                                        Phone is required
+                                                    </div>
+                                                    <div *ngIf="contactControls['contactNumber'].errors?.['minlength']">
+                                                        Phone must be at least 10 digits
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="d-flex align-items-center justify-content-center gap-3 mt-3">
+                                    <button type="button" routerLink="/venues"
+                                        class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
+                                        Cancel
+                                    </button>
+
+                                    <button type="submit"
+                                        class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
+                                        [disabled]="loading || venueForm.invalid">
+                                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                                        {{ isEditMode ? 'Update Venue' : 'Add Venue' }}
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

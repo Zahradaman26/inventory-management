@@ -43,6 +43,8 @@
                 </div>
               </th>
               <th scope="col">Name</th>
+              <th scope="col">Mobile</th>
+              <th scope="col">Email</th>
               <th scope="col">Join Date</th>
               <th scope="col">Role</th>
               <th scope="col" class="text-center">Status</th>
@@ -69,6 +71,8 @@
                   </div>
                 </div>
               </td>
+              <td>{{ user.contactNumber }}</td>
+              <td>{{ (user.email) ? user.email : "NA"}}</td>
               <td>{{ user.joinDate | date}}</td>
               <td>
                 <select [(ngModel)]="user.role" (change)="onRoleChange(user)" [disabled]="isUpdating"
@@ -91,10 +95,10 @@
               </td>
               <td class="text-center">
                 <div class="d-flex align-items-center gap-10 justify-content-center">
-                  <button type="button" (click)="onView(user)" [disabled]="isUpdating"
+                  <!-- <button type="button" (click)="onView(user)" [disabled]="isUpdating"
                     class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
-                  </button>
+                  </button> -->
                   <button type="button" (click)="onEdit(user)" [disabled]="isUpdating"
                     class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>

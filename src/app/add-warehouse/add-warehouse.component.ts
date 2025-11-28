@@ -1,7 +1,12 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { WarehouseService } from '../services/warehouse.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
@@ -9,7 +14,12 @@ import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-add-warehouse',
   standalone: true,
-  imports: [BreadcrumbComponent, CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    BreadcrumbComponent,
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './add-warehouse.component.html',
   styleUrl: './add-warehouse.component.css',
@@ -24,8 +34,6 @@ export class AddWarehouseComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  warehouseTypes = ['main', 'regional', 'distribution', 'storage'];
-
   private destroy$ = new Subject<void>();
   constructor(
     private fb: FormBuilder,
@@ -36,15 +44,15 @@ export class AddWarehouseComponent implements OnInit {
     this.initializeForm();
   }
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
     this.initializeForm();
-    
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['id']) {
         this.isEditMode = true;
         this.warehouseId = params['id'];
         this.title = 'Edit Product';
-        this.loadProductData(this.warehouseId);
+        this.loadProductData();
       }
     });
   }
@@ -55,51 +63,50 @@ export class AddWarehouseComponent implements OnInit {
       location: this.fb.group({
         address: ['', Validators.required],
         city: ['', Validators.required],
-        state: ['', Validators.required],
-        country: ['', Validators.required],
-        pincode: ['', Validators.required]
+        // state: ['', Validators.required],
+        // country: ['', Validators.required],
+        // pincode: ['', Validators.required]
       }),
       contactPerson: this.fb.group({
         name: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
+        // email: ['', [Validators.required, Validators.email]],
         contactNumber: ['', [Validators.required, Validators.minLength(10)]],
       }),
-      capacity: ['', [Validators.required, Validators.min(1)]],
-      warehouseType: ['', Validators.required],
-      isActive: [true]
+      // capacity: ['', [Validators.required, Validators.min(1)]],
+      // warehouseType: ['', Validators.required],
+      isActive: [true],
     });
   }
 
-  loadProductData(productId: string): void {
-      this.loading = true;
-      this.errorMessage = '';
-  
-      this.warehouseService.getWarehouseById(this.warehouseId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (warehouse: any) => {
-            // Transform the product data to match form field names
-            const formData = {
-              name: warehouse.name || '',
-              warehouseType: warehouse.warehouseType || '',
-              capacity: warehouse.capacity || '',
-              address: warehouse.address || '',
-              city: warehouse.city || '',
-              state: warehouse.state || '',
-              country: warehouse.country || '',
-              pincode: warehouse.pincode || '',
-              contactPerson: warehouse.contactPerson || '',
-            };
-  
-            this.warehouseForm.patchValue(formData);
-            this.loading = false;
-          },
-          error: (error) => {
-            this.errorMessage = 'Failed to load product data. Please try again.';
-            this.loading = false;
-          }
-        });
-    }
+  loadProductData(): void {
+    this.loading = true;
+    this.errorMessage = '';
+
+    this.warehouseService.getWarehouseById(this.warehouseId).subscribe({
+        next: (resp: any) => {
+          // Transform the product data to match form field names
+          const warehouse = resp.data.warehouse;
+          this.warehouseForm.patchValue({
+            name: warehouse?.name ?? '',
+            location: {
+              address: warehouse?.location?.address ?? '',
+              city: warehouse?.location?.city ?? '',
+            },
+            contactPerson: {
+              name: warehouse?.contactPerson?.name ?? '',
+              contactNumber: warehouse?.contactPerson?.contactNumber ?? '',
+            },
+            isActive: warehouse?.isActive ?? true,
+          });
+
+          this.loading = false;
+        },
+        error: (error) => {
+          this.errorMessage = 'Failed to load product data. Please try again.';
+          this.loading = false;
+        },
+      });
+  }
 
   get f() {
     return this.warehouseForm.controls;
@@ -127,7 +134,8 @@ export class AddWarehouseComponent implements OnInit {
     const formData = { ...this.warehouseForm.value };
 
     if (this.isEditMode) {
-      this.warehouseService.updateWarehouse(this.warehouseId, warehouseData)
+      this.warehouseService
+        .updateWarehouse(this.warehouseId, warehouseData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -140,35 +148,36 @@ export class AddWarehouseComponent implements OnInit {
           },
           error: (error) => {
             this.loading = false;
-            this.errorMessage = error || 'Failed to update warehouse. Please try again';
-          }
+            this.errorMessage =
+              error || 'Failed to update warehouse. Please try again';
+          },
         });
     } else {
       this.warehouseService.addWarehouse(formData).subscribe({
-          next: (response) => {
-            this.loading = false;
-            this.successMessage = 'Warehouse added successfully!';
-            this.warehouseForm.reset();
-            this.initializeForm();
-            setTimeout(() => {
-              this.router.navigate(['/warehouses']);
-            }, 1500);
-          },
-          error: (error) => {
-            // console.error('Error adding warehouse:', error);
-            this.loading = false;
-            this.errorMessage = error || 'Failed to add warehouse. Please try again.';
-          }
-        });
-      }
+        next: (response) => {
+          this.loading = false;
+          this.successMessage = 'Warehouse added successfully!';
+          this.warehouseForm.reset();
+          this.initializeForm();
+          setTimeout(() => {
+            this.router.navigate(['/warehouses']);
+          }, 1500);
+        },
+        error: (error) => {
+          // console.error('Error adding warehouse:', error);
+          this.loading = false;
+          this.errorMessage =
+            error || 'Failed to add warehouse. Please try again.';
+        },
+      });
     }
-    
+  }
 
   private markFormGroupTouched(): void {
-    Object.keys(this.warehouseForm.controls).forEach(key => {
+    Object.keys(this.warehouseForm.controls).forEach((key) => {
       const control = this.warehouseForm.get(key);
       if (control instanceof FormGroup) {
-        Object.keys(control.controls).forEach(nestedKey => {
+        Object.keys(control.controls).forEach((nestedKey) => {
           control.get(nestedKey)?.markAsTouched();
         });
       } else {

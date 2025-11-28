@@ -3,7 +3,7 @@
 
     <div class="card h-100 p-0 radius-12">
         <div class="card-header border-bottom bg-base py-16 px-24">
-            <h5 class="mb-0">Add New Warehouse</h5>
+            <h5 class="mb-0">{{ isEditMode ? 'Update Warehouse' : 'Add Warehouse' }}</h5>
         </div>
         <div class="card-body p-24">
             <!-- Success Message -->
@@ -22,10 +22,10 @@
                 <div class="col-xxl-8 col-xl-10 col-lg-12">
                     <div class="card border">
                         <div class="card-body">
-                            <h6 class="text-md text-primary-light mb-16">Warehouse Image</h6>
+                            <!-- <h6 class="text-md text-primary-light mb-16">Warehouse Image</h6> -->
 
                             <!-- Upload Image Start -->
-                            <div class="mb-24 mt-16">
+                            <!-- <div class="mb-24 mt-16">
                                 <div class="avatar-upload">
                                     <div
                                         class="avatar-edit position-absolute bottom-0 end-0 me-24 mt-16 z-1 cursor-pointer">
@@ -39,29 +39,30 @@
                                         <div id="imagePreview"> </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                             <!-- Upload Image End -->
 
                             <form [formGroup]="warehouseForm" (ngSubmit)="onSubmit()">
                                 <!-- Basic Information Section -->
                                 <h6 class="text-md text-primary-light mb-16">Basic Information</h6>
-                                
+
                                 <!-- Warehouse Name -->
                                 <div class="mb-20">
                                     <label for="name"
-                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Warehouse Name <span
-                                            class="text-danger-600">*</span></label>
+                                        class="form-label fw-semibold text-primary-light text-sm mb-8">Warehouse Name
+                                        <span class="text-danger-600">*</span></label>
                                     <input type="text" class="form-control radius-8" id="name" formControlName="name"
                                         placeholder="Enter Warehouse Name">
-                                    <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
+                                    <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)"
                                         class="text-danger small mt-1">
                                         <div *ngIf="f['name'].errors?.['required']">Warehouse name is required</div>
-                                        <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters</div>
+                                        <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Warehouse Type -->
-                                <div class="mb-20">
+                                <!-- <div class="mb-20">
                                     <label for="warehouseType"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Warehouse Type <span
                                             class="text-danger-600">*</span></label>
@@ -75,10 +76,10 @@
                                         class="text-danger small mt-1">
                                         <div *ngIf="f['warehouseType'].errors?.['required']">Warehouse type is required</div>
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <!-- Capacity -->
-                                <div class="mb-20">
+                                <!-- <div class="mb-20">
                                     <label for="capacity"
                                         class="form-label fw-semibold text-primary-light text-sm mb-8">Capacity <span
                                             class="text-danger-600">*</span></label>
@@ -89,41 +90,44 @@
                                         <div *ngIf="f['capacity'].errors?.['required']">Capacity is required</div>
                                         <div *ngIf="f['capacity'].errors?.['min']">Capacity must be at least 1</div>
                                     </div>
-                                </div>
+                                </div> -->
 
                                 <!-- Location Information Section -->
                                 <h6 class="text-md text-primary-light mb-16 mt-32">Location Information</h6>
-                                
-                                <div formGroupName="location">
-                                    <!-- Address -->
-                                    <div class="mb-20">
-                                        <label for="address"
-                                            class="form-label fw-semibold text-primary-light text-sm mb-8">Address <span
-                                                class="text-danger-600">*</span></label>
-                                        <input type="text" class="form-control radius-8" id="address" formControlName="address"
-                                            placeholder="Enter full address">
-                                        <div *ngIf="locationControls['address'].invalid && (locationControls['address'].dirty || locationControls['address'].touched)" 
-                                            class="text-danger small mt-1">
-                                            <div *ngIf="locationControls['address'].errors?.['required']">Address is required</div>
-                                        </div>
-                                    </div>
 
+                                <div formGroupName="location">
                                     <!-- City & State -->
                                     <div class="row">
+                                        <!-- Address -->
                                         <div class="col-md-6">
                                             <div class="mb-20">
-                                                <label for="city"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">City <span
-                                                        class="text-danger-600">*</span></label>
-                                                <input type="text" class="form-control radius-8" id="city" formControlName="city"
-                                                    placeholder="Enter city">
-                                                <div *ngIf="locationControls['city'].invalid && (locationControls['city'].dirty || locationControls['city'].touched)" 
+                                                <label for="address"
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Address
+                                                    <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="address"
+                                                    formControlName="address" placeholder="Enter full address">
+                                                <div *ngIf="locationControls['address'].invalid && (locationControls['address'].dirty || locationControls['address'].touched)"
                                                     class="text-danger small mt-1">
-                                                    <div *ngIf="locationControls['city'].errors?.['required']">City is required</div>
+                                                    <div *ngIf="locationControls['address'].errors?.['required']">
+                                                        Address is required</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
+                                            <div class="mb-20">
+                                                <label for="city"
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">City
+                                                    <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="city"
+                                                    formControlName="city" placeholder="Enter city">
+                                                <div *ngIf="locationControls['city'].invalid && (locationControls['city'].dirty || locationControls['city'].touched)"
+                                                    class="text-danger small mt-1">
+                                                    <div *ngIf="locationControls['city'].errors?.['required']">City is
+                                                        required</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="col-md-6">
                                             <div class="mb-20">
                                                 <label for="state"
                                                     class="form-label fw-semibold text-primary-light text-sm mb-8">State <span
@@ -135,84 +139,106 @@
                                                     <div *ngIf="locationControls['state'].errors?.['required']">State is required</div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
 
                                     <!-- Country & Zip Code -->
-                                    <div class="row">
+                                    <!-- <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-20">
                                                 <label for="country"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Country <span
-                                                        class="text-danger-600">*</span></label>
-                                                <input type="text" class="form-control radius-8" id="country" formControlName="country"
-                                                    placeholder="Enter country">
-                                                <div *ngIf="locationControls['country'].invalid && (locationControls['country'].dirty || locationControls['country'].touched)" 
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Country
+                                                    <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="country"
+                                                    formControlName="country" placeholder="Enter country">
+                                                <div *ngIf="locationControls['country'].invalid && (locationControls['country'].dirty || locationControls['country'].touched)"
                                                     class="text-danger small mt-1">
-                                                    <div *ngIf="locationControls['country'].errors?.['required']">Country is required</div>
+                                                    <div *ngIf="locationControls['country'].errors?.['required']">
+                                                        Country is required</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-20">
                                                 <label for="pincode"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Pin Code <span
-                                                        class="text-danger-600">*</span></label>
-                                                <input type="text" class="form-control radius-8" id="pincode" formControlName="pincode"
-                                                    placeholder="Enter zip code">
-                                                <div *ngIf="locationControls['pincode'].invalid && (locationControls['pincode'].dirty || locationControls['pincode'].touched)" 
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Pin
+                                                    Code <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="pincode"
+                                                    formControlName="pincode" placeholder="Enter zip code">
+                                                <div *ngIf="locationControls['pincode'].invalid && (locationControls['pincode'].dirty || locationControls['pincode'].touched)"
                                                     class="text-danger small mt-1">
-                                                    <div *ngIf="locationControls['pincode'].errors?.['required']">Pin code is required</div>
+                                                    <div *ngIf="locationControls['pincode'].errors?.['required']">Pin
+                                                        code is required</div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
 
                                 <!-- Contact Person Information Section -->
                                 <h6 class="text-md text-primary-light mb-16 mt-32">Contact Person Information</h6>
-                                
+
                                 <div formGroupName="contactPerson">
                                     <!-- Contact Name -->
-                                    <div class="mb-20">
+                                    <!-- <div class="mb-20">
                                         <label for="contactName"
-                                            class="form-label fw-semibold text-primary-light text-sm mb-8">Contact Person Name <span
-                                                class="text-danger-600">*</span></label>
-                                        <input type="text" class="form-control radius-8" id="contactName" formControlName="name"
-                                            placeholder="Enter contact person name">
-                                        <div *ngIf="contactPersonControls['name'].invalid && (contactPersonControls['name'].dirty || contactPersonControls['name'].touched)" 
+                                            class="form-label fw-semibold text-primary-light text-sm mb-8">Contact
+                                            Person Name <span class="text-danger-600">*</span></label>
+                                        <input type="text" class="form-control radius-8" id="contactName"
+                                            formControlName="name" placeholder="Enter contact person name">
+                                        <div *ngIf="contactPersonControls['name'].invalid && (contactPersonControls['name'].dirty || contactPersonControls['name'].touched)"
                                             class="text-danger small mt-1">
-                                            <div *ngIf="contactPersonControls['name'].errors?.['required']">Contact person name is required</div>
+                                            <div *ngIf="contactPersonControls['name'].errors?.['required']">Contact
+                                                person name is required</div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <!-- Email & Phone -->
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-20">
-                                                <label for="contactEmail"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Email <span
-                                                        class="text-danger-600">*</span></label>
-                                                <input type="email" class="form-control radius-8" id="contactEmail" formControlName="email"
-                                                    placeholder="Enter email address">
-                                                <div *ngIf="contactPersonControls['email'].invalid && (contactPersonControls['email'].dirty || contactPersonControls['email'].touched)" 
+                                                <label for="contactName"
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Contact
+                                                    Person Name <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="contactName"
+                                                    formControlName="name" placeholder="Enter contact person name">
+                                                <div *ngIf="contactPersonControls['name'].invalid && (contactPersonControls['name'].dirty || contactPersonControls['name'].touched)"
                                                     class="text-danger small mt-1">
-                                                    <div *ngIf="contactPersonControls['email'].errors?.['required']">Email is required</div>
-                                                    <div *ngIf="contactPersonControls['email'].errors?.['email']">Enter a valid email</div>
+                                                    <div *ngIf="contactPersonControls['name'].errors?.['required']">
+                                                        Contact
+                                                        person name is required</div>
                                                 </div>
                                             </div>
+                                            <!-- <div class="mb-20">
+                                                <label for="contactEmail"
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Email
+                                                    <span class="text-danger-600">*</span></label>
+                                                <input type="email" class="form-control radius-8" id="contactEmail"
+                                                    formControlName="email" placeholder="Enter email address">
+                                                <div *ngIf="contactPersonControls['email'].invalid && (contactPersonControls['email'].dirty || contactPersonControls['email'].touched)"
+                                                    class="text-danger small mt-1">
+                                                    <div *ngIf="contactPersonControls['email'].errors?.['required']">
+                                                        Email is required</div>
+                                                    <div *ngIf="contactPersonControls['email'].errors?.['email']">Enter
+                                                        a valid email</div>
+                                                </div>
+                                            </div> -->
                                         </div>
                                         <div class="col-md-6">
                                             <div class="mb-20">
                                                 <label for="contactNumber"
-                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Phone <span
-                                                        class="text-danger-600">*</span></label>
-                                                <input type="text" class="form-control radius-8" id="contactNumber" formControlName="contactNumber"
-                                                    placeholder="Enter contact number">
-                                                <div *ngIf="contactPersonControls['contactNumber'].invalid && (contactPersonControls['contactNumber'].dirty || contactPersonControls['contactNumber'].touched)" 
+                                                    class="form-label fw-semibold text-primary-light text-sm mb-8">Phone
+                                                    <span class="text-danger-600">*</span></label>
+                                                <input type="text" class="form-control radius-8" id="contactNumber"
+                                                    formControlName="contactNumber" placeholder="Enter contact number">
+                                                <div *ngIf="contactPersonControls['contactNumber'].invalid && (contactPersonControls['contactNumber'].dirty || contactPersonControls['contactNumber'].touched)"
                                                     class="text-danger small mt-1">
-                                                    <div *ngIf="contactPersonControls['contactNumber'].errors?.['required']">Phone is required</div>
-                                                    <div *ngIf="contactPersonControls['contactNumber'].errors?.['minlength']">Phone must be at least 10 digits</div>
+                                                    <div
+                                                        *ngIf="contactPersonControls['contactNumber'].errors?.['required']">
+                                                        Phone is required</div>
+                                                    <div
+                                                        *ngIf="contactPersonControls['contactNumber'].errors?.['minlength']">
+                                                        Phone must be at least 10 digits</div>
                                                 </div>
                                             </div>
                                         </div>

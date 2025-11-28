@@ -1,1 +1,108 @@
-<p>venue works!</p>
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card basic-data-table">
+        <div class="card-body">
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" (click)="successMessage = null"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="showError" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" (click)="error = null"></button>
+            </div>
+
+            <!-- Add New Venue -->
+            <a routerLink="/add-venue"
+                class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                Add New Venue
+            </a>
+
+            <div class="overflow-x-auto">
+
+                <!-- Loading State -->
+                <div *ngIf="isLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-secondary">Loading venues...</p>
+                </div>
+
+                <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
+                    <thead>
+                        <tr>
+                            <th scope="col">Sr No.</th>
+                            <th scope="col">Venue Name</th>
+                            <th scope="col">Location</th>
+                            <th scope="col">Contact Person</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col" class="text-center">Status</th>
+                            <th scope="col" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let venue of venuesList; let i = index">
+                            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}</td>
+
+                            <td>{{ venue.name }}</td>
+
+                            <td>
+                                <span class="text-md text-secondary-light">
+                                    {{ venue.location?.address }}, {{ venue.location?.city }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="text-md text-secondary-light">
+                                    {{ venue.contactPerson?.name }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="text-md text-secondary-light">
+                                    {{ venue.contactPerson?.contactNumber }}
+                                </span>
+                            </td>
+
+                            <!-- Status Toggle -->
+                            <td class="text-center">
+                                <button (click)="updateStatus(venue)" [ngClass]="{
+                          'bg-success-focus text-success-600 border border-success-main cursor-pointer': venue.isActive,
+                          'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': !venue.isActive
+                        }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating"
+                                    [disabled]="isUpdating">
+                                    {{ venue.isActive ? 'Active' : 'Inactive' }}
+                                </button>
+                            </td>
+
+                            <!-- Action Buttons -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center gap-10 justify-content-center">
+
+                                    <button type="button" (click)="onEdit(venue)" [disabled]="isUpdating"
+                                        class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                        <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                    </button>
+
+                                    <button type="button" (click)="onDelete(venue)" [disabled]="isUpdating"
+                                        class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                        <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                                    </button>
+
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

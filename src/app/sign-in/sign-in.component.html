@@ -6,8 +6,22 @@
     </div>
     <div class="auth-right py-32 px-24 d-flex flex-column justify-content-center">
         <div class="max-w-464-px mx-auto w-100">
+            <div *ngIf="showSuccess"
+                class="alert alert-primary bg-primary-50 text-primary-600 border-primary-50 px-24 py-11 mb-10 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between"
+                role="alert">
+                {{respMessage}}
+                <button class="remove-button text-primary-600 text-xxl line-height-1"> <iconify-icon
+                        icon="iconamoon:sign-times-light" class="icon"></iconify-icon></button>
+            </div>
+            <div *ngIf="showError"
+                class="alert alert-danger bg-danger-100 text-danger-600 border-danger-100 px-24 py-11 mb-10 fw-semibold text-lg radius-8 d-flex align-items-center justify-content-between"
+                role="alert">
+                {{(respMessage ? respMessage : "Something Went Wrong, Please Reload!")}}
+                <button class="remove-button text-danger-600 text-xxl line-height-1"> <iconify-icon
+                        icon="iconamoon:sign-times-light" class="icon"></iconify-icon></button>
+            </div>
             <div>
-                <a routerLink="/home-10" class="mb-40 max-w-290-px">
+                <a routerLink="/home" class="mb-40 max-w-290-px">
                     <!-- <img src="assets/images/logo.png" alt=""> -->
                     <h5>Miqaat Store</h5>
                 </a>
@@ -22,22 +36,26 @@
                     <span class="icon top-50 translate-middle-y">
                         <iconify-icon icon="material-symbols-light:mobile-outline-sharp"></iconify-icon>
                     </span>
-                    <input type="text" class="form-control h-56-px bg-neutral-50 radius-12" placeholder="Phone No." formControlName="contactNumber">  
+                    <input type="text" class="form-control h-56-px bg-neutral-50 radius-12" placeholder="Phone No."
+                        formControlName="contactNumber">
                 </div>
                 <div *ngIf="contactNumber?.touched && contactNumber?.invalid" style="color:red; font-size: 14px;">
-                  Phone number is required.
+                    Phone number is required.
                 </div>
                 <div class="position-relative mt-24">
                     <div class="icon-field">
                         <span class="icon top-50 translate-middle-y">
                             <iconify-icon icon="solar:lock-password-outline"></iconify-icon>
                         </span>
-                        <input #passwordInput type="password" formControlName="password" class="form-control h-56-px bg-neutral-50 radius-12" placeholder="Password">
+                        <input #passwordInput type="password" formControlName="password"
+                            class="form-control h-56-px bg-neutral-50 radius-12" placeholder="Password">
                     </div>
                     <div *ngIf="password?.touched && password?.invalid" style="color:red; font-size: 14px;">
-                      Password is required.
+                        Password is required.
                     </div>
-                    <span class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light" (click)="togglePassword(passwordInput, $event)"></span>
+                    <span
+                        class="toggle-password ri-eye-line cursor-pointer position-absolute end-0 top-50 translate-middle-y me-16 text-secondary-light"
+                        (click)="togglePassword(passwordInput, $event)"></span>
                 </div>
                 <!-- <div class="">
                     <div class="d-flex justify-content-between gap-2">
@@ -49,9 +67,10 @@
                     </div>
                 </div> -->
 
-                <button type="submit" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32" 
-                    [disabled]="loginForm.invalid || loading"> 
-                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <button type="submit" class="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32"
+                    [disabled]="loginForm.invalid || loading">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"
+                        aria-hidden="true"></span>
                     <span *ngIf="loading">Signing In...</span>
                     <span *ngIf="!loading">Sign In</span>
                 </button>

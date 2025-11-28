@@ -39,13 +39,13 @@
                   Sr No.
                 </div>
               </th>
-              <th scope="col">Created On</th>
+              <!-- <th scope="col">Created On</th> -->
               <th scope="col">Warehouse Name</th>
               <th scope="col">Location</th>
               <th scope="col">Contact Person</th>
               <th scope="col">Phone</th>
               <!-- <th scope="col">Capacity</th> -->
-              <th scope="col">Type</th>
+              <!-- <th scope="col">Type</th> -->
               <th scope="col" class="text-center">Status</th>
               <th scope="col" class="text-center">Action</th>
             </tr>
@@ -57,19 +57,20 @@
                   {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
-              <td>{{ warehouse.createdAt | date:'shortDate' }}</td>
+              <!-- <td>{{ warehouse.createdAt | date:'shortDate' }}</td> -->
               <td>
-                <div class="d-flex align-items-center">
+                {{ warehouse.name }}
+                <!-- <div class="d-flex align-items-center">
                   <img [src]="warehouse.imgSrc" [alt]="warehouse.name"
                     class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
                   <div class="flex-grow-1">
                     <span class="text-md mb-0 fw-normal text-secondary-light">{{ warehouse.name }}</span>
                   </div>
-                </div>
+                </div> -->
               </td>
               <td>
                 <span class="text-md mb-0 fw-normal text-secondary-light">
-                  {{ warehouse.location?.city }}, {{ warehouse.location?.state }}
+                  {{ warehouse.location?.address }}, {{ warehouse.location?.city }}
                 </span>
               </td>
               <td>
@@ -87,11 +88,11 @@
                   {{ warehouse.capacity | number }}
                 </span>
               </td> -->
-              <td>
+              <!-- <td>
                 <span class="text-md mb-0 fw-normal text-secondary-light text-capitalize">
                   {{ warehouse.warehouseType }}
                 </span>
-              </td>
+              </td> -->
               <td class="text-center">
                 <button 
                   (click)="updateStatus(warehouse)" 
@@ -101,8 +102,7 @@
                   }" 
                   class="px-24 py-4 radius-4 fw-medium text-sm"
                   [class.opacity-50]="isUpdating"
-                  [disabled]="isUpdating"
-                >
+                  [disabled]="isUpdating">
                   {{ warehouse.isActive ? 'Active' : 'Inactive' }}
                 </button>
               </td>
