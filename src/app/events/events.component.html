@@ -1,1 +1,198 @@
-<p>events works!</p>
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card basic-data-table">
+        <div class="card-body">
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3">
+                {{ successMessage }}
+                <button type="button" class="btn-close" (click)="successMessage = null"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" (click)="errorMessage = null"></button>
+            </div>
+
+            <!-- Add New Event -->
+            <a routerLink="/add-event"
+                class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+                Add New Event
+            </a>
+
+            <!-- Table Wrapper -->
+            <div class="overflow-x-auto">
+
+                <!-- Loading State -->
+                <div *ngIf="isLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-secondary">Loading events...</p>
+                </div>
+
+                <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length="10">
+                    <thead>
+                        <tr>
+                            <th scope="col">Sr No.</th>
+                            <th scope="col">Event Name</th>
+                            <th scope="col">Venues</th>
+                            <!-- <th scope="col">Locations</th> -->
+                            <th scope="col">Assigned Users</th>
+                            <th scope="col" class="text-center">Status</th>
+                            <th scope="col" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr *ngFor="let event of eventsList; let i = index">
+
+                            <!-- Sr No -->
+                            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}</td>
+
+                            <!-- Event Name -->
+                            <td>{{ event.eventName }}</td>
+
+                            <!-- Venues List -->
+                            <td>
+                                <!-- <div *ngFor="let v of event.venues"> -->
+                                {{ (event.venues)? event.venues.length : 0 }}
+                                <!-- </div> -->
+                            </td>
+
+                            <!-- Locations -->
+                            <!-- <td>
+                                <div *ngFor="let v of event.venues">
+                                    {{ v.venueId?.location?.address }}, {{ v.venueId?.location?.city }}
+                                </div>
+                            </td> -->
+
+                            <!-- Assigned Users -->
+                            <td>
+                                <span *ngFor="let v of event.venues">
+                                    {{ (v.users)? v.users.length : 0 }}
+                                    <!-- <ng-container *ngFor="let u of v.users">
+                                        <span class="badge bg-secondary me-2">
+                                            {{ u.name }}
+                                        </span>
+                                    </ng-container> -->
+                                </span>
+                            </td>
+
+                            <!-- Status Toggle -->
+                            <td class="text-center">
+                                <button (click)="updateStatus(event)" [ngClass]="{
+            'bg-success-focus text-success-600 border border-success-main cursor-pointer': event.isActive,
+            'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': !event.isActive
+          }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating" [disabled]="isUpdating">
+                                    {{ event.isActive ? 'Active' : 'Inactive' }}
+                                </button>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="text-center">
+                                <div class="d-flex align-items-center gap-10 justify-content-center">
+                                    <a (click)="openDetails(event)" data-bs-toggle="modal"
+                                        data-bs-target="#eventDetailsModal" style="cursor: pointer;"
+                                        class="w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center">
+                                        <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
+                                    </a>
+                                    <button type="button" (click)="onEdit(event)" [disabled]="isUpdating"
+                                        class="bg-success-focus text-success-600 bg-hover-success-200 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                        <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                                    </button>
+
+                                    <button type="button" (click)="onDelete(event)" [disabled]="isUpdating"
+                                        class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                                        <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                                    </button>
+
+                                </div>
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content radius-8 shadow-lg">
+
+            <!-- Header -->
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="eventDetailsLabel">
+                    {{ selectedEvent?.eventName }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body pt-2">
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label class="text-muted fw-semibold small">Description</label>
+                    <p class="mt-1">{{ selectedEvent?.description || '—' }}</p>
+                </div>
+
+                <hr>
+
+                <!-- Venues Section -->
+                <div class="mb-4">
+                    <label class="text-muted fw-semibold small">Venues</label>
+
+                    <div *ngFor="let v of selectedEvent?.venues; let i = index" class="p-3 mt-2 bg-light radius-8 border">
+
+                        <div class="fw-bold mb-1">
+                            #{{ i + 1 }} — {{ v.venueId?.name }}
+                        </div>
+
+                        <div class="text-secondary small">
+                            <strong>Location:</strong>
+                            {{ v.venueId?.location?.address }},
+                            {{ v.venueId?.location?.city }}
+                        </div>
+
+                        <!-- Users -->
+                        <div class="mt-2">
+                            <strong class="small">Assigned Users:</strong>
+                            <div class="mt-1">
+                                <span *ngFor="let u of v.users" class="badge bg-primary-subtle text-primary me-2">
+                                    {{ u.name }}
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Status -->
+                <div>
+                    <label class="text-muted fw-semibold small">Status</label>
+                    <div class="mt-1">
+                        <span class="badge px-3 py-2 fs-6"
+                              [ngClass]="selectedEvent?.isActive ? 'bg-success' : 'bg-danger'">
+                            {{ selectedEvent?.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>

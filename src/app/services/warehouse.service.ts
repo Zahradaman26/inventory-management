@@ -93,15 +93,7 @@ export class WarehouseService {
   getWarehouseById(id: string): Observable<{ data: WarehouseItem; status?: string }> {
     return this.http.get<any>(`${this.apiUrl}/warehouses/${id}`).pipe(
       map((response) => {
-        const warehouseData = response.data?.warehouse || response.data;
-        if (!warehouseData) {
-          throw new Error('Warehouse data not found in response');
-        }
-        
-        return {
-          data: this.transformWarehouseData(warehouseData, 0),
-          status: response.status || 'success',
-        };
+        return response;
       }),
       catchError(error => throwError(() => this.errorHandler(error)))
     );
@@ -111,21 +103,9 @@ export class WarehouseService {
   // GET ALL WAREHOUSES (For dropdowns)
   // -----------------------------------------
   getAllWarehouses(): Observable<WarehouseItem[]> {
-    return this.http.get<any>(`${this.apiUrl}/warehouses?limit=1000`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/warehouses`).pipe(
       map((response) => {
-        let warehouses: WarehouseItem[] = [];
-
-        if (response.success && response.data?.warehouses) {
-          warehouses = response.data.warehouses.map((warehouse: any, i: number) =>
-            this.transformWarehouseData(warehouse, i)
-          );
-        } else if (response.success && Array.isArray(response.data)) {
-          warehouses = response.data.map((warehouse: any, i: number) =>
-            this.transformWarehouseData(warehouse, i)
-          );
-        }
-
-        return warehouses;
+        return response;
       }),
       catchError((error) => this.errorHandler(error))
     );
@@ -165,35 +145,11 @@ export class WarehouseService {
   updateWarehouse(id: string, warehouseData: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/warehouses/${id}`, warehouseData).pipe(
       map((response) => ({
-        data: this.transformWarehouseData(response.data, 0),
+        data: response.data,
         status: response.status || 'success',
+        message: response.message
       })),
       catchError((error) => this.errorHandler(error))
-    );
-  }
-
-  // -----------------------------------------
-  // UPDATE WAREHOUSE STATUS - SIMPLE AND CLEAN
-  // -----------------------------------------
-  // If you can get a dedicated status endpoint from backend
-  updateWarehouseStatus(id: string, isActive: boolean): Observable<any> {
-    const payload = { isActive: isActive };
-    
-    // This would be ideal - a dedicated endpoint that only needs status
-    return this.http.put<any>(`${this.apiUrl}/warehouses/${id}`, payload).pipe(
-      map((response) => {
-        if (response.success && response.data) {
-          return {
-            data: this.transformWarehouseData(response.data, 0),
-            status: response.status || 'success',
-          };
-        }
-        throw new Error(response.error || 'Failed to update status');
-      }),
-      catchError((error) => {
-        console.error('🔧 updateWarehouseStatus error:', error);
-        return this.errorHandler(error);
-      })
     );
   }
 

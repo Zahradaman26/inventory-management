@@ -93,7 +93,7 @@ export class AuthService {
     this.currentUser = loginResponse.user;
     
     // Navigate to home
-    this.router.navigate(['/home-10']);
+    this.router.navigate(['/home']);
   }
 
   logout(): void {

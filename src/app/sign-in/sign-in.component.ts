@@ -24,6 +24,9 @@ export class SignInComponent implements OnInit {
   title = 'Sign In';
   loginForm!: FormGroup;
   loading = false;
+  showError: boolean = false;
+  showSuccess: boolean = false;
+  respMessage: string = '';
   errorMessage = '';
 
   ngOnInit(): void {
@@ -58,24 +61,50 @@ export class SignInComponent implements OnInit {
       this.loginForm.markAllAsTouched();
       return;
     }
-    this.loading = true;
-    // this.errorMessage = '';
 
-    const credentials: LoginCredentials = {
-      contactNumber: this.loginForm.value.contactNumber,
-      password: this.loginForm.value.password,
-    };
+    this.loading = true;
+
+    const credentials: LoginCredentials = this.loginForm.value;
 
     this.authService.loginUser(credentials).subscribe({
-      next: (response) => {
+      next: (res: any) => {
         this.loading = false;
-        this.router.navigate(['/home-10']);
+
+        const isSuccess = res.status === 'success';
+        const isAdmin = ['user', 'viewer'].includes(res.user?.role);
+
+        if (!isSuccess) {
+          return this.showTempMessage('error');
+        }
+
+        // If admin → block login
+        if (isAdmin) {
+          this.authService.logout();
+          this.respMessage = 'Please login to User Portal';
+          return this.showTempMessage('error');
+        }
+
+        // Normal user
+        this.showTempMessage('success');
+        this.router.navigate(['/home']);
       },
-      error: (errorMsg: string) => {
-        this.errorMessage = errorMsg;
+
+      error: () => {
         this.loading = false;
+        this.showTempMessage('error');
       },
     });
+  }
+
+  // Reusable helper (show for 1.5 sec)
+  private showTempMessage(type: 'success' | 'error') {
+    if (type === 'success') this.showSuccess = true;
+    if (type === 'error') this.showError = true;
+
+    setTimeout(() => {
+      this.showSuccess = false;
+      this.showError = false;
+    }, 1500);
   }
 
   togglePassword(input: HTMLInputElement, event: any) {

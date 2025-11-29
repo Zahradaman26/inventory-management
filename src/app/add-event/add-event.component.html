@@ -1,0 +1,145 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">{{ isEditMode ? 'Update Event' : 'Add Event' }}</h5>
+        </div>
+
+        <div class="card-body p-24">
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-xxl-8 col-xl-10 col-lg-12">
+                    <div class="card border">
+                        <div class="card-body">
+
+                            <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
+
+                                <!-- Basic Information -->
+                                <h6 class="text-md text-primary-light mb-16">Event Information</h6>
+
+                                <!-- Event Name -->
+                                <div class="mb-20">
+                                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Event Name <span class="text-danger-600">*</span>
+                                    </label>
+
+                                    <input type="text" class="form-control radius-8" placeholder="Enter Event Name"
+                                        formControlName="eventName">
+
+                                    <div *ngIf="f['eventName'].touched && f['eventName'].invalid"
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['eventName'].errors?.['required']">Event name is required</div>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-20">
+                                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Description
+                                    </label>
+
+                                    <textarea rows="3" class="form-control radius-8" placeholder="Enter Description"
+                                        formControlName="description"></textarea>
+                                </div>
+
+                                <div class="mb-20">
+
+                                    <!-- VENUE DROPDOWN -->
+                                    <label class="form-label fw-semibold text-sm mb-8">Select Venue</label>
+                                    <select class="form-select" [formControl]="selectedVenueControl">
+                                        <option value="" disabled>Select Venue</option>
+                                        <option *ngFor="let v of venueList" [value]="v._id" [hidden]="isVenueAdded(v._id)">{{ v.name }}</option>
+                                    </select>
+
+                                    <!-- USERS MULTI SELECT -->
+                                    <label class="form-label fw-semibold text-sm mt-16 mb-8">Select Users</label>
+                                    <select class="form-select" [formControl]="selectedUsersControl">
+                                        <option value="" disabled>Select User</option>
+                                        <option *ngFor="let u of userList" [value]="u._id">{{ u.name }}</option>
+                                    </select>
+
+                                    <!-- ADD BUTTON -->
+                                    <button type="button" class="btn btn-primary mt-12" (click)="addVenueBlock()">
+                                        Add Venue Block
+                                    </button>
+
+                                    <!-- Error -->
+                                    <div *ngIf="venueError" class="text-danger small mt-1">
+                                        {{ venueError }}
+                                    </div>
+
+                                </div>
+                                <div formArrayName="venues">
+                                    <div *ngFor="let block of venuesArray.controls; let i = index" [formGroupName]="i"
+                                        class="border rounded p-3 mb-3">
+
+                                        <div class="d-flex justify-content-between">
+                                            <h6>{{ getVenueName(block.value.venueId) }}</h6>
+                                            <button class="btn btn-danger btn-sm" type="button"
+                                                (click)="removeVenueBlock(i)">
+                                                Remove
+                                            </button>
+                                        </div>
+
+                                        <div>
+                                            <span *ngFor="let uid of block.value.users" class="badge bg-secondary me-2">
+                                                {{ getUserName(uid) }}
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                                <!-- Status -->
+                                <h6 class="text-md text-primary-light mb-16 mt-32">Status</h6>
+
+                                <div class="mb-20">
+                                    <label class="form-label fw-semibold text-primary-light text-sm mb-8">
+                                        Event Status <span class="text-danger-600">*</span>
+                                    </label>
+
+                                    <select class="form-select radius-8" formControlName="status">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="d-flex align-items-center justify-content-center gap-3 mt-3">
+                                    <button type="button" routerLink="/events"
+                                        class="border border-danger-600 bg-hover-danger-200 text-danger-600 text-md px-56 py-11 radius-8">
+                                        Cancel
+                                    </button>
+
+                                    <button type="submit"
+                                        class="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
+                                        [disabled]="loading || eventForm.invalid">
+                                        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                                        {{ isEditMode ? 'Update Event' : 'Add Event' }}
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
