@@ -57,48 +57,68 @@
 
                                 <div class="mb-20">
 
-                                    <!-- VENUE DROPDOWN -->
+                                    <!-- Venue Dropdown -->
                                     <label class="form-label fw-semibold text-sm mb-8">Select Venue</label>
                                     <select class="form-select" [formControl]="selectedVenueControl">
                                         <option value="" disabled>Select Venue</option>
-                                        <option *ngFor="let v of venueList" [value]="v._id" [hidden]="isVenueAdded(v._id)">{{ v.name }}</option>
+                                        <option *ngFor="let v of venueList" [value]="v._id"
+                                            [hidden]="isVenueAdded(v._id)">
+                                            {{ v.name }}
+                                        </option>
                                     </select>
 
-                                    <!-- USERS MULTI SELECT -->
-                                    <label class="form-label fw-semibold text-sm mt-16 mb-8">Select Users</label>
-                                    <select class="form-select" [formControl]="selectedUsersControl">
+                                    <!-- USERS SINGLE SELECT -->
+                                    <label class="form-label fw-semibold text-sm mt-16 mb-8">Select User</label>
+                                    <select class="form-select" [formControl]="selectedUserControl">
                                         <option value="" disabled>Select User</option>
-                                        <option *ngFor="let u of userList" [value]="u._id">{{ u.name }}</option>
+                                        <option *ngFor="let u of availableUsers" [value]="u._id">
+                                            {{ u.name }}
+                                        </option>
                                     </select>
 
-                                    <!-- ADD BUTTON -->
-                                    <button type="button" class="btn btn-primary mt-12" (click)="addVenueBlock()">
-                                        Add Venue Block
-                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-12"
+                                        (click)="addUserToCurrentVenue()">
+                                        + Add User
+                                    </button> <br>
+                                    <span *ngFor="let u of tempUsers" class="badge bg-secondary me-2">
+                                        {{ getUserName(u) }}
+                                        <button class="btn-close btn-close-white ms-1"
+                                                    style="scale: 0.6;" (click)="removeTempUser(u._id)">
+                                            ✕
+                                        </button>
+                                    </span>   
 
-                                    <!-- Error -->
-                                    <div *ngIf="venueError" class="text-danger small mt-1">
-                                        {{ venueError }}
-                                    </div>
-
+                                    <div *ngIf="venueError" class="text-danger small mt-1">{{ venueError }}</div>
                                 </div>
+
+                                <button type="button" class="btn btn-primary mt-12" (click)="addVenueBlock()">
+                                    Add Venue Block
+                                </button>
+
+                                <!-- Venue Blocks -->
                                 <div formArrayName="venues">
                                     <div *ngFor="let block of venuesArray.controls; let i = index" [formGroupName]="i"
                                         class="border rounded p-3 mb-3">
 
-                                        <div class="d-flex justify-content-between">
-                                            <h6>{{ getVenueName(block.value.venueId) }}</h6>
-                                            <button class="btn btn-danger btn-sm" type="button"
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <h6 class="mb-0">{{ getVenueName(block.value.venueId) }}</h6>
+
+                                            <button type="button" class="btn btn-danger btn-sm"
                                                 (click)="removeVenueBlock(i)">
                                                 Remove
                                             </button>
                                         </div>
 
                                         <div>
-                                            <span *ngFor="let uid of block.value.users" class="badge bg-secondary me-2">
+                                            <span *ngFor="let uid of block.value.users; let ui = index"
+                                                class="badge bg-secondary me-2">
                                                 {{ getUserName(uid) }}
+                                                <button type="button" class="btn-close btn-close-white ms-1"
+                                                    style="scale: 0.6;" (click)="removeUserFromVenue(i, ui)">
+                                                </button>
                                             </span>
                                         </div>
+
 
                                     </div>
                                 </div>

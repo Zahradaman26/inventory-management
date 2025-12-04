@@ -1,4 +1,11 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, QueryList, ViewChildren, OnDestroy } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  OnInit,
+  QueryList,
+  ViewChildren,
+  OnDestroy,
+} from '@angular/core';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
@@ -16,11 +23,18 @@ import DataTables from 'datatables.net';
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [BreadcrumbComponent, RouterLink, CommonModule, ProductSortableHeader, FormsModule, MatPaginatorModule],
+  imports: [
+    BreadcrumbComponent,
+    RouterLink,
+    CommonModule,
+    ProductSortableHeader,
+    FormsModule,
+    MatPaginatorModule,
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './products.component.html',
-  styleUrls: ['./products.component.css'], 
-  providers: [DecimalPipe, ProductService]
+  styleUrls: ['./products.component.css'],
+  providers: [DecimalPipe, ProductService],
 })
 export class ProductsComponent implements OnInit, OnDestroy {
   title = 'Products List';
@@ -32,21 +46,20 @@ export class ProductsComponent implements OnInit, OnDestroy {
   isUpdating = false;
   error: string | null = null;
   successMessage: string | null = null;
-  
+
   totalRecords: number = 0;
   private dataTable: any;
 
   selectedProducts: any = [];
   selectedStatus: string = '';
+  selectedProduct: any;
 
   private destroy$ = new Subject<void>();
 
-  @ViewChildren(ProductSortableHeader) headers!: QueryList<ProductSortableHeader>;
+  @ViewChildren(ProductSortableHeader)
+  headers!: QueryList<ProductSortableHeader>;
 
-  constructor(
-    public productService: ProductService,
-    private router: Router
-  ) {}
+  constructor(public productService: ProductService, private router: Router) {}
 
   ngOnInit(): void {
     this.fetchProducts();
@@ -56,17 +69,22 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.error = null;
 
-    this.productService.getAllProducts()
+    this.productService
+      .getAllProducts()
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => { this.isLoading = false; })
+        finalize(() => {
+          this.isLoading = false;
+        })
       )
       .subscribe({
         next: (response) => {
           this.productsList = response.data.products || [];
           this.backupProductsList = response.data.products || [];
-          
-          const total = (response && response.totalRecords) ?? this.backupProductsList.length;
+
+          const total =
+            (response && response.totalRecords) ??
+            this.backupProductsList.length;
           this.totalRecords = total;
           this.productService.totalRecords = total;
 
@@ -80,14 +98,19 @@ export class ProductsComponent implements OnInit, OnDestroy {
         },
         error: (err: any) => {
           // console.error('Error loading products:', err);
-          const errMsg = (typeof err === 'string') ? err : (err?.toString ? err.toString() : 'Failed to load products');
+          const errMsg =
+            typeof err === 'string'
+              ? err
+              : err?.toString
+              ? err.toString()
+              : 'Failed to load products';
           if (errMsg.includes && errMsg.includes('401')) {
             this.error = 'Authentication required. Please login again.';
             setTimeout(() => this.router.navigate(['/sign-in']), 1200);
           } else {
             this.error = `Failed to load products: ${errMsg}`;
           }
-        }
+        },
       });
   }
 
@@ -110,29 +133,30 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   updateStatus(product: any): void {
     if (this.isUpdating) return;
-    
+
     const productId = product._id?.$oid ?? (product as any)._id ?? '';
-    
+
     if (!productId) {
       this.error = 'Product ID is missing. Cannot update status.';
       return;
     }
 
     const newStatus = !product.isActive;
-    
+
     this.isUpdating = true;
     this.successMessage = null;
     this.error = null;
 
-
-    this.productService.updateProductStatus(productId, newStatus)
+    this.productService
+      .updateProductStatus(productId, newStatus)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          
           // Update the product in all arrays
           const updateProductInArray = (arr: any[]) => {
-            const index = arr.findIndex(p => (p._id?.$oid ?? (p as any)._id) === productId);
+            const index = arr.findIndex(
+              (p) => (p._id?.$oid ?? (p as any)._id) === productId
+            );
             if (index !== -1) {
               arr[index].isActive = newStatus;
             }
@@ -141,10 +165,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
           updateProductInArray(this.productsList);
           updateProductInArray(this.backupProductsList);
           updateProductInArray(this.selectedProducts);
-          
+
           this.isUpdating = false;
-          this.successMessage = `Product "${product.name}" status updated to ${newStatus ? 'Active' : 'Inactive'} successfully!`;
-          
+          this.successMessage = `Product "${product.name}" status updated to ${
+            newStatus ? 'Active' : 'Inactive'
+          } successfully!`;
+
           setTimeout(() => {
             this.successMessage = null;
           }, 3000);
@@ -153,10 +179,12 @@ export class ProductsComponent implements OnInit, OnDestroy {
           // console.error('❌ Error updating product status:', error);
           this.isUpdating = false;
           this.error = `Failed to update status: ${error.message || error}`;
-          
+
           // Revert the UI change if API call failed
           const revertProductInArray = (arr: any[]) => {
-            const index = arr.findIndex(p => (p._id?.$oid ?? (p as any)._id) === productId);
+            const index = arr.findIndex(
+              (p) => (p._id?.$oid ?? (p as any)._id) === productId
+            );
             if (index !== -1) {
               arr[index].isActive = product.isActive; // Revert to original status
             }
@@ -165,13 +193,15 @@ export class ProductsComponent implements OnInit, OnDestroy {
           revertProductInArray(this.productsList);
           revertProductInArray(this.backupProductsList);
           revertProductInArray(this.selectedProducts);
-        }
+        },
       });
   }
 
   toggleProductSelection(product: any): void {
     const id = product._id?.$oid ?? (product as any)._id;
-    const index = this.selectedProducts.findIndex(p => (p._id?.$oid ?? (p as any)._id) === id);
+    const index = this.selectedProducts.findIndex(
+      (p) => (p._id?.$oid ?? (p as any)._id) === id
+    );
     if (index > -1) {
       this.selectedProducts.splice(index, 1);
     } else {
@@ -180,7 +210,11 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   isSelected(product: any): boolean {
-    return this.selectedProducts.some(p => (p._id?.$oid ?? (p as any)._id) === (product._id?.$oid ?? (product as any)._id));
+    return this.selectedProducts.some(
+      (p) =>
+        (p._id?.$oid ?? (p as any)._id) ===
+        (product._id?.$oid ?? (product as any)._id)
+    );
   }
 
   toggleSelectAll(event: any): void {
@@ -192,11 +226,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
   }
 
   isAllSelected(): boolean {
-    return this.selectedProducts.length === this.productsList.length && this.productsList.length > 0;
+    return (
+      this.selectedProducts.length === this.productsList.length &&
+      this.productsList.length > 0
+    );
   }
 
-  viewProduct(product: any): void { 
-    // navigate if needed
+  viewProduct(product: any): void {
+    this.selectedProduct = product;
   }
 
   editProduct(product: ProductItem): void {
@@ -205,31 +242,43 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   // Enhanced delete functionality matching users pattern
   deleteProduct(product: any): void {
-    if (!confirm(`Are you sure you want to permanently delete "${product.name}"? This action cannot be undone.`)) return;
-    
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete "${product.name}"? This action cannot be undone.`
+      )
+    )
+      return;
+
     const productId = product._id?.$oid ?? (product as any)._id ?? '';
-    
+
     this.isUpdating = true;
     this.successMessage = null;
     this.error = null;
 
-    this.productService.deleteProduct(productId)
+    this.productService
+      .deleteProduct(productId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.isUpdating = false;
-          
+
           // Remove product from all arrays immediately (matching users pattern)
-          this.productsList = this.productsList.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
-          this.backupProductsList = this.backupProductsList.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
-          this.selectedProducts = this.selectedProducts.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
-          
+          this.productsList = this.productsList.filter(
+            (p: any) => (p._id?.$oid ?? (p as any)._id) !== productId
+          );
+          this.backupProductsList = this.backupProductsList.filter(
+            (p: any) => (p._id?.$oid ?? (p as any)._id) !== productId
+          );
+          this.selectedProducts = this.selectedProducts.filter(
+            (p: any) => (p._id?.$oid ?? (p as any)._id) !== productId
+          );
+
           // Update the total records
           this.totalRecords = this.backupProductsList.length;
           this.productService.totalRecords = this.totalRecords;
-          
+
           this.successMessage = `Product "${product.name}" has been deleted permanently!`;
-          
+
           setTimeout(() => {
             this.successMessage = null;
           }, 3000);
@@ -237,39 +286,51 @@ export class ProductsComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           // console.error('Error deleting product:', err);
           this.isUpdating = false;
-          this.error = `Failed to delete product: ${err?.toString ? err.toString() : err}`;
-        }
+          this.error = `Failed to delete product: ${
+            err?.toString ? err.toString() : err
+          }`;
+        },
       });
   }
 
   deleteSelectedProducts(): void {
     if (this.selectedProducts.length === 0) return;
-    
-    if (!confirm(`Are you sure you want to permanently delete ${this.selectedProducts.length} products? This action cannot be undone.`)) return;
-    
-    const productIds = this.selectedProducts.map((p: any) => p._id?.$oid ?? (p as any)._id);
-    
+
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete ${this.selectedProducts.length} products? This action cannot be undone.`
+      )
+    )
+      return;
+
+    const productIds = this.selectedProducts.map(
+      (p: any) => p._id?.$oid ?? (p as any)._id
+    );
+
     this.isUpdating = true;
     this.successMessage = null;
     this.error = null;
 
-    this.productService.deleteMultipleProducts(productIds)
+    this.productService
+      .deleteMultipleProducts(productIds)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
           this.isUpdating = false;
-          
+
           // Remove all selected products from arrays
-          this.backupProductsList = this.backupProductsList.filter((p: any) => !productIds.includes(p._id?.$oid ?? (p as any)._id));
+          this.backupProductsList = this.backupProductsList.filter(
+            (p: any) => !productIds.includes(p._id?.$oid ?? (p as any)._id)
+          );
           this.filterData(this.backupProductsList);
           this.selectedProducts = [];
-          
+
           // Update the total records
           this.totalRecords = this.backupProductsList.length;
           this.productService.totalRecords = this.totalRecords;
-          
+
           this.successMessage = `${productIds.length} products have been deleted permanently!`;
-          
+
           setTimeout(() => {
             this.successMessage = null;
           }, 3000);
@@ -277,8 +338,10 @@ export class ProductsComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           // console.error('Error deleting products:', err);
           this.isUpdating = false;
-          this.error = `Failed to delete products: ${err?.toString ? err.toString() : err}`;
-        }
+          this.error = `Failed to delete products: ${
+            err?.toString ? err.toString() : err
+          }`;
+        },
       });
   }
 
@@ -298,11 +361,13 @@ export class ProductsComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.productService._search(filteredData).subscribe((result: SearchResult) => {
-      this.productsList = result.data || [];
-      this.totalRecords = result.total || 0;
-      this.productService.totalRecords = this.totalRecords;
-    });
+    this.productService
+      ._search(filteredData)
+      .subscribe((result: SearchResult) => {
+        this.productsList = result.data || [];
+        this.totalRecords = result.total || 0;
+        this.productService.totalRecords = this.totalRecords;
+      });
   }
 
   refreshProducts(): void {
