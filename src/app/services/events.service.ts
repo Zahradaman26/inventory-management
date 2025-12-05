@@ -49,7 +49,7 @@ export class EventsService {
 
   updateEvent(id: string, data: any): Observable<any> {
     return this.http
-      .put<any>(`${this.apiUrl}/events/${id}`, data, this.httpOptions)
+      .patch<any>(`${this.apiUrl}/events/${id}`, data, this.httpOptions)
       .pipe(
         map((response) => response),
         catchError(this.errorHandler)

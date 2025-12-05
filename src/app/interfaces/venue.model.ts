@@ -13,4 +13,5 @@ export interface VenueModel {
     isActive : boolean;
     createdAt : number;
     updatedAt : number;
+    userId : mongoId;
 }

@@ -49,7 +49,7 @@ export class VenuesService {
 
   updateVenue(id: string, data: any): Observable<any> {
     return this.http
-      .put<any>(`${this.apiUrl}/venues/${id}`, data, this.httpOptions)
+      .patch<any>(`${this.apiUrl}/venues/${id}`, data, this.httpOptions)
       .pipe(
         map((response) => response),
         catchError(this.errorHandler)

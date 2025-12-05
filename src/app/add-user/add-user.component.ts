@@ -23,7 +23,7 @@ export class AddUserComponent implements OnInit {
   isEditMode = false;
   userId: string | null = null;
 
-  roles = ['admin', 'user', 'viewer'];
+  roles = ['super_admin', 'user', 'viewer'];
 
   constructor(
     private fb: FormBuilder,
@@ -49,7 +49,7 @@ export class AddUserComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.email]],
       password: ['', [Validators.minLength(6)]], // Remove required for edit mode
-      contactNumber: ['', [Validators.required, Validators.minLength(10)]],
+      contactNumber: ['+91', [Validators.required, Validators.minLength(10)]],
       role: ['', Validators.required],
       isActive: [true]
     });

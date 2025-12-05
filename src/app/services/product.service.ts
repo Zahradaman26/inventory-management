@@ -164,17 +164,17 @@ export class ProductService {
     );
   }
 
-  deleteMultipleProducts(productIds: string[]): Observable<any> {
-    return this.http.post<any>(`${this.PRODUCTS_API_URL}/bulk-delete`, { productIds }).pipe(
-      map(response => {
-        if (response.success) {
-          return response.data || { message: 'Products deleted successfully' };
-        }
-        throw new Error(response.error || 'Failed to delete products');
-      }),
-      catchError(this.errorHandler)
-    );
-  }
+  // deleteMultipleProducts(productIds: string[]): Observable<any> {
+  //   return this.http.post<any>(`${this.PRODUCTS_API_URL}/bulk-delete`, { productIds }).pipe(
+  //     map(response => {
+  //       if (response.success) {
+  //         return response.data || { message: 'Products deleted successfully' };
+  //       }
+  //       throw new Error(response.error || 'Failed to delete products');
+  //     }),
+  //     catchError(this.errorHandler)
+  //   );
+  // }
 
   public _search(productList: Array<ProductItem> = []): Observable<SearchResult> {
     const { sortColumn, sortDirection, pageSize, page, searchTerm } = this._state;

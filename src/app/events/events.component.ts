@@ -28,6 +28,9 @@ export class EventsComponent implements OnInit {
   itemsPerPage = 10;
   selectedEvent: any = null;
 
+  showDeleteModal = false;
+  eventToDelete: any = null;
+
   private dataTable: any;
 
   constructor(private eventsService: EventsService, private router: Router) {}
@@ -104,25 +107,41 @@ export class EventsComponent implements OnInit {
   }
 
   onDelete(event: any): void {
-    if (!confirm(`Delete event "${event.title}" permanently?`)) return;
+    this.eventToDelete = event;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    if (!this.isUpdating) {
+      this.showDeleteModal = false;
+      this.eventToDelete = null;
+    }
+  }
+
+  confirmDeleteEvent(): void {
+    if (!this.eventToDelete) return;
 
     this.isUpdating = true;
     this.error = null;
     this.successMessage = null;
-
-    // Uncomment when delete API ready
-    // this.eventsService.deleteEvent(event._id).subscribe({
-    //   next: () => {
-    //     this.eventsList = this.eventsList.filter((e) => e._id !== event._id);
-    //     this.successMessage = `Event "${event.title}" deleted!`;
-    //     this.isUpdating = false;
-    //     setTimeout(() => (this.successMessage = null), 3000);
-    //   },
-    //   error: (error) => {
-    //     this.error = `Failed to delete event: ${error}`;
-    //     this.isUpdating = false;
-    //   },
-    // });
+    
+    this.eventsService.deleteEvent(this.eventToDelete._id).subscribe({
+      next: () => {
+        this.eventsList = this.eventsList.filter((e) => e._id !== this.eventToDelete._id);
+        this.successMessage = `Event "${this.eventToDelete.title}" deleted!`;
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+        this.eventToDelete = null;
+        
+        setTimeout(() => (this.successMessage = null), 3000);
+      },
+      error: (error) => {
+        this.error = `Failed to delete event: ${error}`;
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+        this.eventToDelete = null;
+      },
+    });
   }
 
   openDetails(event: any) {

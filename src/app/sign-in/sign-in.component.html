@@ -32,15 +32,48 @@
                 {{ errorMessage }}
             </div>
             <form (ngSubmit)="onLogin()" [formGroup]="loginForm">
-                <div class="icon-field">
-                    <span class="icon top-50 translate-middle-y">
-                        <iconify-icon icon="material-symbols-light:mobile-outline-sharp"></iconify-icon>
-                    </span>
-                    <input type="text" class="form-control h-56-px bg-neutral-50 radius-12" placeholder="Phone No."
-                        formControlName="contactNumber">
-                </div>
-                <div *ngIf="contactNumber?.touched && contactNumber?.invalid" style="color:red; font-size: 14px;">
-                    Phone number is required.
+                <div class="phone-input-wrapper mb-24">
+                    <div class="d-flex gap-2 align-items-stretch">
+                        <!-- Fixed +91 Box -->
+                        <div class="position-relative" style="flex-shrink: 0;">
+                            <div class="icon-field">
+                                <span class="icon top-50 translate-middle-y">
+                                    <iconify-icon icon="material-symbols-light:mobile-outline-sharp"></iconify-icon>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    class="form-control h-56-px bg-neutral-100 radius-12" 
+                                    value="+91"
+                                    disabled
+                                    style="width: 100px; text-align: center; cursor: not-allowed; background-color: #f8f9fa;"
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Phone Number Input (10 digits only) -->
+                        <div class="flex-grow-1">
+                            <div class="icon-field">
+                                <input 
+                                    type="text" 
+                                    class="form-control h-56-px bg-neutral-50 radius-12" 
+                                    placeholder="Enter 10-digit number"
+                                    formControlName="contactNumber"
+                                    maxlength="10"
+                                    inputmode="numeric"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div *ngIf="contactNumber?.touched && contactNumber?.invalid" style="color:red; font-size: 14px; margin-top: 8px;">
+                        <div *ngIf="contactNumber?.errors?.['required']">
+                            Phone number is required.
+                        </div>
+                        <div *ngIf="contactNumber?.errors?.['pattern'] || contactNumber?.errors?.['minlength'] || contactNumber?.errors?.['maxlength']">
+                            Please enter exactly 10 digits.
+                        </div>
+                    </div>
                 </div>
                 <div class="position-relative mt-24">
                     <div class="icon-field">

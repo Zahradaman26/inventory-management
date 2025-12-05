@@ -9,7 +9,7 @@ export interface UserItem {
     _id: string;
     name: string;
     contactNumber: string;
-    email: string,
+    email: string;
     role: string;
     status: 'Active' | 'Inactive';
     // department?: string;

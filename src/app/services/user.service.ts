@@ -129,6 +129,34 @@ export class UserService {
   }
 
   // -----------------------------------------
+  // GET ACTIVE USERS (only for Dropdowns)
+  // -----------------------------------------
+  getActiveUsers(): Observable<UserItem[]> {
+      return this.http.get<any>(`${this.apiUrl}/users/active`).pipe(
+        map((response) => {
+          let users: UserItem[] = [];
+  
+          if (response.success && response.data?.users) {
+            users = response.data.users
+              .filter((user: any) => user.isActive)
+              .map((user: any, i: number) =>
+                this.transformUserData(user, i)
+              );
+          } else if (response.success && Array.isArray(response.data)) {
+            users = response.data
+              .filter((user: any) => user.isActive)
+              .map((user: any, i: number) =>
+                this.transformUserData(user, i)
+              );
+          }
+  
+          return users;
+        }),
+        catchError((error) => this.errorHandler(error))
+      );
+    }
+
+  // -----------------------------------------
   // UPDATE USER ROLE
   // -----------------------------------------
   updateUserRole(id: string, roleData: { role: string }): Observable<any> {
@@ -149,7 +177,7 @@ export class UserService {
      const apiData = {
       isActive: statusData.status === 'Active'
     };
-    return this.http.put<any>(`${this.apiUrl}/users/${id}`, statusData).pipe(
+    return this.http.patch<any>(`${this.apiUrl}/users/${id}`, statusData).pipe(
       map((response) => {
         return {
           data: this.transformUserData(response.data, 0),
@@ -197,7 +225,7 @@ export class UserService {
   // UPDATE USER
   // -----------------------------------------
   updateUser(id: string, userData: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/users/${id}`, userData).pipe(
+    return this.http.patch<any>(`${this.apiUrl}/users/${id}`, userData).pipe(
       map((response) => ({
         data: this.transformUserData(response.data, 0),
         status: response.status || 'success',

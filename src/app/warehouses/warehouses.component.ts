@@ -48,6 +48,9 @@ export class WarehousesComponent implements OnInit, OnDestroy {
   searchTerm = '';
   statusFilter = '';
 
+  showDeleteModal = false;
+  warehouseToDelete: WarehouseItem | null = null;
+
   private destroy$ = new Subject<void>();
   private dataTable: any;
 
@@ -144,41 +147,51 @@ export class WarehousesComponent implements OnInit, OnDestroy {
   }
 
   onDelete(warehouse: WarehouseItem): void {
-    if (
-      confirm(
-        `Are you sure you want to permanently delete "${warehouse.name}"? This action cannot be undone.`
-      )
-    ) {
-      // ADD QUOTES like products
-      this.isUpdating = true;
-      this.successMessage = null;
-      this.error = null;
+    this.warehouseToDelete = warehouse;
+    this.showDeleteModal = true;
+  }
 
-      this.warehouseService.deleteWarehouse(warehouse._id).subscribe({
-        next: (response) => {
-          this.isUpdating = false;
-
-          // Remove from both arrays (same as products)
-          this.warehouses = this.warehouses.filter(
-            (w) => w._id !== warehouse._id
-          );
-          this.backupWarehouses = this.backupWarehouses.filter(
-            (w) => w._id !== warehouse._id
-          ); // ADD THIS LINE
-
-          this.successMessage = `Warehouse "${warehouse.name}" has been deleted permanently!`; // ADD QUOTES
-
-          setTimeout(() => {
-            this.successMessage = null;
-          }, 3000);
-        },
-        error: (error) => {
-          // console.error('Error deleting warehouse:', error);
-          this.isUpdating = false;
-          this.error = `Failed to delete warehouse: ${error}`; // REMOVE .message
-        },
-      });
+  closeDeleteModal(): void {
+    if (!this.isUpdating) {
+      this.showDeleteModal = false;
+      this.warehouseToDelete = null;
     }
+  }
+
+  confirmDeleteWarehouse(): void {
+    if (!this.warehouseToDelete) return;
+    
+    this.isUpdating = true;
+    this.successMessage = null;
+    this.error = null;
+
+    this.warehouseService.deleteWarehouse(this.warehouseToDelete._id).subscribe({
+      next: (response) => {
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+
+        // Remove from both arrays
+        this.warehouses = this.warehouses.filter(
+          (w) => w._id !== this.warehouseToDelete!._id
+        );
+        this.backupWarehouses = this.backupWarehouses.filter(
+          (w) => w._id !== this.warehouseToDelete!._id
+        );
+
+        this.successMessage = `Warehouse "${this.warehouseToDelete.name}" has been deleted permanently!`;
+        this.warehouseToDelete = null;
+
+        setTimeout(() => {
+          this.successMessage = null;
+        }, 3000);
+      },
+      error: (error) => {
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+        this.error = `Failed to delete warehouse: ${error}`;
+        this.warehouseToDelete = null;
+      },
+    });
   }
 
   ngOnDestroy(): void {

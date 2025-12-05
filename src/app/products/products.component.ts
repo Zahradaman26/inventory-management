@@ -38,6 +38,9 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   selectedProducts: any = [];
   selectedStatus: string = '';
+  
+  showDeleteModal = false;
+  productToDelete: any = null;
 
   private destroy$ = new Subject<void>();
 
@@ -203,11 +206,23 @@ export class ProductsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/add-product', product._id]);
   }
 
-  // Enhanced delete functionality matching users pattern
   deleteProduct(product: any): void {
-    if (!confirm(`Are you sure you want to permanently delete "${product.name}"? This action cannot be undone.`)) return;
     
-    const productId = product._id?.$oid ?? (product as any)._id ?? '';
+    this.productToDelete = product;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    if (!this.isUpdating) {
+      this.showDeleteModal = false;
+      this.productToDelete = null;
+    }
+  }
+
+  confirmDeleteProduct(): void {
+    if (!this.productToDelete) return;
+    
+    const productId = this.productToDelete._id;
     
     this.isUpdating = true;
     this.successMessage = null;
@@ -218,69 +233,71 @@ export class ProductsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           this.isUpdating = false;
+          this.showDeleteModal = false;
           
-          // Remove product from all arrays immediately (matching users pattern)
-          this.productsList = this.productsList.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
-          this.backupProductsList = this.backupProductsList.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
-          this.selectedProducts = this.selectedProducts.filter((p: any) => (p._id?.$oid ?? (p as any)._id) !== productId);
+          // Remove product from all arrays immediately
+          this.productsList = this.productsList.filter((p: any) => p._id !== productId);
+          this.backupProductsList = this.backupProductsList.filter((p: any) => p._id !== productId);
+          this.selectedProducts = this.selectedProducts.filter((p: any) => p._id !== productId);
           
           // Update the total records
           this.totalRecords = this.backupProductsList.length;
           this.productService.totalRecords = this.totalRecords;
           
-          this.successMessage = `Product "${product.name}" has been deleted permanently!`;
+          this.successMessage = `Product "${this.productToDelete.name}" has been deleted permanently!`;
+          this.productToDelete = null;
           
           setTimeout(() => {
             this.successMessage = null;
           }, 3000);
         },
         error: (err: any) => {
-          // console.error('Error deleting product:', err);
           this.isUpdating = false;
+          this.showDeleteModal = false;
           this.error = `Failed to delete product: ${err?.toString ? err.toString() : err}`;
+          this.productToDelete = null;
         }
       });
   }
+  // deleteSelectedProducts(): void {
+  //   if (this.selectedProducts.length === 0) return;
+    
+  //   if (!confirm(`Are you sure you want to permanently delete ${this.selectedProducts.length} products? This action cannot be undone.`)) return;
+    
+  //   const productIds = this.selectedProducts.map((p: any) => (p as any)._id);
+    
+  //   this.isUpdating = true;
+  //   this.successMessage = null;
+  //   this.error = null;
 
-  deleteSelectedProducts(): void {
-    if (this.selectedProducts.length === 0) return;
-    
-    if (!confirm(`Are you sure you want to permanently delete ${this.selectedProducts.length} products? This action cannot be undone.`)) return;
-    
-    const productIds = this.selectedProducts.map((p: any) => p._id?.$oid ?? (p as any)._id);
-    
-    this.isUpdating = true;
-    this.successMessage = null;
-    this.error = null;
-
-    this.productService.deleteMultipleProducts(productIds)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.isUpdating = false;
+  //   this.productService.deleteMultipleProducts(productIds)
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe({
+  //       next: (response) => {
+  //         this.isUpdating = false;
           
-          // Remove all selected products from arrays
-          this.backupProductsList = this.backupProductsList.filter((p: any) => !productIds.includes(p._id?.$oid ?? (p as any)._id));
-          this.filterData(this.backupProductsList);
-          this.selectedProducts = [];
+  //         // Remove all selected products from arrays
+  //         this.backupProductsList = this.backupProductsList.filter((p: any) => !productIds.includes(p as any)._id);
+  //         this.filterData(this.backupProductsList);
+  //         this.selectedProducts = [];
           
-          // Update the total records
-          this.totalRecords = this.backupProductsList.length;
-          this.productService.totalRecords = this.totalRecords;
+  //         // Update the total records
+  //         this.totalRecords = this.backupProductsList.length;
+  //         this.productService.totalRecords = this.totalRecords;
           
-          this.successMessage = `${productIds.length} products have been deleted permanently!`;
+  //         this.successMessage = `${productIds.length} products have been deleted permanently!`;
           
-          setTimeout(() => {
-            this.successMessage = null;
-          }, 3000);
-        },
-        error: (err: any) => {
-          // console.error('Error deleting products:', err);
-          this.isUpdating = false;
-          this.error = `Failed to delete products: ${err?.toString ? err.toString() : err}`;
-        }
-      });
-  }
+  //         setTimeout(() => {
+  //           this.successMessage = null;
+  //         }, 3000);
+  //       },
+  //       error: (err: any) => {
+  //         // console.error('Error deleting products:', err);
+  //         this.isUpdating = false;
+  //         this.error = `Failed to delete products: ${err?.toString ? err.toString() : err}`;
+  //       }
+  //     });
+  // }
 
   onStatusFilterChange(status: string): void {
     this.selectedStatus = status;

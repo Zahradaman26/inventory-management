@@ -83,47 +83,39 @@
                                     </div>
                                 </div>
 
-                                <!-- Contact Section -->
-                                <h6 class="text-md text-primary-light mb-16 mt-32">Contact Information</h6>
-
-                                <div formGroupName="contactPerson">
-                                    <div class="row">
-                                        <!-- Contact Person -->
-                                        <div class="col-md-6">
-                                            <div class="mb-20">
-                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Contact Person <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="text" class="form-control radius-8" formControlName="name"
-                                                    placeholder="Enter contact person name">
-
-                                                <div *ngIf="contactControls['name'].touched && contactControls['name'].invalid"
-                                                    class="text-danger small mt-1">
-                                                    Contact person is required
-                                                </div>
-                                            </div>
+                                <!-- Warehouse - Updated with Dynamic Loading -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="userId" class="form-label">Contact Person *</label>
+                                    
+                                    <!-- Loading State for Warehouses -->
+                                    <div *ngIf="isLoadingUsers" class="form-control">
+                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
                                         </div>
+                                        Loading users...
+                                    </div>
 
-                                        <!-- Phone -->
-                                        <div class="col-md-6">
-                                            <div class="mb-20">
-                                                <label class="form-label fw-semibold text-primary-light text-sm mb-8">
-                                                    Contact Number <span class="text-danger-600">*</span>
-                                                </label>
-                                                <input type="text" class="form-control radius-8" formControlName="contactNumber"
-                                                    placeholder="Enter Contact Number">
+                                    <!-- Warehouse Dropdown -->
+                                    <select *ngIf="!isLoadingUsers"
+                                            class="form-select" 
+                                            id="userId"
+                                            formControlName="userId"
+                                            [disabled]="loading">
+                                        <option value="">Select User</option>
+                                        <option *ngFor="let user of users" [value]="user._id">
+                                            {{ user.name }} - {{ user.contactNumber }} 
+                                            <!-- <span *ngIf="warehouse.capacity">(Capacity: {{ warehouse.capacity | number }})</span> -->
+                                        </option>
+                                    </select>
 
-                                                <div *ngIf="contactControls['contactNumber'].touched && contactControls['contactNumber'].invalid"
-                                                    class="text-danger small mt-1">
-                                                    <div *ngIf="contactControls['contactNumber'].errors?.['required']">
-                                                        Phone is required
-                                                    </div>
-                                                    <div *ngIf="contactControls['contactNumber'].errors?.['minlength']">
-                                                        Phone must be at least 10 digits
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div *ngIf="f['userId'].invalid && (f['userId'].dirty || f['userId'].touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="f['userId'].errors?.['required']">User is required</div>
+                                    </div>
+
+                                    <!-- No Warehouses Available Message -->
+                                    <div *ngIf="!isLoadingUsers && users.length === 0" class="text-warning small mt-1">
+                                        No users available. Please create a user first.
                                     </div>
                                 </div>
 

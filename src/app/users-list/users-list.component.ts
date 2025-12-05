@@ -45,6 +45,9 @@ export class UsersListComponent implements OnInit, OnDestroy {
   error: string | null = null;
   successMessage: string | null = null;
 
+  showDeleteModal = false;
+  userToDelete: UserItem | null = null;
+
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
   private dataTable: any;
@@ -157,40 +160,52 @@ export class UsersListComponent implements OnInit, OnDestroy {
   }
 
   onDelete(user: UserItem): void {
-    if (
-      confirm(
-        `Are you sure you want to permanently delete ${user.name}? This action cannot be undone.`
-      )
-    ) {
-      this.isUpdating = true;
-      this.successMessage = null;
-      this.error = null;
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+  }
 
-      this.userService.deleteUser(user._id).subscribe({
-        next: (response) => {
-          this.isUpdating = false;
-
-          // Remove the user from the local array immediately
-          this.users = this.users.filter((u) => u._id !== user._id);
-
-          // Update the serial numbers
-          this.users.forEach((user, index) => {
-            user.srNo = index + 1;
-          });
-
-          this.successMessage = `User ${user.name} has been deleted permanently!`;
-
-          setTimeout(() => {
-            this.successMessage = null;
-          }, 3000);
-        },
-        error: (error) => {
-          // console.error('Error deleting user:', error);
-          this.isUpdating = false;
-          this.error = `Failed to delete user: ${error.message || error}`;
-        },
-      });
+  closeDeleteModal(): void {
+    if (!this.isUpdating) {
+      this.showDeleteModal = false;
+      this.userToDelete = null;
     }
+  }
+
+  confirmDelete(): void {
+    if (!this.userToDelete) return;
+    
+    // Your existing delete logic from onDelete() goes here
+    this.isUpdating = true;
+    this.successMessage = null;
+    this.error = null;
+
+    this.userService.deleteUser(this.userToDelete._id).subscribe({
+      next: (response) => {
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+
+        // Remove the user from the local array immediately
+        this.users = this.users.filter((u) => u._id !== this.userToDelete!._id);
+
+        // Update the serial numbers
+        this.users.forEach((user, index) => {
+          user.srNo = index + 1;
+        });
+
+        this.successMessage = `User ${this.userToDelete!.name} has been deleted permanently!`;
+        this.userToDelete = null;
+
+        setTimeout(() => {
+          this.successMessage = null;
+        }, 3000);
+      },
+      error: (error) => {
+        this.isUpdating = false;
+        this.error = `Failed to delete user: ${error.message || error}`;
+        this.showDeleteModal = false;
+        this.userToDelete = null;
+      },
+    });
   }
 
   refreshUsers(): void {

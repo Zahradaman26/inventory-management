@@ -31,14 +31,15 @@ export class SignInComponent implements OnInit {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      contactNumber: new FormControl('', [Validators.required]),
+      contactNumber: new FormControl('', [
+        Validators.required,
+        Validators.pattern(/^[0-9]{10}$/), // Exactly 10 digits
+        Validators.minLength(10),
+        Validators.maxLength(10)
+      ]),
       password: new FormControl('', [Validators.required]),
     });
   }
-
-  // onSubmit() {
-  //   console.log(this.loginForm.value);
-  // }
 
   constructor(
     private authService: AuthService,
@@ -64,14 +65,20 @@ export class SignInComponent implements OnInit {
 
     this.loading = true;
 
-    const credentials: LoginCredentials = this.loginForm.value;
+    const phoneDigits = this.loginForm.get('contactNumber')?.value;
+    const fullPhoneNumber = '+91' + phoneDigits;
+
+    const credentials: LoginCredentials = {
+      contactNumber: fullPhoneNumber, 
+      password: this.loginForm.get('password')?.value
+    };
 
     this.authService.loginUser(credentials).subscribe({
       next: (res: any) => {
         this.loading = false;
 
         const isSuccess = res.status === 'success';
-        const isAdmin = ['user', 'viewer'].includes(res.user?.role);
+        const isAdmin = ['user'].includes(res.user?.role);
 
         if (!isSuccess) {
           return this.showTempMessage('error');

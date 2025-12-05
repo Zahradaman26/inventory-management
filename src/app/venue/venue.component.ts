@@ -7,6 +7,7 @@ import { Subject, takeUntil, finalize } from 'rxjs';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import DataTable from 'datatables.net';
 
+
 @Component({
   selector: 'app-venue',
   imports: [BreadcrumbComponent, CommonModule, FormsModule, RouterLink],
@@ -27,10 +28,15 @@ export class VenueComponent implements OnInit {
   currentPage = 1;
   itemsPerPage = 10;
 
+  showDeleteModal = false;
+  venueToDelete: any = null;
+
   private destroy$ = new Subject<void>();
   private dataTable: any;
 
-  constructor(private venuesService: VenuesService, private router: Router) {}
+  constructor(
+    private venuesService: VenuesService, 
+    private router: Router) {}
 
   ngOnInit(): void {
     this.isLoading = true;
@@ -105,27 +111,43 @@ export class VenueComponent implements OnInit {
     this.router.navigate(['/add-venue', venue._id]);
   }
 
-  onDelete(warehouse: any): void {
-    if (!confirm(`Delete warehouse "${warehouse.name}" permanently?`)) return;
+  onDelete(venues: any): void {
+    this.venueToDelete = venues;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    if (!this.isUpdating) {
+      this.showDeleteModal = false;
+      this.venueToDelete = null;
+    }
+  }
+
+  confirmDeleteVenue(): void {
+    if (!this.venueToDelete) return;
 
     this.isUpdating = true;
     this.error = null;
     this.successMessage = null;
 
-    // this.warehouseService.deleteWarehouse(warehouse._id).subscribe({
-    //   next: () => {
-    //     this.warehouses = this.warehouses.filter(w => w._id !== warehouse._id);
+    this.venuesService.deleteVenue(this.venueToDelete._id).subscribe({
+      next: () => {
+        this.venuesList = this.venuesList.filter((v) => v._id !== this.venueToDelete._id);
 
-    //     this.successMessage = `Warehouse "${warehouse.name}" deleted!`;
-    //     this.isUpdating = false;
+        this.successMessage = `Venues "${this.venueToDelete.name}" deleted!`;
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+        this.venueToDelete = null;
 
-    //     setTimeout(() => (this.successMessage = null), 3000);
-    //   },
-    //   error: (error) => {
-    //     this.error = `Failed to delete warehouse: ${error}`;
-    //     this.isUpdating = false;
-    //   },
-    // });
+        setTimeout(() => (this.successMessage = null), 3000);
+      },
+      error: (error) => {
+        this.error = `Failed to delete venue: ${error}`;
+        this.isUpdating = false;
+        this.showDeleteModal = false;
+        this.venueToDelete = null;
+      },
+    });
   }
 
   ngOnDestroy(): void {

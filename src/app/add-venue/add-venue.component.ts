@@ -10,6 +10,8 @@ import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import { VenuesService } from '../services/venues.service';
+import { UserService } from '../services/user.service';
+import { UserItem } from '../interfaces/user.model';
 
 @Component({
   selector: 'app-add-venue',
@@ -32,13 +34,17 @@ export class AddVenueComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  users: UserItem[] = [];
+  isLoadingUsers = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private venueService: VenuesService
+    private venueService: VenuesService,
+    private userService: UserService
   ) {
     this.initializeForm();
   }
@@ -52,6 +58,8 @@ export class AddVenueComponent implements OnInit {
         this.loadVenueData();
       }
     });
+
+    this.loadUsers();
   }
 
   // ------------------------------
@@ -64,12 +72,34 @@ export class AddVenueComponent implements OnInit {
         address: ['', Validators.required],
         city: ['', Validators.required],
       }),
-      contactPerson: this.fb.group({
-        name: ['', Validators.required],
-        contactNumber: ['', [Validators.required, Validators.minLength(10)]],
-      }),
+      // contactPerson: this.fb.group({
+      //   name: ['', Validators.required],
+      //   contactNumber: ['', [Validators.required, Validators.minLength(10)]],
+      // }),
+      userId: ['', [Validators.required, Validators.minLength(0)]],
       isActive: [true],
     });
+  }
+
+  // ------------------------------
+  // LOAD USERS FOR DROPDOWN
+  // ------------------------------
+  loadUsers(): void {
+    this.isLoadingUsers= true;
+    
+    this.userService.getActiveUsers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (warehouses) => {
+          this.users = warehouses;
+          this.isLoadingUsers = false;
+        },
+        error: (error) => {
+          // console.error('Error loading warehouses:', error);
+          this.errorMessage = 'Failed to load users. Please try again.';
+          this.isLoadingUsers = false;
+        }
+      });
   }
 
   // ------------------------------
@@ -88,10 +118,11 @@ export class AddVenueComponent implements OnInit {
             address: venue?.location?.address ?? '',
             city: venue?.location?.city ?? '',
           },
-          contactPerson: {
-            name: venue?.contactPerson?.name ?? 'NA',
-            contactNumber: venue?.contactPerson?.contactNumber ?? 'NA',
-          },
+          // contactPerson: {
+          //   name: venue?.contactPerson?.name ?? 'NA',
+          //   contactNumber: venue?.contactPerson?.contactNumber ?? 'NA',
+          // },
+          userId: venue?.userId ?? '',
           isActive: venue?.isActive ?? true,
         });
 

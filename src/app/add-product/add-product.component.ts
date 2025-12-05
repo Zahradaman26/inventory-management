@@ -66,9 +66,9 @@ export class AddProductComponent implements OnInit, OnDestroy {
       SKU: ['', [Validators.required, Validators.minLength(3)]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
-      category: ['', Validators.required],
+      category: ['Select Category', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
-      warehouseId: ['', [Validators.required, Validators.min(0)]],
+      warehouseId: ['Select Warehouse', [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       isActive: [true]
     });

@@ -143,7 +143,7 @@ export class WarehouseService {
   // UPDATE WAREHOUSE
   // -----------------------------------------
   updateWarehouse(id: string, warehouseData: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/warehouses/${id}`, warehouseData).pipe(
+    return this.http.patch<any>(`${this.apiUrl}/warehouses/${id}`, warehouseData).pipe(
       map((response) => ({
         data: response.data,
         status: response.status || 'success',

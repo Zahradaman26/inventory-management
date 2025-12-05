@@ -51,7 +51,7 @@ export class AddWarehouseComponent implements OnInit {
       if (params['id']) {
         this.isEditMode = true;
         this.warehouseId = params['id'];
-        this.title = 'Edit Product';
+        this.title = 'Edit Warehouse';
         this.loadProductData();
       }
     });
@@ -140,7 +140,7 @@ export class AddWarehouseComponent implements OnInit {
         .subscribe({
           next: (response) => {
             this.loading = false;
-            this.successMessage = 'Product updated successfully';
+            this.successMessage = 'Warehouse updated successfully';
 
             setTimeout(() => {
               this.router.navigate(['/warehouses']);
