@@ -40,6 +40,7 @@ export class AddEventComponent implements OnInit {
   selectedUsersForVenue: string[] = [];
   venueError = '';
   userList: any[] = [];
+  tempUsers: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -66,6 +67,7 @@ export class AddEventComponent implements OnInit {
 
   selectedVenueControl = new FormControl('');
   selectedUsersControl = new FormControl([]);
+  selectedUserControl = new FormControl('');
 
   initForm() {
     this.eventForm = this.fb.group({
@@ -89,35 +91,44 @@ export class AddEventComponent implements OnInit {
     return this.venueList.filter((v) => !addedIds.includes(v._id));
   }
 
-  addVenueBlock() {
-    this.venueError = '';
+  get availableUsers() {
+    return this.userList.filter((u) => !this.tempUsers.includes(u._id));
+  }
 
+  addUserToCurrentVenue() {
+    const user = this.selectedUserControl.value;
+    if (!user) return;
+
+    if (!this.tempUsers.includes(user)) {
+      this.tempUsers.push(user);
+    }
+
+    this.selectedUserControl.reset("");
+  }
+
+  addVenueBlock() {
     const venueId = this.selectedVenueControl.value;
-    const usersValue = this.selectedUsersControl.value;
-    const users = Array.isArray(usersValue) ? usersValue : [usersValue];
 
     if (!venueId) {
       this.venueError = 'Please select a venue.';
       return;
     }
-    if (!users || users.length === 0) {
-      this.venueError = 'Please select at least one user.';
-      return;
-    }
-    if (this.venuesArray.value.some((v: any) => v.venueId === venueId)) {
-      this.venueError = 'Venue already added.';
+
+    if (this.tempUsers.length === 0) {
+      this.venueError = 'Please add at least one user.';
       return;
     }
 
     this.venuesArray.push(
       this.fb.group({
         venueId: [venueId, Validators.required],
-        users: [users, Validators.required],
+        users: [this.tempUsers, Validators.required],
       })
     );
 
+    // Reset
+    this.tempUsers = [];
     this.selectedVenueControl.reset();
-    this.selectedUsersControl.reset();
   }
 
   // remove venue block and restore to dropdown
@@ -155,39 +166,60 @@ export class AddEventComponent implements OnInit {
     });
   }
 
+  removeUserFromVenue(venueIndex: number, userIndex: number) {
+    const venueGroup = this.venuesArray.at(venueIndex) as FormGroup;
+    const users = [...venueGroup.get('users')?.value];
+
+    if (users.length <= 1) {
+      alert('A venue must have at least 1 user. Remove venue instead.');
+      return;
+    }
+
+    users.splice(userIndex, 1);
+    venueGroup.patchValue({ users });
+  }
+
+  removeTempUser(id: string) {
+    this.tempUsers = this.tempUsers.filter((u) => u._id !== id);
+  }
+
+  addTempUser() {
+    const uid = this.selectedUsersControl.value;
+    if (!uid) return;
+
+    const userObj = this.userList.find((x) => x._id === uid);
+    if (userObj && !this.tempUsers.some((u) => u._id === uid)) {
+      this.tempUsers.push(userObj);
+    }
+
+    this.selectedUsersControl.setValue([]);
+  }
+
   loadEventData() {
     if (!this.eventId) return;
 
     this.eventsService.getEventById(this.eventId).subscribe({
       next: (res: any) => {
         const data = res.data.event;
+
         this.eventForm.patchValue({
           eventName: data.eventName,
           description: data.description,
           status: data.isActive ? 'active' : 'inactive',
         });
 
-        // clear and load existing venue blocks
         this.venuesArray.clear();
-        (data.venues || []).forEach((v: any) => {
+
+        (data.venues || []).forEach((v) => {
           this.venuesArray.push(
             this.fb.group({
-              venueId: [v.venueId._id || v.venueId, Validators.required],
-
-              // FIX: convert users → userIds array
-              users: [
-                Array.isArray(v.users)
-                  ? v.users.map((u: any) => u._id) // extract _id for multi-select
-                  : [],
-                Validators.required,
-              ],
+              venueId: [v.venueId._id, Validators.required],
+              users: [v.users.map((u: any) => u._id), Validators.required],
             })
           );
         });
       },
-      error: (err) => {
-        console.error('Failed to load event', err);
-      },
+      error: (err) => console.error('Failed to load event', err),
     });
   }
 

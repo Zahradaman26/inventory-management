@@ -41,11 +41,11 @@
               </th>
 
               <th scope="col">SKU</th>
-              <th scope="col">Image</th>
+              <!-- <th scope="col">Image</th> -->
               <th scope="col">Product Name</th>
-              <th scope="col">Category</th>
               <th scope="col">Price</th>
               <th scope="col">Stock</th>
+              <th scope="col">Available Stock</th>
               <th scope="col" class="text-center">Status</th>
               <th scope="col" class="text-center">Action</th>
             </tr>
@@ -61,19 +61,19 @@
 
               <td>{{ product.SKU }}</td>
 
-              <td>
+              <!-- <td>
                 <img [src]="product.imgSrc"
                   [alt]="product.name"
                   class="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden" />
-              </td>
+              </td> -->
 
               <td>
                 <span class="text-md mb-0 fw-normal text-secondary-light">{{ product.name }}</span>
               </td>
 
-              <td>{{ product.category }}</td>
+              <!-- <td>{{ product.category }}</td> -->
 
-              <td>${{ product.price | number:'1.2-2' }}</td>
+              <td>₹{{ (product.price) ? product.price : 0 | number:'1.2-2' }}</td>
 
               <td>
                 <span [ngClass]="{
@@ -84,18 +84,22 @@
                   {{ product.stock }}
                 </span>
               </td>
+              <td>
+                <span [ngClass]="{
+                  'text-success': product.availableStock > 10,
+                  'text-warning': product.availableStock <= 10 && product.availableStock > 0,
+                  'text-danger': product.availableStock === 0
+                }">
+                  {{ product.availableStock }}
+                </span>
+              </td>
 
               <td class="text-center">
-                <button 
-                  (click)="updateStatus(product)" 
-                  [ngClass]="{
+                <button (click)="updateStatus(product)" [ngClass]="{
                     'bg-success-focus text-success-600 border border-success-main cursor-pointer': product.isActive,
                     'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': !product.isActive
-                  }" 
-                  class="px-24 py-4 radius-4 fw-medium text-sm"
-                  [class.opacity-50]="isUpdating"
-                  [disabled]="isUpdating"
-                >
+                  }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating"
+                  [disabled]="isUpdating">
                   {{ product.isActive ? 'Active' : 'Inactive' }}
                 </button>
               </td>
@@ -104,7 +108,8 @@
                 <div class="d-flex align-items-center gap-10 justify-content-center">
 
                   <!-- View Button -->
-                  <button type="button" (click)="viewProduct(product)" [disabled]="isUpdating"
+                  <button type="button" data-bs-toggle="modal" data-bs-target="#productDetailsModal"
+                    (click)="viewProduct(product)" [disabled]="isUpdating"
                     class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
                     <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
                   </button>
@@ -283,4 +288,66 @@
     </div>
   </div>
   }
+</div>
+
+<!-- PRODUCT DETAILS MODAL -->
+<div class="modal fade" id="productDetailsModal" tabindex="-1" aria-labelledby="productDetailsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="productDetailsLabel">{{ selectedProduct?.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="selectedProduct">
+
+          <!-- Basic Info -->
+          <h6 class="fw-bold">Basic Details</h6>
+          <p><strong>SKU:</strong> {{ selectedProduct.SKU }}</p>
+          <p><strong>Description:</strong> {{ selectedProduct.description }}</p>
+          <p><strong>Category:</strong> {{ selectedProduct.category }}</p>
+
+          <hr>
+
+          <!-- Stock Info -->
+          <h6 class="fw-bold">Stock Details</h6>
+          <p><strong>Available Stock:</strong> {{ selectedProduct.availableStock }}</p>
+          <p><strong>Total Stock:</strong> {{ selectedProduct.stock }}</p>
+          <p><strong>Pending Stock:</strong> {{ selectedProduct.pendingStock }}</p>
+
+          <hr>
+
+          <!-- Warehouse Info -->
+          <h6 class="fw-bold">Warehouse</h6>
+          <p><strong>Name:</strong> {{ selectedProduct.warehouseId?.name }}</p>
+          <p><strong>Address:</strong>
+            {{ selectedProduct.warehouseId?.location?.address }},
+            {{ selectedProduct.warehouseId?.location?.city }},
+          </p>
+
+          <hr>
+
+          <!-- Created By -->
+          <h6 class="fw-bold">Created By</h6>
+          <p><strong>Name:</strong> {{ selectedProduct.createdBy?.name }}</p>
+          <p><strong>Contact:</strong> {{ selectedProduct.createdBy?.contactNumber }}</p>
+
+          <hr>
+
+          <!-- Timestamps -->
+          <h6 class="fw-bold">Timestamps</h6>
+          <p><strong>Created At:</strong> {{ selectedProduct.createdAt | date : 'medium' }}</p>
+          <p><strong>Updated At:</strong> {{ selectedProduct.updatedAt | date : 'medium' }}</p>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
 </div>
