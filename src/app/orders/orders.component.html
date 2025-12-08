@@ -192,25 +192,29 @@
 
                     <hr>
 
-                    <!-- Priority -->
+                    <!--events-->
                     <div class="my-3">
                         <label class="form-label">Event</label>
                         <select formControlName="eventId" class="form-select" (change)="onEventChange($event)">
                             <option value="" disabled>Select Event</option>
                             <option *ngFor="let event of eventList" [value]="event._id">
-                                {{ event.eventName }}</option>
+                                {{ event.name || event.eventName || event.title }}
+                            </option>
                         </select>
                     </div>
 
+                    <!--venues-->
                     <div class="my-3">
                         <label class="form-label">Venue</label>
                         <select formControlName="venueId" class="form-select">
                             <option value="" disabled>Select venue</option>
-                            <option *ngFor="let venue of venuesList" [value]="venue.venueId._id">
-                                {{ venue.venueId.name }}</option>
+                            <option *ngFor="let venue of venuesList" [value]="venue._id">
+                                {{ venue.name || venue.venueName }}
+                            </option>
                         </select>
                     </div>
 
+                    <!-- Priority -->
                     <div class="my-3">
                         <label class="form-label">Priority</label>
                         <select formControlName="priority" class="form-select">
@@ -239,6 +243,15 @@
                     </button>
                 </div>
             </form>
+
+            <div class="mt-3 p-3 border rounded">
+                <h6>Debug Info:</h6>
+                <p>Total Events: {{ eventList?.length || 0 }}</p>
+                <p>Total Venues: {{ venuesList?.length || 0 }}</p>
+                <p *ngIf="venuesList?.length > 0">
+                    First Venue: ID={{ venuesList[0]._id }}, Name={{ venuesList[0].name }}
+                </p>
+            </div>
 
         </div>
     </div>

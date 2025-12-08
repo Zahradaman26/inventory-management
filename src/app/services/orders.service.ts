@@ -10,7 +10,8 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 export class OrdersService {
   private readonly PRODUCTS_API_URL = `${environment.apiUrl}/orders`;
 
-  constructor(private http: HttpClient, private pipe: DecimalPipe) {}
+  constructor(
+    private http: HttpClient, private pipe: DecimalPipe) {}
 
   getAllOrders(): Observable<any> {
     return this.http.get<any>(`${this.PRODUCTS_API_URL}/user/my-orders`).pipe(

@@ -30,7 +30,7 @@ export class AddProductComponent implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
 
-  categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Beauty', 'Toys', 'Other'];
+  // categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports', 'Beauty', 'Toys', 'Other'];
   // Warehouse dropdown data
   warehouses: WarehouseItem[] = [];
   isloadingWarehouses = false;
@@ -48,17 +48,29 @@ export class AddProductComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeForm();
     
+    // Load warehouses FIRST
+    this.loadWarehouses();
+    
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['id']) {
         this.isEditMode = true;
         this.productId = params['id'];
         this.title = 'Edit Product';
-        this.loadProductData(this.productId);
+        
+        // Wait for warehouses to load before loading product data
+        if (this.warehouses.length > 0) {
+          this.loadProductData(this.productId);
+        } else {
+          // If warehouses are still loading, wait for them
+          const waitForWarehouses = setInterval(() => {
+            if (this.warehouses.length > 0 || !this.isloadingWarehouses) {
+              clearInterval(waitForWarehouses);
+              this.loadProductData(this.productId);
+            }
+          }, 100);
+        }
       }
     });
-
-    // Load warehouses for dropdown
-    this.loadWarehouses();
   }
 
   initializeForm(): void {
@@ -66,9 +78,9 @@ export class AddProductComponent implements OnInit, OnDestroy {
       SKU: ['', [Validators.required, Validators.minLength(3)]],
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
-      category: ['Select Category', Validators.required],
+      // category: ['Select Category', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
-      warehouseId: ['Select Warehouse', [Validators.required, Validators.min(0)]],
+      warehouseId: ['', [Validators.required]],
       stock: [0, [Validators.required, Validators.min(0)]],
       isActive: [true]
     });
@@ -100,26 +112,41 @@ export class AddProductComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (product: ProductItem) => {
-          // Transform the product data to match form field names
-          const formData = {
-            SKU: product.SKU || '',
-            name: product.name || '',
-            description: product.description || '',
-            category: product.category || '',
-            price: product.price || 0,
-            stock: product.stock || 0,
-            isActive: product.isActive !== undefined ? product.isActive : true,
-            warehouseId: product.warehouseId || ''
-          };
-
-          this.productForm.patchValue(formData);
-          this.isLoading = false;
+          // Wait for warehouses to be loaded before patching
+          if (this.warehouses.length === 0) {
+            // If warehouses aren't loaded yet, wait for them
+            const checkWarehouses = setInterval(() => {
+              if (this.warehouses.length > 0) {
+                clearInterval(checkWarehouses);
+                this.patchFormData(product);
+              }
+            }, 100);
+          } else {
+            this.patchFormData(product);
+          }
         },
         error: (error) => {
           this.errorMessage = 'Failed to load product data. Please try again.';
           this.isLoading = false;
         }
       });
+  }
+
+  // New helper method
+  private patchFormData(product: ProductItem): void {
+    const formData = {
+      SKU: product.SKU || '',
+      name: product.name || '',
+      description: product.description || '',
+      category: product.category || '',
+      price: product.price || 0,
+      stock: product.stock || 0,
+      isActive: product.isActive !== undefined ? product.isActive : true,
+      warehouseId: product.warehouseId || '' // Make sure this matches the ID in warehouses array
+    };
+
+    this.productForm.patchValue(formData);
+    this.isLoading = false;
   }
 
   get f() {
@@ -185,29 +212,29 @@ export class AddProductComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDelete(): void {
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
-      return;
-    }
+  // onDelete(): void {
+  //   if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+  //     return;
+  //   }
 
-    this.isLoading = true;
-    this.productService.deleteProduct(this.productId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.successMessage = 'Product deleted successfully!';
+  //   this.isLoading = true;
+  //   this.productService.deleteProduct(this.productId)
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe({
+  //       next: (response) => {
+  //         this.isLoading = false;
+  //         this.successMessage = 'Product deleted successfully!';
           
-          setTimeout(() => {
-            this.router.navigate(['/products']);
-          }, 1500);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.errorMessage = 'Failed to delete product. Please try again.';
-        }
-      });
-  }
+  //         setTimeout(() => {
+  //           this.router.navigate(['/products']);
+  //         }, 1500);
+  //       },
+  //       error: (error) => {
+  //         this.isLoading = false;
+  //         this.errorMessage = 'Failed to delete product. Please try again.';
+  //       }
+  //     });
+  // }
 
   private markFormGroupTouched(): void {
     Object.keys(this.productForm.controls).forEach(key => {

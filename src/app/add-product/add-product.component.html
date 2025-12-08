@@ -71,7 +71,7 @@
                     </div>
 
                     <!-- Category -->
-                    <div class="col-md-6 mb-3">
+                    <!-- <div class="col-md-6 mb-3">
                         <label for="category" class="form-label">Category *</label>
                         <select class="form-select" 
                                 id="category"
@@ -86,7 +86,7 @@
                              class="text-danger small mt-1">
                             <div *ngIf="f['category'].errors?.['required']">Category is required</div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Price -->
                     <div class="col-md-6 mb-3">
@@ -198,13 +198,13 @@
                         Cancel
                     </button>
                     
-                    <button *ngIf="isEditMode"
+                    <!-- <button *ngIf="isEditMode"
                             type="button" 
                             class="btn btn-danger me-auto"
                             (click)="onDelete()"
                             [disabled]="isLoading">
                         Delete Product
-                    </button>
+                    </button> -->
                     
                     <button type="submit" 
                             class="btn btn-primary"

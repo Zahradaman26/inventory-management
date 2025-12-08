@@ -49,7 +49,7 @@ export class AddUserComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.email]],
       password: ['', [Validators.minLength(6)]], // Remove required for edit mode
-      contactNumber: ['+91', [Validators.required, Validators.minLength(10)]],
+      contactNumber: ['', [Validators.required, Validators.minLength(10), Validators.pattern(/^\+[1-9]\d{1,14}$/)]],
       role: ['', Validators.required],
       isActive: [true]
     });

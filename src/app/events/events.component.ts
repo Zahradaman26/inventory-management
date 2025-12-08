@@ -128,7 +128,7 @@ export class EventsComponent implements OnInit {
     this.eventsService.deleteEvent(this.eventToDelete._id).subscribe({
       next: () => {
         this.eventsList = this.eventsList.filter((e) => e._id !== this.eventToDelete._id);
-        this.successMessage = `Event "${this.eventToDelete.title}" deleted!`;
+        this.successMessage = `Event "${this.eventToDelete.eventName}" deleted!`;
         this.isUpdating = false;
         this.showDeleteModal = false;
         this.eventToDelete = null;

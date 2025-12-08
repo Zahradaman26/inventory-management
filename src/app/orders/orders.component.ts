@@ -19,6 +19,8 @@ import {
 import { ProductService } from '../services/product.service';
 import { OrdersService } from '../services/orders.service';
 import { AuthService } from '../services/auth-service.service';
+import { VenuesService } from '../services/venues.service';
+import { EventsService } from '../services/events.service';
 declare var bootstrap: any;
 
 @Component({
@@ -63,7 +65,9 @@ export class OrdersComponent implements OnInit {
     private formBuilder: FormBuilder,
     private productService: ProductService,
     private ordersService: OrdersService,
-    private authService: AuthService
+    private authService: AuthService,
+    private venuesService: VenuesService,
+    private eventsService: EventsService
   ) {}
 
   ngOnInit(): void {
@@ -101,79 +105,78 @@ export class OrdersComponent implements OnInit {
             if (resp.success === true) {
               this.productsList = resp.data.products;
               this.backupProductsList = resp.data.products;
+              
+              this.venuesService.getVenues().subscribe({
+                next: (venuesResp: any) => {
+                  if (venuesResp.success === true) {
+                    const venues = venuesResp.data?.venues ?? [];
+                    
+                    const filteredVenues = venues.filter((venue: any) =>
+                      venue.users?.some((user: any) => user._id === this.userId)
+                    );
+                    
+                    this.venuesList = filteredVenues;
+                    this.backupVenuesList = filteredVenues;
+                    
+                    this.eventsService.getEvents().subscribe({
+                      next: (eventsResp: any) => {
+                        if (eventsResp.success === true) {
+                          const events = eventsResp.data?.events ?? [];
+                          
+                          const filteredEvents = events.filter((event: any) =>
+                            event.venues?.some((venue: any) =>
+                              venue.users?.some((user: any) => user._id === this.userId)
+                            )
+                          );
+                          
+                          this.eventList = filteredEvents;
+                          this.backupEventList = filteredEvents;
+                        } else {
+                          this.showError = true;
+                          setTimeout(() => {
+                            this.showError = false;
+                          }, 3000);
+                        }
+                        
+                        this.loading = false;
+                      },
+                      error: (err: any) => {
+                        this.loading = false;
+                        this.showError = true;
+                        setTimeout(() => {
+                          this.showError = false;
+                        }, 3000);
+                      }
+                    });
+                  } else {
+                    this.showError = true;
+                    setTimeout(() => {
+                      this.showError = false;
+                    }, 3000);
+                  }
+                },
+                error: (err: any) => {
+                  this.loading = false;
+                  this.showError = true;
+                  setTimeout(() => {
+                    this.showError = false;
+                  }, 3000);
+                }
+              });
             } else {
               this.showError = true;
               setTimeout(() => {
                 this.showError = false;
               }, 3000);
             }
-
-            // this.ordersService.getVenueUsers(this.userId).subscribe({
-            //   next: (resp: any) => {
-            //     if (resp.success === true) {
-            //       const venues = resp.data?.venues ?? [];
-
-            //       const filteredVenues = venues.filter((venue) =>
-            //         venue.users?.some((user) => user._id === this.userId)
-            //       );
-            //       this.venuesList = filteredVenues;
-            //       this.backupVenuesList = filteredVenues;
-            //     } else {
-            //       this.showError = true;
-            //       setTimeout(() => {
-            //         this.showError = false;
-            //       }, 3000);
-            //     }
-
-            this.ordersService.getEvents(this.userId).subscribe({
-              next: (resp: any) => {
-                if (resp.success === true) {
-                  const events = resp.data?.events ?? [];
-
-                  const filteredEvents = events.filter((event) =>
-                    event.venues?.some((venue) =>
-                      venue.users?.some((user) => user._id === this.userId)
-                    )
-                  );
-
-                  this.eventList = filteredEvents;
-                  this.backupEventList = filteredEvents;
-                } else {
-                  this.showError = true;
-                  setTimeout(() => {
-                    this.showError = false;
-                  }, 3000);
-                }
-
-                this.loading = false;
-              },
-              error: (err: any) => {
-                this.loading = false;
-                this.showError = true;
-                setTimeout(() => {
-                  this.showError = false;
-                }, 3000);
-              },
-            });
-
-            this.loading = false;
-            //     },
-            //     error: (err: any) => {
-            //       this.loading = false;
-            //       this.showError = true;
-            //       setTimeout(() => {
-            //         this.showError = false;
-            //       }, 3000);
-            //     },
-            //   });
-            // },
-            // error: (err: any) => {
-            //   this.loading = false;
-            //   this.showError = true;
-            //   setTimeout(() => {
-            //     this.showError = false;
-            //   }, 3000);
           },
+          error: (err: any) => {
+            this.loading = false;
+            this.showError = true;
+            setTimeout(() => {
+              this.showError = false;
+            }, 3000);
+          }
         });
       },
       error: (err: any) => {
@@ -394,20 +397,25 @@ export class OrdersComponent implements OnInit {
   onEventChange(event: any) {
     const selectedEventId = event.target.value;
 
-    // Find selected event
-    const selectedEvent = this.eventList.find((e) => e._id === selectedEventId);
+    const selectedEvent = this.eventList.find((e: any) => e._id === selectedEventId);
 
-    if (!selectedEvent) {
+    if (!selectedEvent || !selectedEvent.venues) {
       this.venuesList = [];
+      this.orderForm.get('venueId')?.disable();
       return;
     }
 
-    // Filter venues where current userId exists in venue.users[]
-    this.venuesList = selectedEvent.venues.filter((venue) =>
-      venue.users?.some((user) => user._id === this.userId)
+    const eventVenueIds = selectedEvent.venues.map((v: any) => v._id || v);
+    
+    this.venuesList = this.backupVenuesList.filter((venue: any) =>
+      eventVenueIds.includes(venue._id)
     );
 
-    this.orderForm.get('venueId')?.enable();
+    if (this.venuesList.length > 0) {
+      this.orderForm.get('venueId')?.enable();
+    } else {
+      this.orderForm.get('venueId')?.disable();
+    }
   }
 
   toggleSelectAll(event: any) {
