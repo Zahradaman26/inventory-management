@@ -72,11 +72,11 @@ export class EventsComponent implements OnInit {
 
     const eventId = event._id;
     if (!eventId) {
-      this.error = 'Event ID missing!';
+      this.error = 'event ID missing!';
       return;
     }
 
-    const updatedData = { ...event, isActive: !event.isActive };
+    const updatedData = { isActive: !event.isActive };
 
     this.isUpdating = true;
     this.error = null;
@@ -94,7 +94,6 @@ export class EventsComponent implements OnInit {
 
         setTimeout(() => (this.successMessage = null), 3000);
       },
-
       error: (error) => {
         this.error = `Failed to update status: ${error}`;
         this.isUpdating = false;

@@ -191,7 +191,7 @@ export class OrdersComponent implements OnInit {
     this.orderForm = this.formBuilder.group({
       products: this.formBuilder.array([this.createItemForm()]),
       eventId: ['', Validators.required],
-      venueId: [{ value: '', disabled: true }, Validators.required],
+      venueId: ['', Validators.required],
       priority: ['medium', Validators.required],
       notes: [''],
     });
@@ -318,7 +318,7 @@ export class OrdersComponent implements OnInit {
       notes: '',
     });
 
-    this.orderForm.get('venueId')?.disable();
+    // this.orderForm.get('venueId')?.disable();
 
     // Clear FormArray properly
     const productsArray = this.orderForm.get('products') as FormArray;
@@ -401,7 +401,7 @@ export class OrdersComponent implements OnInit {
 
     if (!selectedEvent || !selectedEvent.venues) {
       this.venuesList = [];
-      this.orderForm.get('venueId')?.disable();
+      // this.orderForm.get('venueId')?.disable();
       return;
     }
 
@@ -454,7 +454,7 @@ export class OrdersComponent implements OnInit {
 
     this.loading = true;
 
-    const payload = this.orderForm.value;
+    const payload = this.orderForm.getRawValue();
     payload.items = payload.products;
 
     this.ordersService

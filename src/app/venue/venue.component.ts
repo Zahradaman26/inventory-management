@@ -6,6 +6,8 @@ import { RouterLink, Router } from '@angular/router';
 import { Subject, takeUntil, finalize } from 'rxjs';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
 import DataTable from 'datatables.net';
+import { UserService } from '../services/user.service';
+import { UserItem } from '../interfaces/user.model';
 
 
 @Component({
@@ -31,15 +33,19 @@ export class VenueComponent implements OnInit {
   showDeleteModal = false;
   venueToDelete: any = null;
 
+  users: UserItem[] = [];
+
   private destroy$ = new Subject<void>();
   private dataTable: any;
 
   constructor(
     private venuesService: VenuesService, 
+    private userService: UserService,
     private router: Router) {}
 
   ngOnInit(): void {
     this.isLoading = true;
+    this.loadUsers();
 
     this.venuesService.getVenues().subscribe({
       next: (resp: any) => {
@@ -73,6 +79,24 @@ export class VenueComponent implements OnInit {
     });
   }
 
+  loadUsers(): void {
+    this.userService.getActiveUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+      }
+    });
+  }
+
+  getUserName(userId: string): string {
+    const user = this.users.find(u => u._id === userId);
+    return user?.name || 'N/A';
+  }
+
+  getUserPhone(userId: string): string {
+    const user = this.users.find(u => u._id === userId);
+    return user?.contactNumber || 'N/A';
+  }
+
   updateStatus(venue: any): void {
     if (this.isUpdating) return;
 
@@ -82,7 +106,7 @@ export class VenueComponent implements OnInit {
       return;
     }
 
-    const updatedData = { ...venue, isActive: !venue.isActive };
+    const updatedData = { isActive: !venue.isActive };
 
     this.isUpdating = true;
     this.error = null;
@@ -90,7 +114,7 @@ export class VenueComponent implements OnInit {
 
     this.venuesService.updateVenue(venueId, updatedData).subscribe({
       next: (response) => {
-        const index = this.venuesList.findIndex((w) => w._id === venueId);
+        const index = this.venuesList.findIndex((v) => v._id === venueId);
         if (index !== -1) {
           this.venuesList[index].isActive = updatedData.isActive;
         }
