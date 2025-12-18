@@ -57,7 +57,18 @@ export class VenueComponent implements OnInit {
               paging: true,
               searching: true,
               info: true,
+              ordering: false,
+              columnDefs: [
+                { className: "dt-head-center", targets: "_all" }   
+              ]
             });
+
+            // Status Filter
+            document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLSelectElement).value;
+              this.dataTable.column(6).search(value).draw(); // UPDATE index accordingly
+            });
+            
           }, 100);
         } else {
           this.error = resp.message;

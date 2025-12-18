@@ -48,7 +48,41 @@ export class EventsComponent implements OnInit {
               paging: true,
               searching: true,
               info: true,
+              ordering: false,
+              columnDefs: [
+                { className: "dt-head-center", targets: "_all" }   
+              ]
             });
+            // start Date Filter
+            document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLInputElement).value;
+
+              if (value) {
+                const formatted = new Date(value).toLocaleDateString('en-US');
+                this.dataTable.column(4).search(formatted).draw();
+              } else {
+                this.dataTable.column(4).search('').draw();
+              }
+            });
+
+            // end Date Filter
+            document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLInputElement).value;
+
+              if (value) {
+                const formatted = new Date(value).toLocaleDateString('en-US');
+                this.dataTable.column(5).search(formatted).draw();
+              } else {
+                this.dataTable.column(5).search('').draw();
+              }
+            });
+
+            // Status Filter
+            document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLSelectElement).value;
+              this.dataTable.column(6).search(value).draw(); // UPDATE index accordingly
+            });
+
           }, 100);
         } else {
           this.error = resp.message;
@@ -99,6 +133,16 @@ export class EventsComponent implements OnInit {
         this.isUpdating = false;
       },
     });
+  }
+
+  getTotalAssignedUsers(event: any): number {
+    if (!event.venues || !Array.isArray(event.venues)) {
+      return 0;
+    }
+    return event.venues.reduce((total: number, venue: any) => {
+      const userCount = Array.isArray(venue.users) ? venue.users.length : 0;
+      return total + userCount;
+    }, 0);
   }
 
   onEdit(event: any): void {

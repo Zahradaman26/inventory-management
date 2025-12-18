@@ -1,0 +1,411 @@
+<div class="dashboard-main-body">
+  <app-breadcrumb [title]="title"></app-breadcrumb>
+
+  <div class="card basic-data-table">
+    <div class="card-body">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
+
+      <!-- Add New Purchase Order Button -->
+      <a routerLink="/add-purchase-order"
+        class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+        Add New Purchase Order
+      </a>
+
+      <div class="overflow-x-auto">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-secondary">Loading purchase orders...</p>
+        </div>
+
+        <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length="10">
+          <thead>
+            <tr>
+              <th scope="col">
+                <div class="d-flex align-items-center gap-10">
+                  Sr No.
+                </div>
+              </th>
+
+              <th scope="col" purchaseOrderSortable="poNumber">PO Number</th>
+              <th scope="col" purchaseOrderSortable="vendorId.name">Vendor</th>
+              <th scope="col" purchaseOrderSortable="totalAmount">Total Amount</th>
+              <th scope="col" purchaseOrderSortable="status">
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm" (change)="onStatusFilterChange($event)">
+                  <option value="">All</option>
+                  <option value="draft">Draft</option>
+                  <option value="pending_approval">Pending Approval</option>
+                  <option value="approved">Approved</option>
+                  <option value="ordered">Ordered</option>
+                  <option value="partial_received">Partial Received</option>
+                  <option value="received">Received</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </th>
+              <th scope="col" purchaseOrderSortable="createdAt">Created Date</th>
+              <th scope="col" purchaseOrderSortable="expectedDeliveryDate">Expected Delivery</th>
+              <th scope="col" class="text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let purchaseOrder of purchaseOrdersList; let i = index">
+              <td>
+                <div class="d-flex align-items-center gap-10">
+                  {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                </div>
+              </td>
+
+              <td>{{ purchaseOrder.poNumber }}</td>
+
+              <td>
+                <span class="text-md mb-0 fw-normal text-secondary-light">
+                  {{ purchaseOrder.vendorId?.name }}
+                  <span *ngIf="purchaseOrder.vendorId?.shopName" class="text-xs text-muted">
+                    ({{ purchaseOrder.vendorId?.shopName }})
+                  </span>
+                </span>
+              </td>
+
+              <td>{{ formatCurrency(purchaseOrder.totalAmount) }}</td>
+
+              <td class="text-center">
+                <span [ngClass]="getStatusClass(purchaseOrder.status)" 
+                      class="px-12 py-4 radius-4 fw-medium text-xs">
+                  {{ getStatusText(purchaseOrder.status) }}
+                </span>
+              </td>
+
+              <td>{{ formatDate(purchaseOrder.createdAt) }}</td>
+
+              <td>{{ formatDate(purchaseOrder.expectedDeliveryDate) }}</td>
+
+              <td class="text-center">
+                <div class="d-flex align-items-center gap-10 justify-content-center">
+                  <!-- View Button -->
+                  <button type="button" data-bs-toggle="modal" data-bs-target="#purchaseOrderDetailsModal"
+                    (click)="viewPurchaseOrder(purchaseOrder)" [disabled]="isUpdating"
+                    class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                  </button>
+
+                  <!-- Edit Button (only for draft status) -->
+                  <button *ngIf="purchaseOrder.status === 'draft'" type="button" 
+                    (click)="editPurchaseOrder(purchaseOrder)" [disabled]="isUpdating"
+                    class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                  </button>
+
+                  <!-- Submit Button (only for draft status) -->
+                  <button *ngIf="purchaseOrder.status === 'draft'" type="button" 
+                    (click)="submitForApproval(purchaseOrder)" [disabled]="isUpdating"
+                    class="bg-warning-focus text-warning-600 bg-hover-warning-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                    title="Submit for Approval">
+                    <iconify-icon icon="mdi:send-check" class="menu-icon"></iconify-icon>
+                  </button>
+
+                  <!-- Delete Button (only for draft, cancelled, rejected) -->
+                  <button *ngIf="['draft', 'cancelled', 'rejected'].includes(purchaseOrder.status)" type="button" 
+                    (click)="deletePurchaseOrder(purchaseOrder)" [disabled]="isUpdating"
+                    class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                  </button>
+
+                  <!-- No actions for other statuses -->
+                  <span *ngIf="!['draft', 'cancelled', 'rejected'].includes(purchaseOrder.status)" 
+                    class="text-muted text-xs">No actions</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal) {
+<div 
+  style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  "
+  (click)="closeDeleteModal()"
+>
+  <div 
+    style="
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    "
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Modal Header -->
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    ">
+      <h3 style="
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+      ">
+        Confirm Delete
+      </h3>
+      <button 
+        type="button" 
+        (click)="closeDeleteModal()"
+        [disabled]="isUpdating"
+        style="
+          background: none;
+          border: none;
+          color: #6b7280;
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) { this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'; }"
+        onmouseout="if(!this.disabled) { this.style.backgroundColor='transparent'; this.style.color='#6b7280'; }"
+      >
+        ×
+      </button>
+    </div>
+    
+    <!-- Modal Body -->
+    <div style="
+      padding: 24px;
+    ">
+      <p style="
+        margin: 0 0 12px 0;
+        color: #374151;
+        line-height: 1.5;
+      ">
+        Are you sure you want to permanently delete Purchase Order <strong>"{{ purchaseOrderToDelete?.poNumber }}"</strong>?
+      </p>
+      <p style="
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+      ">
+        This action cannot be undone.
+      </p>
+    </div>
+    
+    <!-- Modal Footer -->
+    <div style="
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 24px;
+      border-top: 1px solid #e5e7eb;
+    ">
+      <button 
+        type="button" 
+        (click)="closeDeleteModal()"
+        [disabled]="isUpdating"
+        style="
+          padding: 10px 20px;
+          border-radius: 8px;
+          border: 1px solid #d1d5db;
+          font-weight: 500;
+          cursor: pointer;
+          font-size: 0.9375rem;
+          background: white;
+          color: #374151;
+        "
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        [style.opacity]="isUpdating ? '0.6' : '1'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#f9fafb'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='white'"
+      >
+        Cancel
+      </button>
+      <button 
+        type="button" 
+        (click)="confirmDeletePurchaseOrder()"
+        [disabled]="isUpdating"
+        style="
+          padding: 10px 20px;
+          border-radius: 8px;
+          border: none;
+          font-weight: 500;
+          cursor: pointer;
+          font-size: 0.9375rem;
+          background: #dc2626;
+          color: white;
+        "
+        [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'"
+      >
+        @if (isUpdating) {
+          <span 
+            class="spinner-border spinner-border-sm" 
+            style="
+              width: 1rem;
+              height: 1rem;
+              border-width: 0.15em;
+              margin-right: 8px;
+            "
+          ></span>
+        }
+        Delete Permanently
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- PURCHASE ORDER DETAILS MODAL -->
+<div class="modal fade" id="purchaseOrderDetailsModal" tabindex="-1" aria-labelledby="purchaseOrderDetailsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="purchaseOrderDetailsLabel">
+          Purchase Order: {{ selectedPurchaseOrder?.poNumber }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="selectedPurchaseOrder">
+          <!-- Basic Info -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h6 class="fw-bold">Basic Details</h6>
+              <p><strong>PO Number:</strong> {{ selectedPurchaseOrder.poNumber }}</p>
+              <p><strong>Status:</strong> 
+                <span [ngClass]="getStatusClass(selectedPurchaseOrder.status)" 
+                      class="px-8 py-2 radius-4 fw-medium text-xs">
+                  {{ getStatusText(selectedPurchaseOrder.status) }}
+                </span>
+              </p>
+              <p><strong>Created Date:</strong> {{ formatDate(selectedPurchaseOrder.createdAt) }}</p>
+              <p><strong>Total Amount:</strong> {{ formatCurrency(selectedPurchaseOrder.totalAmount) }}</p>
+            </div>
+            <div class="col-md-6">
+              <h6 class="fw-bold">Vendor Details</h6>
+              <p><strong>Vendor:</strong> {{ selectedPurchaseOrder.vendorId?.name }}</p>
+              <p><strong>Shop:</strong> {{ selectedPurchaseOrder.vendorId?.shopName || 'N/A' }}</p>
+              <p><strong>Contact:</strong> {{ selectedPurchaseOrder.vendorId?.contactNumber || 'N/A' }}</p>
+              <p><strong>Email:</strong> {{ selectedPurchaseOrder.vendorId?.email || 'N/A' }}</p>
+            </div>
+          </div>
+
+          <!-- Delivery Info -->
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p><strong>Expected Delivery:</strong> {{ formatDate(selectedPurchaseOrder.expectedDeliveryDate) }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Actual Delivery:</strong> {{ formatDate(selectedPurchaseOrder.actualDeliveryDate) }}</p>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-3" *ngIf="selectedPurchaseOrder.notes">
+            <h6 class="fw-bold">Notes</h6>
+            <p>{{ selectedPurchaseOrder.notes }}</p>
+          </div>
+
+          <!-- Items Table -->
+          <h6 class="fw-bold">Order Items</h6>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th>Quantity</th>
+                  <th>Unit Price</th>
+                  <th>Total Price</th>
+                  <th *ngIf="selectedPurchaseOrder.status === 'partial_received' || selectedPurchaseOrder.status === 'received'">Received</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of selectedPurchaseOrder.items">
+                  <td>{{ item.productId?.name }}</td>
+                  <td>{{ item.productId?.SKU }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ formatCurrency(item.unitPrice) }}</td>
+                  <td>{{ formatCurrency(item.totalPrice) }}</td>
+                  <td *ngIf="selectedPurchaseOrder.status === 'partial_received' || selectedPurchaseOrder.status === 'received'">
+                    {{ item.quantityReceived || 0 }} / {{ item.quantity }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Approval/Receival Info -->
+          <div class="row mt-3" *ngIf="selectedPurchaseOrder.approvedBy || selectedPurchaseOrder.receivedBy">
+            <div class="col-md-6" *ngIf="selectedPurchaseOrder.approvedBy">
+              <h6 class="fw-bold">Approval Details</h6>
+              <p><strong>Approved By:</strong> {{ selectedPurchaseOrder.approvedBy?.name }}</p>
+              <p><strong>Approved At:</strong> {{ formatDate(selectedPurchaseOrder.approvedAt) }}</p>
+            </div>
+            <div class="col-md-6" *ngIf="selectedPurchaseOrder.receivedBy">
+              <h6 class="fw-bold">Receival Details</h6>
+              <p><strong>Received By:</strong> {{ selectedPurchaseOrder.receivedBy?.name }}</p>
+              <p><strong>Received At:</strong> {{ formatDate(selectedPurchaseOrder.receivedAt) }}</p>
+            </div>
+          </div>
+
+          <!-- Cancellation/Rejection Reason -->
+          <div class="mt-3" *ngIf="selectedPurchaseOrder.cancellationReason">
+            <h6 class="fw-bold">Cancellation Reason</h6>
+            <p>{{ selectedPurchaseOrder.cancellationReason }}</p>
+          </div>
+
+          <div class="mt-3" *ngIf="selectedPurchaseOrder.rejectionReason">
+            <h6 class="fw-bold">Rejection Reason</h6>
+            <p>{{ selectedPurchaseOrder.rejectionReason }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>

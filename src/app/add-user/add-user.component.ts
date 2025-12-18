@@ -39,7 +39,7 @@ export class AddUserComponent implements OnInit {
 
     if (this.userId) {
       this.isEditMode = true;
-      this.title = 'Edit User';
+      this.title = 'Update User';
       this.loadUserData();
     }
   }

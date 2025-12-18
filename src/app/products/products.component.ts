@@ -19,6 +19,8 @@ import { ProductSortableHeader, SortEvent } from './product-sortable.directive';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { finalize } from 'rxjs/operators';
 import DataTables from 'datatables.net';
+import { WarehouseService } from '../services/warehouse.service';
+import { WarehouseItem } from '../interfaces/warehouse.model';
 
 @Component({
   selector: 'app-products',
@@ -41,6 +43,14 @@ export class ProductsComponent implements OnInit, OnDestroy {
   productsList: any = [];
   backupProductsList: any = [];
 
+  // Pagination and filtering
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  totalPages = 0;
+  searchTerm = '';
+  statusFilter = '';
+
   // Loading states (matching users pattern)
   isLoading = false;
   isUpdating = false;
@@ -59,14 +69,38 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
+  warehouses: WarehouseItem[] = [];
+  warehouseMap = new Map<string, WarehouseItem>();
+
   @ViewChildren(ProductSortableHeader)
   headers!: QueryList<ProductSortableHeader>;
 
-  constructor(public productService: ProductService, private router: Router) {}
+  constructor(
+    public productService: ProductService,
+    private warehouseService: WarehouseService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.fetchProducts();
+    this.loadWarehouses();
   }
+
+  loadWarehouses(): void {
+    this.warehouseService.getActiveWarehouses()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (warehouses) => {
+          this.warehouses = warehouses;
+
+          warehouses.forEach(w => {
+            this.warehouseMap.set(w._id, w);
+          });
+
+          this.fetchProducts(); 
+        }
+      });
+  }
+
 
   fetchProducts(): void {
     this.isLoading = true;
@@ -82,22 +116,21 @@ export class ProductsComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          this.productsList = response.data.products || [];
-          this.backupProductsList = response.data.products || [];
+          const products = response.data.products || [];
 
-          const total =
-            (response && response.totalRecords) ??
-            this.backupProductsList.length;
-          this.totalRecords = total;
-          this.productService.totalRecords = total;
+          products.forEach((product: any) => {
+            const warehouseId =
+              product.warehouseId?.$oid ??
+              product.warehouseId ??
+              null;
 
-          setTimeout(() => {
-            this.dataTable = new DataTables('#dataTable', {
-              paging: true,
-              searching: true,
-              info: true,
-            });
-          }, 100);
+            if (warehouseId && this.warehouseMap.has(warehouseId)) {
+              product.warehouse = this.warehouseMap.get(warehouseId);
+            }
+          });
+
+          this.productsList = products;
+          this.backupProductsList = products;
         },
         error: (err: any) => {
           // console.error('Error loading products:', err);
@@ -241,6 +274,52 @@ export class ProductsComponent implements OnInit, OnDestroy {
 
   editProduct(product: ProductItem): void {
     this.router.navigate(['/add-product', product._id]);
+  }
+
+  // Helper to get warehouse name
+  getWarehouseName(product: any): string {
+    if (!product) return 'N/A';
+    if (product.warehouse && product.warehouse.name) {
+      return product.warehouse.name;
+    }
+    if (product.warehouseId && typeof product.warehouseId === 'object') {
+      return product.warehouseId.name || 'N/A';
+    }
+    return 'N/A';
+  }
+
+  // Helper to get warehouse location
+  getWarehouseLocation(product: any): string {
+    if (!product) return '';
+    const warehouse = product.warehouse || product.warehouseId;
+    if (!warehouse || typeof warehouse !== 'object') return '';
+    
+    const location = warehouse.location;
+    if (!location) return '';
+    
+    const parts = [];
+    if (location.city) parts.push(location.city);
+    if (location.state) parts.push(location.state);
+    
+    return parts.join(', ');
+  }
+
+  // Helper to extract warehouse ID for forms
+  getWarehouseId(product: any): string {
+    if (!product || !product.warehouseId) return '';
+    
+    if (typeof product.warehouseId === 'string') {
+      return product.warehouseId;
+    }
+    
+    if (product.warehouseId.$oid) {
+      return product.warehouseId.$oid;
+    }
+    
+    if (product.warehouseId._id) {
+      return product.warehouseId._id.$oid || product.warehouseId._id;
+    }
+    return '';
   }
 
   // Enhanced delete functionality matching users pattern

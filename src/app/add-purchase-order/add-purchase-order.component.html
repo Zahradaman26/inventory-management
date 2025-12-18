@@ -1,0 +1,269 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">{{ isEditMode ? 'Update Purchase Order' : 'Add New Purchase Order' }}</h5>
+        </div>
+        
+        <div class="card-body p-24">
+            <!-- Loading State for Edit Mode -->
+            <div *ngIf="isEditMode && isLoading" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-secondary">Loading purchase order data...</p>
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+            </div>
+
+            <form [formGroup]="purchaseOrderForm" (ngSubmit)="onSubmit()" *ngIf="!isEditMode || !isLoading">
+                <div class="row">
+                    <!-- PO Number -->
+                    <div class="col-md-6 mb-3">
+                        <label for="poNumber" class="form-label">PO Number *</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="poNumber"
+                                   formControlName="poNumber"
+                                   placeholder="Purchase order number"
+                                   [readonly]="isEditMode && purchaseOrderForm.get('status')?.value !== 'draft'"
+                                   [disabled]="isLoading">
+                            <button *ngIf="!isEditMode"
+                                    type="button" 
+                                    class="btn btn-outline-secondary" 
+                                    (click)="generatePONumber()"
+                                    [disabled]="isLoading">
+                                Generate
+                            </button>
+                        </div>
+                        <div *ngIf="f['poNumber'].invalid && (f['poNumber'].dirty || f['poNumber'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['poNumber'].errors?.['required']">PO number is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Vendor -->
+                    <div class="col-md-6 mb-3">
+                        <label for="vendorId" class="form-label">Vendor *</label>
+                        
+                        <!-- Loading State for Vendors -->
+                        <div *ngIf="isLoadingVendors" class="form-control">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Loading vendors...
+                        </div>
+
+                        <!-- Vendor Dropdown -->
+                        <select *ngIf="!isLoadingVendors"
+                                class="form-select" 
+                                id="vendorId"
+                                formControlName="vendorId"
+                                [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                            <option [value]="null">Select Vendor</option>
+                            <option *ngFor="let vendor of vendors" [value]="vendor._id">
+                                {{ vendor.name }}
+                                <span *ngIf="vendor.shopName">({{ vendor.shopName }})</span>
+                            </option>
+                        </select>
+
+                        <div *ngIf="f['vendorId'].invalid && (f['vendorId'].dirty || f['vendorId'].touched)" 
+                            class="text-danger small mt-1">
+                            <div *ngIf="f['vendorId'].errors?.['required']">Vendor is required</div>
+                        </div>
+
+                        <!-- No Vendors Available Message -->
+                        <div *ngIf="!isLoadingVendors && vendors.length === 0" class="text-warning small mt-1">
+                            No vendors available. Please create a vendor first.
+                        </div>
+                    </div>
+
+                    <!-- Items Section -->
+                    <div class="col-12 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label mb-0">Order Items *</label>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-primary"
+                                    (click)="addItem()"
+                                    [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                <i class="fas fa-plus me-1"></i> Add Item
+                            </button>
+                        </div>
+
+                        <!-- Loading State for Products -->
+                        <div *ngIf="isLoadingProducts" class="alert alert-info">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            Loading products...
+                        </div>
+
+                        <!-- Items Form Array -->
+                        <div formArrayName="items" *ngIf="!isLoadingProducts">
+                            <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="item-row mb-3 p-3 border rounded">
+                                <div class="row align-items-end">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="form-label small mb-1">Product *</label>
+                                        <select class="form-select" 
+                                                formControlName="productId"
+                                                [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                            <option value="">Select Product</option>
+                                            <option *ngFor="let product of products" [value]="product._id">
+                                                {{ product.name }} ({{ product.SKU }})
+                                                <span *ngIf="product.requestedStock"> - Requested: {{ product.requestedStock }}</span>
+                                            </option>
+                                        </select>
+                                        <div *ngIf="items.controls[i].get('productId')?.invalid && 
+                                                   (items.controls[i].get('productId')?.dirty || items.controls[i].get('productId')?.touched)" 
+                                             class="text-danger small mt-1">
+                                            <div *ngIf="items.controls[i].get('productId')?.errors?.['required']">Product is required</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label small mb-1">Quantity *</label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               formControlName="quantity"
+                                               min="1"
+                                               step="1"
+                                               placeholder="Qty"
+                                               [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                        <div *ngIf="items.controls[i].get('quantity')?.invalid && 
+                                                   (items.controls[i].get('quantity')?.dirty || items.controls[i].get('quantity')?.touched)" 
+                                             class="text-danger small mt-1">
+                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['required']">Quantity is required</div>
+                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['min']">Minimum quantity is 1</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label small mb-1">Unit Price ($) *</label>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               formControlName="unitPrice"
+                                               min="0"
+                                               step="0.01"
+                                               placeholder="0.00"
+                                               [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                        <div *ngIf="items.controls[i].get('unitPrice')?.invalid && 
+                                                   (items.controls[i].get('unitPrice')?.dirty || items.controls[i].get('unitPrice')?.touched)" 
+                                             class="text-danger small mt-1">
+                                            <div *ngIf="items.controls[i].get('unitPrice')?.errors?.['required']">Unit price is required</div>
+                                            <div *ngIf="items.controls[i].get('unitPrice')?.errors?.['min']">Price cannot be negative</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2 mb-2">
+                                        <label class="form-label small mb-1">Total Price ($)</label>
+                                        <input type="text" 
+                                               class="form-control bg-light"
+                                               formControlName="totalPrice"
+                                               readonly>
+                                    </div>
+
+                                    <div class="col-md-2 mb-2">
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-sm w-100 mt-4"
+                                                (click)="removeItem(i)"
+                                                [disabled]="isLoading || items.length <= 1 || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                            <i class="fas fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Items Validation Error -->
+                            <div *ngIf="f['items'].invalid && (f['items'].dirty || f['items'].touched)" 
+                                 class="text-danger small mt-2">
+                                <div *ngIf="f['items'].errors?.['required']">At least one item is required</div>
+                                <div *ngIf="f['items'].errors?.['minlength']">At least one item is required</div>
+                            </div>
+
+                            <!-- No Products Available Message -->
+                            <div *ngIf="!isLoadingProducts && products.length === 0" class="text-warning small mt-1">
+                                No products available. Please create products first.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Amount -->
+                    <div class="col-md-4 mb-3">
+                        <label for="totalAmount" class="form-label">Total Amount ($)</label>
+                        <input type="text" 
+                               class="form-control bg-light"
+                               id="totalAmount"
+                               formControlName="totalAmount"
+                               readonly>
+                    </div>
+
+                    <!-- Expected Delivery Date -->
+                    <div class="col-md-4 mb-3">
+                        <label for="expectedDeliveryDate" class="form-label">Expected Delivery Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="expectedDeliveryDate"
+                               formControlName="expectedDeliveryDate"
+                               [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                    </div>
+
+                    <!-- Status (Hidden in form, but part of form group) -->
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-control bg-light">
+                            {{ purchaseOrderForm.get('status')?.value === 'draft' ? 'Draft' : 
+                               purchaseOrderForm.get('status')?.value === 'pending_approval' ? 'Pending Approval' :
+                               purchaseOrderForm.get('status')?.value === 'approved' ? 'Approved' :
+                               purchaseOrderForm.get('status')?.value === 'ordered' ? 'Ordered' :
+                               purchaseOrderForm.get('status')?.value === 'partial_received' ? 'Partial Received' :
+                               purchaseOrderForm.get('status')?.value === 'received' ? 'Received' :
+                               purchaseOrderForm.get('status')?.value === 'cancelled' ? 'Cancelled' :
+                               purchaseOrderForm.get('status')?.value === 'rejected' ? 'Rejected' : 'Draft' }}
+                        </div>
+                        <input type="hidden" formControlName="status">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="col-12 mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" 
+                                  id="notes"
+                                  formControlName="notes"
+                                  rows="3"
+                                  placeholder="Additional notes or instructions"
+                                  [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')"></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <button type="button" 
+                            class="btn btn-secondary"
+                            (click)="onCancel()"
+                            [disabled]="isLoading">
+                        Cancel
+                    </button>
+                    
+                    <button type="submit" 
+                            class="btn btn-primary"
+                            [disabled]="isLoading || purchaseOrderForm.invalid || isLoadingVendors || isLoadingProducts">
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ isEditMode ? 'Update Purchase Order' : 'Create Purchase Order' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

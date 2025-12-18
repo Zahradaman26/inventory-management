@@ -73,6 +73,8 @@ export class AddEventComponent implements OnInit {
     this.eventForm = this.fb.group({
       eventName: ['', Validators.required],
       description: [''],
+      startDate: ['', Validators.required],
+      endDate: ['', Validators.required],
       venues: this.fb.array([], Validators.required), // IMPORTANT
       status: ['active', Validators.required],
     });
@@ -205,6 +207,8 @@ export class AddEventComponent implements OnInit {
         this.eventForm.patchValue({
           eventName: data.eventName,
           description: data.description,
+          startDate: data.startDate ? data.startDate.substring(0, 10) : '',
+          endDate: data.endDate ? data.endDate.substring(0, 10) : '',
           status: data.isActive ? 'active' : 'inactive',
         });
 
@@ -247,16 +251,7 @@ export class AddEventComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const payload = {
-      eventName: this.eventForm.value.eventName,
-      description: this.eventForm.value.description,
-      // convert status -> isActive boolean if backend expects boolean
-      isActive: this.eventForm.value.status === 'active',
-      venues: this.venuesArray.value.map((v: any) => ({
-        venueId: v.venueId,
-        users: v.users || [],
-      })),
-    };
+    const payload = this.eventForm.value;
 
     if (this.isEditMode && this.eventId) {
       this.eventsService.updateEvent(this.eventId, payload).subscribe({

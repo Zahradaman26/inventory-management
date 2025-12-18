@@ -14,6 +14,7 @@ import {
   Validators,
   FormArray,
   ReactiveFormsModule,
+  FormsModule,
 } from '@angular/forms';
 import { OrdersService } from '../services/orders.service';
 import { ReturnsService } from '../services/returns.service';
@@ -25,6 +26,7 @@ import { ReturnsService } from '../services/returns.service';
     RouterModule,
     BreadcrumbComponent,
     ReactiveFormsModule,
+    FormsModule
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: './returns.component.html',
@@ -44,8 +46,17 @@ export class ReturnsComponent implements OnInit {
   selectedReturn: any = null;
   private dataTable: any;
 
+  // Pagination and filtering
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  totalPages = 0;
+  searchTerm = '';
+  statusFilter = '';
+
   isUpdating = false;
   respMessage: string = '';
+  rejectionReason: string = ''; // Add this for rejection reason input
 
   constructor(
     private formBuilder: FormBuilder,
@@ -82,6 +93,10 @@ export class ReturnsComponent implements OnInit {
                   paging: true,
                   searching: true,
                   info: true,
+                  ordering: false,
+                  columnDefs: [
+                    { className: "dt-head-center", targets: "_all" }   
+                  ],
                 });
               }, 100);
             } else {
@@ -159,22 +174,51 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
-  // Add this method to approve return
+  // Helper to get display status
+  getDisplayStatus(returnItem: any): string {
+    return this.returnsService.getDisplayStatus(returnItem);
+  }
+
+  // Helper to get badge class
+  getStatusBadgeClass(returnItem: any): string {
+    return this.returnsService.getStatusBadgeClass(returnItem);
+  }
+
+  // Check if fully returned
+  isFullyReturned(returnItem: any): boolean {
+    return returnItem.statusReturn === 'fullyReturned';
+  }
+
+  // Check if partially returned
+  isPartiallyReturned(returnItem: any): boolean {
+    return returnItem.statusReturn === 'partiallyReturned';
+  }
+
+  // Check if pending approval
+  isPendingApproval(returnItem: any): boolean {
+    return returnItem.statusApproval === 'pendingApproval';
+  }
+
+  // Check if already approved/rejected
+  isDecisionMade(returnItem: any): boolean {
+    return ['approved', 'rejected', 'partiallyApproved'].includes(returnItem.statusApproval);
+  }
+
+  // Update the approveReturn method
   approveReturn(returnId: string): void {
     this.isUpdating = true;
     this.returnsService.approveReturn(returnId).subscribe({
       next: (resp: any) => {
         if (resp.success === true) {
-          this.updateReturnStatus(returnId, 'approved');
+          this.updateReturnStatus(returnId, resp.data.return);
           this.showSuccess = true;
-          this.respMessage = 'Return approved successfully!';
+          this.respMessage = 'Return request approved! User can now return items.';
         } else {
           this.showError = true;
           this.respMessage = resp.message || 'Failed to approve return';
         }
         this.isUpdating = false;
         
-        // Hide alerts after 3 seconds
         setTimeout(() => {
           this.showSuccess = false;
           this.showError = false;
@@ -192,22 +236,54 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
-  // Add this method to reject return
-  rejectReturn(returnId: string): void {
+  // Update the approvePartialReturn method
+  approvePartialReturn(returnId: string): void {
     this.isUpdating = true;
-    this.returnsService.rejectReturn(returnId).subscribe({
+    this.returnsService.approvePartialReturn(returnId).subscribe({
       next: (resp: any) => {
         if (resp.success === true) {
-          this.updateReturnStatus(returnId, 'rejected');
+          this.updateReturnStatus(returnId, resp.data.return);
+          this.showSuccess = true;
+          this.respMessage = 'Partial return request approved!';
+        } else {
+          this.showError = true;
+          this.respMessage = resp.message || 'Failed to approve partial return';
+        }
+        this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
+      },
+      error: (err: any) => {
+        this.showError = true;
+        this.respMessage = 'Error approving partial return';
+        this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
+      }
+    });
+  }
+
+  // Reject return
+  rejectReturn(returnId: string): void {
+    this.isUpdating = true;
+    this.returnsService.rejectReturn(returnId, this.rejectionReason).subscribe({
+      next: (resp: any) => {
+        if (resp.success === true) {
+          this.updateReturnStatus(returnId, resp.data.return);
           this.showSuccess = true;
           this.respMessage = 'Return rejected successfully!';
+          this.rejectionReason = ''; // Clear after successful rejection
         } else {
           this.showError = true;
           this.respMessage = resp.message || 'Failed to reject return';
         }
         this.isUpdating = false;
         
-        // Hide alerts after 3 seconds
         setTimeout(() => {
           this.showSuccess = false;
           this.showError = false;
@@ -225,19 +301,27 @@ export class ReturnsComponent implements OnInit {
     });
   }
 
-  // Helper method to update return status in the local array
-  private updateReturnStatus(returnId: string, newStatus: string): void {
+  // Update the local return data
+  private updateReturnStatus(returnId: string, updatedReturn: any): void {
     const returnIndex = this.returnsList.findIndex(returnItem => returnItem._id === returnId);
     if (returnIndex !== -1) {
-      this.returnsList[returnIndex].status = newStatus;
+      // Update all fields from the response
+      this.returnsList[returnIndex] = { 
+        ...this.returnsList[returnIndex], 
+        ...updatedReturn 
+      };
       
-      // Also update backup list if needed
+      // Also update backup list
       const backupIndex = this.backupReturnsList.findIndex(returnItem => returnItem._id === returnId);
       if (backupIndex !== -1) {
-        this.backupReturnsList[backupIndex].status = newStatus;
+        this.backupReturnsList[backupIndex] = { 
+          ...this.backupReturnsList[backupIndex], 
+          ...updatedReturn 
+        };
       }
     }
   }
+
   validateQuantity(i: number) {
     const item = this.items.at(i);
 
@@ -257,7 +341,6 @@ export class ReturnsComponent implements OnInit {
     const payload = this.returnForm.value;
 
     console.log('Final JSON:', payload);
-
     // hit your POST API
     // this.api.createReturn(payload).subscribe(...)
   }

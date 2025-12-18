@@ -29,25 +29,38 @@
           </div>
           <p class="mt-2 text-secondary">Loading users...</p>
         </div>
-
+        
         <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
           <thead>
             <tr>
               <th scope="col">
                 <div class="d-flex align-items-center gap-10">
-                  <!-- <div class="form-check style-check d-flex align-items-center">
-                    <input class="form-check-input radius-4 border input-form-dark" type="checkbox" name="checkbox"
-                      id="selectAll">
-                  </div> -->
                   Sr No.
                 </div>
               </th>
               <th scope="col">Name</th>
               <th scope="col">Mobile</th>
               <th scope="col">Email</th>
-              <th scope="col">Join Date</th>
-              <th scope="col">Role</th>
-              <th scope="col" class="text-center">Status</th>
+              <th>
+                Join Date<br />
+                <input type="date" id="dateFilter" class="form-control form-control-sm" />
+              </th>
+              
+              <th>
+                Role<br />
+                <select id="roleFilter" class="form-select form-select-sm">
+                  <option value="">All</option>
+                  <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                </select>
+              </th>
+              <th>
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
           </thead>
@@ -55,10 +68,6 @@
             <tr *ngFor="let user of users; let i = index">
               <td>
                 <div class="d-flex align-items-center gap-10">
-                  <!-- <div class="form-check style-check d-flex align-items-center">
-                    <input class="form-check-input radius-4 border border-neutral-400" type="checkbox"
-                      name="checkbox" />
-                  </div> -->
                   {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
@@ -74,12 +83,13 @@
               <td>{{ user.contactNumber }}</td>
               <td>{{ (user.email) ? user.email : "NA"}}</td>
               <td>{{ user.joinDate | date}}</td>
-              <td>
+              <td>{{ user.role }}</td>
+              <!-- <td>
                 <select [(ngModel)]="user.role" (change)="onRoleChange(user)" [disabled]="isUpdating"
                   class="form-control w-auto border border-neutral-900 fw-semibold text-primary-light text-sm">
                   <option *ngFor="let role of roles" [value]="role">{{ role | titlecase}}</option>
                 </select>
-              </td>
+              </td> -->
               <td class="text-center">
                 <button 
                   (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" 

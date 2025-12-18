@@ -112,6 +112,12 @@ import { AddWarehouseComponent } from './add-warehouse/add-warehouse.component';
 import { Home10Component } from './home-10/home-10.component';
 import { AddVenueComponent } from './add-venue/add-venue.component';
 import { AddEventComponent } from './add-event/add-event.component';
+import { VendorsComponent } from './vendors/vendors.component';
+import { AddVendorComponent } from './add-vendors/add-vendors.component';
+import { RequestsComponent } from './requests/requests.component';
+import { AddRequestComponent } from './add-request/add-request.component';
+import { PurchaseOrderComponent } from './purchase-order/purchase-order.component';
+import { AddPurchaseOrderComponent } from './add-purchase-order/add-purchase-order.component';
 
 export const routes: Routes = [
   { path: 'sign-in', component: SignInComponent },
@@ -131,10 +137,16 @@ export const routes: Routes = [
       { path: 'add-product/:id', component: AddProductComponent },
       { path: 'add-warehouse', component: AddWarehouseComponent },
       { path: 'add-warehouse/:id', component: AddWarehouseComponent },
+      { path: 'add-purchase-order', component: AddPurchaseOrderComponent },
+      { path: 'add-purchase-order/:id', component: AddPurchaseOrderComponent },
       { path: 'add-venue', component: AddVenueComponent },
       { path: 'add-venue/:id', component: AddVenueComponent },
       { path: 'add-event', component: AddEventComponent },
       { path: 'add-event/:id', component: AddEventComponent },
+      { path: 'add-request', component: AddRequestComponent },
+      { path: 'add-request/:id', component: AddRequestComponent },
+      { path: 'add-vendors', component: AddVendorComponent },
+      { path: 'add-vendors/:id', component: AddVendorComponent },
       { path: 'alert', component: AlertComponent },
       { path: 'assign-role', component: AssignRoleComponent },
       { path: 'column-chart', component: ColumnChartComponent },
@@ -148,9 +160,12 @@ export const routes: Routes = [
       { path: 'notification', component: NotificationComponent },
       { path: 'pie-chart', component: PieChartComponent },
       { path: 'products', component: ProductsComponent },
+      { path: 'purchase-order', component: PurchaseOrderComponent },
       { path: 'role-access', component: RoleAccessComponent },
+      { path: 'requests', component: RequestsComponent },
       { path: 'orders', component: OrdersComponent },
       { path: 'venues', component: VenueComponent },
+      { path: 'vendors', component: VendorsComponent },
       { path: 'returns', component: ReturnsComponent },
       { path: 'warehouses', component: WarehousesComponent },
       { path: 'events', component: EventsComponent },

@@ -4,6 +4,7 @@ import {
   Component,
   CUSTOM_ELEMENTS_SCHEMA,
   OnInit,
+  ChangeDetectorRef
 } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { BreadcrumbComponent } from '../breadcrumb/breadcrumb.component';
@@ -21,6 +22,7 @@ import { OrdersService } from '../services/orders.service';
 import { AuthService } from '../services/auth-service.service';
 import { VenuesService } from '../services/venues.service';
 import { EventsService } from '../services/events.service';
+import { forkJoin } from 'rxjs';
 declare var bootstrap: any;
 
 @Component({
@@ -59,15 +61,46 @@ export class OrdersComponent implements OnInit {
   respMessage: string = '';
   selectAll: boolean = false;
   selectedOrders: Set<string> = new Set();
+  
+  // Pagination and filtering
+  currentPage = 1;
+  itemsPerPage = 10;
+  totalItems = 0;
+  totalPages = 0;
+  searchTerm = '';
+  statusFilter = '';
+
+  rejectOrderForm!: FormGroup;
+  selectedOrderForRejection: any = null;
+  rejectFormSubmitted = false;
+
+  priorityOrder: Record<string, number> = {
+    urgent: 1,
+    high: 2,
+    medium: 3,
+    low: 4,
+  };
+
+  statusOrder: Record<string, number> = {
+    requested: 1,
+    approved: 2,
+    issued: 3,
+  };
 
   isUpdating = false;
+  
+  // Debug properties
+  debugVenuesCount: number = 0;
+  debugEventsCount: number = 0;
+
   constructor(
     private formBuilder: FormBuilder,
     private productService: ProductService,
     private ordersService: OrdersService,
     private authService: AuthService,
     private venuesService: VenuesService,
-    private eventsService: EventsService
+    private eventsService: EventsService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -79,115 +112,6 @@ export class OrdersComponent implements OnInit {
       this.authService.logout();
     }
 
-    this.loading = true;
-    this.ordersService.getAllOrders().subscribe({
-      next: (resp: any) => {
-        if (resp.success === true) {
-          this.ordersList = resp.data.orders;
-          this.backupOrdersList = resp.data.orders;
-
-          setTimeout(() => {
-            this.dataTable = new DataTable('#dataTable', {
-              paging: true,
-              searching: true,
-              info: true,
-            });
-          }, 100);
-        } else {
-          this.showError = true;
-          setTimeout(() => {
-            this.showError = false;
-          }, 3000);
-        }
-
-        this.productService.getAllProducts().subscribe({
-          next: (resp: any) => {
-            if (resp.success === true) {
-              this.productsList = resp.data.products;
-              this.backupProductsList = resp.data.products;
-              
-              this.venuesService.getVenues().subscribe({
-                next: (venuesResp: any) => {
-                  if (venuesResp.success === true) {
-                    const venues = venuesResp.data?.venues ?? [];
-                    
-                    const filteredVenues = venues.filter((venue: any) =>
-                      venue.users?.some((user: any) => user._id === this.userId)
-                    );
-                    
-                    this.venuesList = filteredVenues;
-                    this.backupVenuesList = filteredVenues;
-                    
-                    this.eventsService.getEvents().subscribe({
-                      next: (eventsResp: any) => {
-                        if (eventsResp.success === true) {
-                          const events = eventsResp.data?.events ?? [];
-                          
-                          const filteredEvents = events.filter((event: any) =>
-                            event.venues?.some((venue: any) =>
-                              venue.users?.some((user: any) => user._id === this.userId)
-                            )
-                          );
-                          
-                          this.eventList = filteredEvents;
-                          this.backupEventList = filteredEvents;
-                        } else {
-                          this.showError = true;
-                          setTimeout(() => {
-                            this.showError = false;
-                          }, 3000);
-                        }
-                        
-                        this.loading = false;
-                      },
-                      error: (err: any) => {
-                        this.loading = false;
-                        this.showError = true;
-                        setTimeout(() => {
-                          this.showError = false;
-                        }, 3000);
-                      }
-                    });
-                  } else {
-                    this.showError = true;
-                    setTimeout(() => {
-                      this.showError = false;
-                    }, 3000);
-                  }
-                },
-                error: (err: any) => {
-                  this.loading = false;
-                  this.showError = true;
-                  setTimeout(() => {
-                    this.showError = false;
-                  }, 3000);
-                }
-              });
-            } else {
-              this.showError = true;
-              setTimeout(() => {
-                this.showError = false;
-              }, 3000);
-            }
-          },
-          error: (err: any) => {
-            this.loading = false;
-            this.showError = true;
-            setTimeout(() => {
-              this.showError = false;
-            }, 3000);
-          }
-        });
-      },
-      error: (err: any) => {
-        this.loading = false;
-        this.showError = true;
-        setTimeout(() => {
-          this.showError = false;
-        }, 3000);
-      },
-    });
-
     this.orderForm = this.formBuilder.group({
       products: this.formBuilder.array([this.createItemForm()]),
       eventId: ['', Validators.required],
@@ -195,10 +119,131 @@ export class OrdersComponent implements OnInit {
       priority: ['medium', Validators.required],
       notes: [''],
     });
+
+    this.initRejectOrderForm();
+    this.loadAllData();
   }
+
   // Form array getter
   get products(): FormArray {
     return this.orderForm.get('products') as FormArray;
+  }
+
+  initRejectOrderForm() {
+    this.rejectOrderForm = this.formBuilder.group({
+      rejectionReason: ['', [Validators.required, Validators.minLength(10)]]
+    });
+  }
+
+  loadAllData(): void {
+    this.loading = true;
+    
+    forkJoin({
+      orders: this.ordersService.getAllOrders(),
+      products: this.productService.getAllProducts(),
+      venues: this.venuesService.getVenues(),
+      events: this.eventsService.getEvents()
+    }).subscribe({
+      next: (responses: any) => {
+        console.log('API Responses:', responses); // Debug log
+        
+        // Handle orders
+        if (responses.orders.success === true) {
+          this.ordersList = responses.orders.data.orders;
+          this.backupOrdersList = responses.orders.data.orders;
+          this.sortOrders();
+          this.initializeDataTable();
+        }
+        
+        // Handle products
+        if (responses.products.success === true) {
+          this.productsList = responses.products.data.products;
+          this.backupProductsList = responses.products.data.products;
+        }
+        
+        // Handle venues - CRITICAL FIX
+        if (responses.venues.success === true) {
+          const venues = responses.venues.data?.venues ?? responses.venues.data ?? [];
+          console.log('Venues loaded:', venues); // Debug log
+          this.venuesList = venues;
+          this.backupVenuesList = venues;
+          this.debugVenuesCount = venues.length;
+        }
+        
+        // Handle events
+        if (responses.events.success === true) {
+          const events = responses.events.data?.events ?? responses.events.data ?? [];
+          console.log('Events loaded:', events); // Debug log
+          this.eventList = events;
+          this.backupEventList = events;
+          this.debugEventsCount = events.length;
+        }
+
+        this.loading = false;
+        this.cdr.detectChanges(); // Force change detection
+      },
+      error: (error: any) => {
+        console.error('Error loading data:', error);
+        this.loading = false;
+        this.showError = true;
+        this.respMessage = 'Error loading data';
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
+      }
+    });
+  }
+
+  initializeDataTable(): void {
+    setTimeout(() => {
+      this.dataTable = new DataTable('#dataTable', {
+        paging: true,
+        searching: true,
+        info: true,
+        ordering: false,
+      });
+
+      this.setupTableFilters();
+    }, 100);
+  }
+
+  setupTableFilters(): void {
+    document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLInputElement).value;
+      if (value) {
+        const formatted = new Date(value).toLocaleDateString('en-US');
+        this.dataTable.column(4).search(formatted).draw();
+      } else {
+        this.dataTable.column(4).search('').draw();
+      }
+    });
+
+    document.getElementById('priorityFilter')?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      this.dataTable.column(6).search(value).draw();
+    });
+
+    document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      this.dataTable.column(7).search(value).draw();
+    });
+  }
+
+  sortOrders(): void {
+    this.ordersList.sort((a: any, b: any) => {
+      const priorityDiff =
+        (this.priorityOrder[a.priority] ?? 99) -
+        (this.priorityOrder[b.priority] ?? 99);
+
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+
+      return (
+        (this.statusOrder[a.status] ?? 99) -
+        (this.statusOrder[b.status] ?? 99)
+      );
+    });
   }
 
   openOrderDetails(order: any) {
@@ -212,16 +257,66 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  users: any = [];
+  getVenueIdFromOrder(orderId: string): string {
+    const order = this.ordersList.find(order => order._id === orderId);
+    if (!order) return '';
+    
+    const venueId = 
+        order?.venue?._id ||
+        order?.venueId?._id ||
+        order?.venueId ||
+        order?.venue ||
+        '';
+    
+    return venueId;
+  }
 
   addItem(): void {
     this.products.push(this.createItemForm());
   }
 
-  // Add this method to approve order
+  getEventName(order: any): string {
+    return (
+      order?.eventId?.name ||
+      order?.eventId?.eventName ||
+      order?.event?.name ||
+      '—'
+    );
+  }
+
+  getVenueName(order: any): string {
+    const venueName = 
+        order?.venue?.name || 
+        order?.venue?.venueName ||
+        order?.venueId?.name ||
+        order?.venueId?.venueName ||
+        '—';
+    
+    if (venueName === '—' && order?.venueId) {
+        const venueId = typeof order.venueId === 'string' ? order.venueId : order.venueId._id;
+        const venue = this.backupVenuesList.find((v: any) => v._id === venueId);
+        if (venue) {
+            return venue.name || venue.venueName || '—';
+        }
+    }
+    
+    return venueName;
+  }
+
   approveOrder(orderId: string): void {
+    const venueId = this.getVenueIdFromOrder(orderId);
+    
+    if (!venueId) {
+      this.showError = true;
+      this.respMessage = 'Cannot approve order: Venue information is missing';
+      setTimeout(() => {
+        this.showError = false;
+      }, 3000);
+      return;
+    }
+
     this.isUpdating = true;
-    this.ordersService.approveOrder(orderId).subscribe({
+    this.ordersService.approveOrder(orderId, venueId).subscribe({
       next: (resp: any) => {
         if (resp.success === true) {
           this.updateOrderStatus(orderId, 'approved');
@@ -232,42 +327,80 @@ export class OrdersComponent implements OnInit {
           this.respMessage = resp.message || 'Failed to approve order';
         }
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
       },
       error: (err: any) => {
         this.showError = true;
-        this.respMessage = 'Error approving order';
+        this.respMessage = err || 'Error approving order';
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
       }
     });
   }
 
-  // Add this method to reject order
-  rejectOrder(orderId: string): void {
+  rejectOrder(): void {
+    this.rejectFormSubmitted = true;
+    
+    if (this.rejectOrderForm.invalid) {
+      this.rejectOrderForm.markAllAsTouched();
+      return;
+    }
+    
+    const orderId = this.selectedOrderForRejection._id;
+    const rejectionReason = this.rejectOrderForm.value.rejectionReason;
+
     this.isUpdating = true;
-    this.ordersService.rejectOrder(orderId).subscribe({
+    this.ordersService.rejectOrder(orderId, rejectionReason).subscribe({
       next: (resp: any) => {
         if (resp.success === true) {
           this.updateOrderStatus(orderId, 'rejected');
           this.showSuccess = true;
           this.respMessage = 'Order rejected successfully!';
+          this.closeRejectModal();
         } else {
           this.showError = true;
           this.respMessage = resp.message || 'Failed to reject order';
         }
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
       },
       error: (err: any) => {
         this.showError = true;
-        this.respMessage = 'Error rejecting order';
+        this.respMessage = err.error?.message || 'Error rejecting order';
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
       }
     });
   }
 
-  // Add this method to issue order
   issueOrder(orderId: string): void {
+    const venueId = this.getVenueIdFromOrder(orderId);
+    
+    if (!venueId) {
+      this.showError = true;
+      this.respMessage = 'Cannot issue order: Venue information is missing';
+      setTimeout(() => {
+        this.showError = false;
+      }, 3000);
+      return;
+    }
+
     this.isUpdating = true;
-    this.ordersService.issueOrder(orderId).subscribe({
+    this.ordersService.issueOrder(orderId, venueId).subscribe({
       next: (resp: any) => {
         if (resp.success === true) {
           this.updateOrderStatus(orderId, 'issued');
@@ -278,39 +411,49 @@ export class OrdersComponent implements OnInit {
           this.respMessage = resp.message || 'Failed to issue order';
         }
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showSuccess = false;
+          this.showError = false;
+        }, 3000);
       },
       error: (err: any) => {
         this.showError = true;
-        this.respMessage = 'Error issuing order';
+        this.respMessage = err || 'Error issuing order';
         this.isUpdating = false;
+        
+        setTimeout(() => {
+          this.showError = false;
+        }, 3000);
       }
     });
   }
 
-  // Helper method to update order status in the local array
   private updateOrderStatus(orderId: string, newStatus: string): void {
     const orderIndex = this.ordersList.findIndex(order => order._id === orderId);
     if (orderIndex !== -1) {
       this.ordersList[orderIndex].status = newStatus;
       
-      // Also update backup list if needed
       const backupIndex = this.backupOrdersList.findIndex(order => order._id === orderId);
       if (backupIndex !== -1) {
         this.backupOrdersList[backupIndex].status = newStatus;
       }
     }
     
-    // Hide alerts after 3 seconds
     setTimeout(() => {
       this.showSuccess = false;
       this.showError = false;
     }, 3000);
   }
+
   removeItem(index: number): void {
     this.products.removeAt(index);
   }
 
   onCloseModal() {
+    console.log('Closing modal, resetting form...');
+    
+    // Reset form
     this.orderForm.reset({
       eventId: '',
       venueId: '',
@@ -318,27 +461,36 @@ export class OrdersComponent implements OnInit {
       notes: '',
     });
 
-    // this.orderForm.get('venueId')?.disable();
+    // Reset edit mode
+    this.isEditMode = false;
+    this.selectedOrderId = null;
 
-    // Clear FormArray properly
+    // Enable venue control
+    this.orderForm.get('venueId')?.enable();
+
+    // Clear and reset products array
     const productsArray = this.orderForm.get('products') as FormArray;
-    while (productsArray.length !== 0) {
+    while (productsArray.length > 0) {
       productsArray.removeAt(0);
     }
     this.addItem();
+    
+    // Reset venues to show all venues
+    this.venuesList = [...this.backupVenuesList];
+    console.log('Venues list reset to:', this.venuesList);
+    
+    this.cdr.detectChanges();
   }
 
   getAvailableProducts(index: number) {
     if (!this.backupProductsList) return [];
 
-    // Collect selected product IDs except current row
     const selectedIds = this.products.controls
       .map((control, i) =>
         i !== index ? control.get('productId')?.value : null
       )
       .filter((id) => id !== null);
 
-    // Filter products that are NOT selected elsewhere
     return this.backupProductsList.filter((p) => !selectedIds.includes(p._id));
   }
 
@@ -353,10 +505,11 @@ export class OrdersComponent implements OnInit {
 
     const remaining = this.backupProductsList.length - selectedIds.length;
 
-    return remaining > 1; // Enable only if more than 1 product is left
+    return remaining > 1;
   }
 
   openAddOrder() {
+    console.log('Opening add order modal');
     this.isEditMode = false;
     this.selectedOrderId = null;
 
@@ -364,59 +517,159 @@ export class OrdersComponent implements OnInit {
   }
 
   openEditOrder(order: any) {
+    console.log('Opening edit order for:', order);
+
     this.isEditMode = true;
     this.selectedOrderId = order._id;
 
-    this.onCloseModal(); // clear previous data first
+    // ✅ DO NOT call onCloseModal here
+    this.resetFormForEdit();
 
-    // Patch general fields
+    // ----------------------------
+    // Extract eventId & venueId
+    // ----------------------------
+    const eventId =
+      typeof order.eventId === 'string'
+        ? order.eventId
+        : order.eventId?._id || '';
+
+    const venueId =
+      order.venue?._id ||
+      order.venueId?._id ||
+      (typeof order.venueId === 'string' ? order.venueId : '') ||
+      (typeof order.venue === 'string' ? order.venue : '');
+
+    // ----------------------------
+    // Patch basic fields
+    // ----------------------------
     this.orderForm.patchValue({
-      priority: order.priority,
-      notes: order.notes,
+      eventId,
+      priority: order.priority || 'medium',
+      notes: order.notes || '',
     });
 
-    // Clear existing rows
+    // ----------------------------
+    // Load venues for selected event
+    // ----------------------------
+    this.loadVenuesForEvent(eventId);
+
+    // ✅ PATCH VENUE ONLY AFTER OPTIONS EXIST
+    this.orderForm.patchValue({
+      venueId
+    });
+
+    // ----------------------------
+    // Load products
+    // ----------------------------
     const productsArray = this.orderForm.get('products') as FormArray;
-    while (productsArray.length !== 0) {
-      productsArray.removeAt(0);
-    }
+    productsArray.clear();
 
-    // Add & patch each product row
-    order.items.forEach((item: any) => {
+    order.items?.forEach((item: any) => {
       const row = this.createItemForm();
-
       row.patchValue({
-        productId: item.productId?._id || '',
-        quantityRequested: item.quantityRequested,
+        productId: item.productId?._id || item.productId,
+        quantityRequested: item.quantityRequested || 1,
       });
-
       productsArray.push(row);
     });
+
+    this.cdr.detectChanges();
+  }
+
+
+  // FIXED: Simplified venue loading
+  // UPDATED: Better venue loading with proper ID comparison
+  loadVenuesForEvent(eventId: string) {
+
+    if (!eventId) {
+      this.venuesList = [...this.backupVenuesList];
+      return;
+    }
+
+    const selectedEvent = this.eventList.find(
+      (e: any) => e._id === eventId
+    );
+
+    if (!selectedEvent || !selectedEvent.venues?.length) {
+      this.venuesList = [...this.backupVenuesList];
+      return;
+    }
+
+    const eventVenueIds = selectedEvent.venues.map((v: any) =>
+      typeof v === 'string' ? v : v._id
+    );
+
+    this.venuesList = this.backupVenuesList.filter((v: any) =>
+      eventVenueIds.includes(v._id)
+    );
+  }
+
+
+ 
+  // Helper method to add missing venue
+  addMissingVenue(order: any, venueId: string) {
+    console.log('Adding missing venue:', venueId);
+    
+    let venueName = 'Unknown Venue';
+    
+    if (order.venue && order.venue.name) {
+      venueName = order.venue.name;
+    } else if (order.venueId && order.venueId.name) {
+      venueName = order.venueId.name;
+    } else if (order.venue && order.venue.venueName) {
+      venueName = order.venue.venueName;
+    } else if (order.venueId && order.venueId.venueName) {
+      venueName = order.venueId.venueName;
+    }
+    
+    console.log('Venue name determined as:', venueName);
+
+    const missingVenue = {
+      _id: venueId,
+      name: venueName,
+      venueName: venueName
+    };
+
+    // Add to venuesList if not already there
+    const venueExists = this.venuesList.some((v: any) => v._id === venueId);
+    if (!venueExists) {
+      this.venuesList.push(missingVenue);
+      console.log('Added venue to venuesList');
+    }
+    
+    // Also add to backup list
+    const backupExists = this.backupVenuesList.some((v: any) => v._id === venueId);
+    if (!backupExists) {
+      this.backupVenuesList.push(missingVenue);
+      console.log('Added venue to backupVenuesList');
+    }
+    
+    this.cdr.detectChanges();
   }
 
   onEventChange(event: any) {
     const selectedEventId = event.target.value;
-
-    const selectedEvent = this.eventList.find((e: any) => e._id === selectedEventId);
-
-    if (!selectedEvent || !selectedEvent.venues) {
-      this.venuesList = [];
-      // this.orderForm.get('venueId')?.disable();
-      return;
-    }
-
-    const eventVenueIds = selectedEvent.venues.map((v: any) => v._id || v);
+    console.log('Event changed to:', selectedEventId);
     
-    this.venuesList = this.backupVenuesList.filter((venue: any) =>
-      eventVenueIds.includes(venue._id)
-    );
-
-    if (this.venuesList.length > 0) {
-      this.orderForm.get('venueId')?.enable();
-    } else {
-      this.orderForm.get('venueId')?.disable();
-    }
+    // Clear venue selection
+    this.orderForm.patchValue({ venueId: '' });
+    
+    // Load venues for this event
+    this.loadVenuesForEvent(selectedEventId);
   }
+
+  private resetFormForEdit() {
+    this.orderForm.reset({
+      eventId: '',
+      venueId: '',
+      priority: 'medium',
+      notes: '',
+    });
+
+    const productsArray = this.orderForm.get('products') as FormArray;
+    productsArray.clear();
+  }
+
 
   toggleSelectAll(event: any) {
     this.selectAll = event.target.checked;
@@ -432,10 +685,9 @@ export class OrdersComponent implements OnInit {
       this.selectedOrders.add(orderId);
     } else {
       this.selectedOrders.delete(orderId);
-      this.selectAll = false; // uncheck master checkbox
+      this.selectAll = false;
     }
 
-    // If all items selected → auto check the master checkbox
     if (this.selectedOrders.size === this.ordersList.length) {
       this.selectAll = true;
     }
@@ -445,7 +697,24 @@ export class OrdersComponent implements OnInit {
     return this.ordersList.filter((o) => this.selectedOrders.has(o._id));
   }
 
-  // Submit final order
+  openRejectModal(order: any): void {
+    this.selectedOrderForRejection = order;
+    this.rejectFormSubmitted = false;
+    this.rejectOrderForm.reset();
+  }
+
+  closeRejectModal(): void {
+    this.selectedOrderForRejection = null;
+    this.rejectFormSubmitted = false;
+    this.rejectOrderForm.reset();
+    
+    const modal = document.getElementById('rejectOrderModal');
+    if (modal) {
+      const bsModal = bootstrap.Modal.getInstance(modal) || new bootstrap.Modal(modal);
+      bsModal.hide();
+    }
+  }
+
   submitOrder(): void {
     if (this.orderForm.invalid) {
       this.orderForm.markAllAsTouched();
@@ -464,11 +733,9 @@ export class OrdersComponent implements OnInit {
           this.respMessage = resp.message;
           if (resp.success === true) {
             if (!this.isEditMode) {
-              // CREATE
               const newOrder = resp.data.order;
               this.ordersList.unshift(newOrder);
             } else {
-              // EDIT
               const updatedOrder = resp.data.order;
               const updatedId = String(updatedOrder._id);
               const index = this.ordersList.findIndex(
@@ -478,18 +745,8 @@ export class OrdersComponent implements OnInit {
               if (index !== -1) {
                 this.ordersList[index] = updatedOrder;
               } else {
-                // Fallback (if mismatch)
                 this.ordersList.unshift(updatedOrder);
               }
-
-              // $('#dataTable').DataTable().destroy();
-              // setTimeout(() => {
-              //   this.dataTable = new DataTable('#dataTable', {
-              //     paging: true,
-              //     searching: true,
-              //     info: true,
-              //   });
-              // }, 100);
             }
 
             this.showSuccess = true;
@@ -502,10 +759,9 @@ export class OrdersComponent implements OnInit {
               bootstrap.Modal.getInstance(modalEl) ||
               new bootstrap.Modal(modalEl);
             modalInstance.hide();
-            // Reset modal form
+            
             this.onCloseModal();
           } else {
-            // API returned success:false
             this.showError = true;
             setTimeout(() => {
               this.showError = false;
@@ -518,6 +774,7 @@ export class OrdersComponent implements OnInit {
         error: (err: any) => {
           this.loading = false;
           this.showError = true;
+          this.respMessage = err.error?.message || 'Error saving order';
 
           setTimeout(() => {
             this.showError = false;
@@ -528,4 +785,3 @@ export class OrdersComponent implements OnInit {
 
   printReciept(order: any) {}
 }
-

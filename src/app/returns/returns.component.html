@@ -1,101 +1,156 @@
 <div class="dashboard-main-body">
     <app-breadcrumb [title]="title"></app-breadcrumb>
 
+    <!-- Success/Error Alerts -->
+    <div *ngIf="showSuccess" class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ respMessage }}
+        <button type="button" class="btn-close" (click)="showSuccess = false"></button>
+    </div>
+    
+    <div *ngIf="showError" class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ respMessage }}
+        <button type="button" class="btn-close" (click)="showError = false"></button>
+    </div>
+
     <div class="card basic-data-table">
-        <div class="card-header">
-            <a data-bs-toggle="modal" data-bs-target="#returnModal"
-                class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
-                <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
-                Return Order
-            </a>
-        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table bordered-table mb-0" id="dataTable" data-page-length="10">
                     <thead>
                         <tr>
-                            <th scope="col">
-                                <div class="form-check style-check d-flex align-items-center">
-                                    <!-- <input class="form-check-input" type="checkbox" /> -->
-                                    <label class="form-check-label"> Sr No. </label>
-                                </div>
-                            </th>
+                            <th scope="col">Sr No.</th>
                             <th scope="col">Return No</th>
                             <th scope="col">Order No</th>
                             <th scope="col">Return Date</th>
                             <th scope="col">Reason</th>
-                            <th scope="col">Status</th>
+                            <th scope="col">Return Status</th>
                             <th scope="col">Approval</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let return of returnsList; let i = index">
-                            <td>
-                                <div class="form-check style-check d-flex align-items-center">
-                                    <!-- <input class="form-check-input" type="checkbox" /> -->
-                                    <label class="form-check-label"> {{ i + 1 | number:'2.0' }} </label>
-                                </div>
-                            </td>
-                            <td>
-                                {{ return.returnNumber }}
-                            </td>
-                            <td>
-                                {{ return.orderId.orderNumber }}
-                                <!-- <div class="d-flex align-items-center">
-                                    <img [src]="return.img" alt="" class="flex-shrink-0 me-12 radius-8" />
-                                    <h6 class="text-md mb-0 fw-medium flex-grow-1">{{ return.name }}</h6>
-                                </div> -->
-                            </td>
-                            <td>{{ return.requestedAt | date: "dd/mm/yyyy"}}</td>
-                            <td>{{ (return.returnReason) ? return.returnReason : "NA" }}</td>
+                        <tr *ngFor="let returnItem of returnsList; let i = index">
+                            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}</td>
+                            <td>{{ returnItem.returnNumber }}</td>
+                            <td>{{ returnItem.orderId?.orderNumber }}</td>
+                            <td>{{ returnItem.requestedAt | date: "dd-MM-yyyy"}}</td>
+                            <td>{{ returnItem.returnReason ? returnItem.returnReason : "NA" }}</td>
+                            
+                            <!-- Return Status Column -->
                             <td>
                                 <span [ngClass]="{
-                      'bg-success-focus text-success-main': ['approved', 'fullyReturned'].includes(return.status),
-                      'bg-warning-focus text-warning-main': ['pending', 'partiallyReturned'].includes(return.status)
-                    }" class="px-24 py-4 rounded-pill fw-medium text-sm">
-                                    {{ return.status | titlecase}}
+                                    'bg-secondary-focus text-secondary-main': returnItem.statusReturn === 'pendingReturn',
+                                    'bg-warning-focus text-warning-main': returnItem.statusReturn === 'partiallyReturned',
+                                    'bg-info-focus text-info-main': returnItem.statusReturn === 'fullyReturned'
+                                }" class="px-24 py-4 rounded-pill fw-medium text-sm">
+                                    {{ returnItem.statusReturn | titlecase }}
                                 </span>
                             </td>
+                            
+                            <!-- Approval Column - Shows buttons when pending approval -->
                             <td>
-                                <!-- For pending returns - Show Approve/Reject buttons -->
-                                <div *ngIf="return.status === 'pending'">
-                                    <button (click)="approveReturn(return._id)" 
-                                            class="btn btn-success btn-sm me-1"
-                                            [disabled]="isUpdating">
-                                        Approve
-                                    </button>
-                                    <button (click)="rejectReturn(return._id)" 
-                                            class="btn btn-danger btn-sm"
-                                            [disabled]="isUpdating">
-                                        Reject
-                                    </button>
+                                <!-- If pending approval, show approve/reject buttons -->
+                                <div *ngIf="returnItem.statusApproval === 'pendingApproval'">
+                                    <div class="d-flex flex-column gap-1">
+                                        <!-- Show appropriate approve button -->
+                                        <div class="d-flex gap-1">
+                                            <!-- Approve Full button - always shown for pending approval -->
+                                            <button (click)="approveReturn(returnItem._id)" 
+                                                    class="btn btn-success btn-sm flex-grow-1"
+                                                    [disabled]="isUpdating">
+                                                <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
+                                                {{ isUpdating ? 'Processing...' : 'Approve' }}
+                                            </button>
+                                            
+                                            <!-- Approve Partial button - optional, shown next to Approve -->
+                                            <button (click)="approvePartialReturn(returnItem._id)" 
+                                                    class="btn btn-warning btn-sm flex-grow-1"
+                                                    [disabled]="isUpdating">
+                                                {{ isUpdating ? 'Processing...' : 'Approve Partial' }}
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Reject Button -->
+                                        <button type="button" 
+                                                class="btn btn-danger btn-sm"
+                                                data-bs-toggle="modal" 
+                                                [attr.data-bs-target]="'#rejectModal' + returnItem._id"
+                                                [disabled]="isUpdating">
+                                            {{ isUpdating ? 'Processing...' : 'Reject' }}
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Rejection Reason Modal -->
+                                    <div class="modal fade" [id]="'rejectModal' + returnItem._id" tabindex="-1">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Reject Return</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to reject this return request?</p>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Rejection Reason (Optional)</label>
+                                                        <textarea [(ngModel)]="rejectionReason" 
+                                                                class="form-control" 
+                                                                rows="3"
+                                                                placeholder="Enter reason for rejection..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="button" class="btn btn-danger" 
+                                                            data-bs-dismiss="modal"
+                                                            (click)="rejectReturn(returnItem._id)">
+                                                        Reject
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <!-- For approved/rejected returns - Show nothing or status text -->
-                                <div *ngIf="['approved', 'rejected', 'fullyReturned', 'partiallyReturned'].includes(return.status)">
-                                    <span class="text-muted text-sm">{{ return.status | titlecase }}</span>
+                                
+                                <!-- If approval decision has been made, show status badge -->
+                                <div *ngIf="returnItem.statusApproval !== 'pendingApproval'">
+                                    <span [ngClass]="{
+                                        'bg-success-focus text-success-main': returnItem.statusApproval === 'approved',
+                                        'bg-danger-focus text-danger-main': returnItem.statusApproval === 'rejected',
+                                        'bg-warning-focus text-warning-main': returnItem.statusApproval === 'partiallyApproved'
+                                    }" class="px-24 py-4 rounded-pill fw-medium text-sm">
+                                        {{ returnItem.statusApproval | titlecase }}
+                                    </span>
+                                    <div *ngIf="returnItem.statusApproval === 'approved'" class="text-success small mt-1">
+                                        ✓ Request approved
+                                    </div>
+                                    <div *ngIf="returnItem.statusApproval === 'rejected'" class="text-danger small mt-1">
+                                        ✗ Request rejected
+                                    </div>
+                                    <div *ngIf="returnItem.statusApproval === 'partiallyApproved'" class="text-warning small mt-1">
+                                        ⚠ Partial approval
+                                    </div>
                                 </div>
                             </td>
+                            
+                            <!-- Actions Column - Only view and delete buttons -->
                             <td>
                                 <div class="d-flex align-items-center justify-content-end gap-1 w-100">
-                                    <a style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#viewReturnModal" (click)="openReturnDetails(return)"
-                                        class=" w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle
-                                        d-inline-flex align-items-center justify-content-center">
+                                    <!-- View Button -->
+                                    <a style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#viewReturnModal" 
+                                       (click)="openReturnDetails(returnItem)"
+                                       class="w-32-px h-32-px bg-primary-light text-primary-600 rounded-circle d-inline-flex align-items-center justify-content-center">
                                         <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
                                     </a>
-                                    <!-- <a href="javascript:void(0)"
-                                        class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center">
-                                        <iconify-icon icon="lucide:edit"></iconify-icon>
-                                    </a> -->
-                                    <a *ngIf="return.status == 'pending'" href="javascript:void(0)"
-                                        class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center">
+                                    
+                                    <!-- Delete button (only for pending return) -->
+                                    <a *ngIf="returnItem.statusReturn == 'pendingReturn' && returnItem.statusApproval == 'pendingApproval'" 
+                                       href="javascript:void(0)"
+                                       class="w-32-px h-32-px bg-danger-focus text-danger-main rounded-circle d-inline-flex align-items-center justify-content-center">
                                         <iconify-icon icon="mingcute:delete-2-line"></iconify-icon>
                                     </a>
                                 </div>
                             </td>
                         </tr>
-
                     </tbody>
                 </table>
             </div>
@@ -103,161 +158,89 @@
     </div>
 </div>
 
-<!-- Return Modal -->
-<div class="modal fade" id="returnModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Create Return</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <form [formGroup]="returnForm" (ngSubmit)="submitReturn()">
-
-                <div class="modal-body">
-
-                    <!-- Order Select -->
-                    <div class="mb-3">
-                        <label class="form-label">Select Order</label>
-                        <select formControlName="orderId" class="form-select" (change)="onOrderChange()">
-                            <option value="">-- Select Order --</option>
-                            <option *ngFor="let o of ordersList" [value]="o._id">
-                                {{ o.orderNumber }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Event ID -->
-                    <div class="mb-3">
-                        <label class="form-label">Event Name</label>
-                        <input formControlName="eventName" class="form-control" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Venue Name</label>
-                        <input formControlName="venueName" class="form-control" readonly>
-                    </div>
-
-                    <hr>
-
-                    <!-- Items Section -->
-                    <div formArrayName="items">
-
-                        <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i"
-                            class="border rounded p-3 mb-3">
-
-                            <h6>Product: {{ item.value.productName }}</h6>
-
-                            <div class="row g-2">
-
-                                <!-- Quantity Returned -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <label class="form-label">Returned</label>
-                                    <input type="number" formControlName="quantityReturned" class="form-control"
-                                        (input)="validateQuantity(i)" />
-                                </div>
-
-                                <!-- Quantity Pending -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <label class="form-label">Pending</label>
-                                    <input type="number" formControlName="quantityPending" class="form-control"
-                                        (input)="validateQuantity(i)" />
-                                </div>
-
-                                <!-- Quantity Lost -->
-                                <div class="col-12 col-sm-6 col-md-4">
-                                    <label class="form-label">Lost</label>
-                                    <input type="number" formControlName="quantityLost" class="form-control"
-                                        (input)="validateQuantity(i)" />
-                                </div>
-
-                            </div>
-
-
-                            <!-- Error -->
-                            <div class="text-danger small" *ngIf="item.get('invalidQty')?.value">
-                                Total quantity cannot exceed ordered quantity ({{ item.value.orderQuantity }}).
-                            </div>
-
-                            <div class="mb-2">
-                                <label class="form-label">Loss Reason (optional)</label>
-                                <input formControlName="lossReason" class="form-control">
-                            </div>
-
-                            <!-- <div class="mb-2">
-                <label class="form-label">Condition</label>
-                <select formControlName="condition" class="form-select">
-                  <option value="good">Good</option>
-                  <option value="damaged">Damaged</option>
-                </select>
-              </div> -->
-
-                        </div>
-                    </div>
-
-                    <!-- Return Reason -->
-                    <div class="mb-3">
-                        <label class="form-label">Return Reason</label>
-                        <textarea formControlName="returnReason" rows="3" class="form-control"></textarea>
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="mb-3">
-                        <label class="form-label">Notes</label>
-                        <textarea formControlName="notes" rows="3" class="form-control"></textarea>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" [disabled]="returnForm.invalid">Submit Return</button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- View Modal -->
+<!-- View Modal (Keep your existing view modal, but update status display) -->
 <div class="modal fade" id="viewReturnModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-
-      <!-- Header -->
       <div class="modal-header">
         <h5 class="modal-title">Return Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
-      <!-- Body -->
       <div class="modal-body" *ngIf="selectedReturn">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <h6 class="mb-2">Return Number: <strong>{{ selectedReturn.returnNumber }}</strong></h6>
+            <p class="text-muted mb-2"><strong>Event:</strong> {{ selectedReturn.eventId?.eventName || 'N/A' }}</p>
+            <p class="text-muted mb-2"><strong>Order:</strong> {{ selectedReturn.orderId?.orderNumber }}</p>
+          </div>
+          <div class="col-md-6">
+            <p class="text-muted mb-2">
+              <strong>Return Status:</strong> 
+              <span [ngClass]="{
+                'text-secondary': selectedReturn.statusReturn === 'pendingReturn',
+                'text-warning': selectedReturn.statusReturn === 'partiallyReturned',
+                'text-info': selectedReturn.statusReturn === 'fullyReturned'
+              }">
+                {{ selectedReturn.statusReturn | titlecase }}
+              </span>
+            </p>
+            <p class="text-muted mb-2">
+              <strong>Approval Status:</strong> 
+              <span [ngClass]="{
+                'text-success': selectedReturn.statusApproval === 'approved',
+                'text-danger': selectedReturn.statusApproval === 'rejected',
+                'text-warning': selectedReturn.statusApproval === 'partiallyApproved',
+                'text-secondary': selectedReturn.statusApproval === 'pendingApproval'
+              }">
+                {{ selectedReturn.statusApproval | titlecase }}
+              </span>
+            </p>
+            <p class="text-muted mb-2" *ngIf="selectedReturn.rejectionReason">
+              <strong>Rejection Reason:</strong> {{ selectedReturn.rejectionReason }}
+            </p>
+          </div>
+        </div>
 
-        <h6 class="mb-2">Return Number: 
-          <strong>{{ selectedReturn.returnNumber }}</strong>
-        </h6>
-
-        <p class="text-muted mb-2">
-          <strong>Event:</strong> {{ selectedReturn.eventId?.eventName }}
-        </p>
-
-        <p class="text-muted mb-2">
-          <strong>Order:</strong> {{ selectedReturn.orderId?.orderNumber }}
-        </p>
-
-        <p class="text-muted mb-2">
-          <strong>Status:</strong> {{ selectedReturn.status }}
-        </p>
-
-        <p class="text-muted mb-3">
-          <strong>Return Reason:</strong> {{ selectedReturn.returnReason }}
-        </p>
-
-        <p class="text-muted mb-3">
-          <strong>Notes:</strong> {{ selectedReturn.notes }}
-        </p>
+        <p class="text-muted mb-2"><strong>Return Reason:</strong> {{ selectedReturn.returnReason || 'N/A' }}</p>
+        <p class="text-muted mb-3"><strong>Notes:</strong> {{ selectedReturn.notes || 'N/A' }}</p>
 
         <hr>
+
+        <!-- Return Summary -->
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <div class="card bg-light">
+              <div class="card-body text-center">
+                <h5 class="mb-0">{{ selectedReturn.totalReturned || 0 }}</h5>
+                <small class="text-muted">Total Returned</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-light">
+              <div class="card-body text-center">
+                <h5 class="mb-0">{{ selectedReturn.totalPending || 0 }}</h5>
+                <small class="text-muted">Total Pending</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-light">
+              <div class="card-body text-center">
+                <h5 class="mb-0">{{ selectedReturn.totalLost || 0 }}</h5>
+                <small class="text-muted">Total Lost</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-light">
+              <div class="card-body text-center">
+                <h5 class="mb-0">{{ selectedReturn.completionPercentage || 0 }}%</h5>
+                <small class="text-muted">Completion</small>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- ITEMS TABLE -->
         <h6 class="mb-3">Returned Items</h6>
@@ -270,31 +253,25 @@
               <th>Pending</th>
               <th>Lost</th>
               <th>Condition</th>
-              <th>Reason</th>
+              <th>Loss Reason</th>
             </tr>
           </thead>
-
           <tbody>
             <tr *ngFor="let item of selectedReturn.items">
               <td>{{ item.productId?.name }}</td>
-              <td>{{ item.productId?.SKU }}</td>
+              <td>{{ item.productId?.SKU || 'N/A' }}</td>
               <td>{{ item.quantityReturned }}</td>
-              <td>{{ item.quantityPending }}</td>
-              <td>{{ item.quantityLost }}</td>
-              <td>{{ item.condition }}</td>
-              <td>{{ item.lossReason }}</td>
+              <td>{{ item.quantityPending || 0 }}</td>
+              <td>{{ item.quantityLost || 0 }}</td>
+              <td>{{ item.condition | titlecase }}</td>
+              <td>{{ item.lossReason || 'N/A' }}</td>
             </tr>
           </tbody>
         </table>
-
       </div>
-
-      <!-- Footer -->
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
-
     </div>
   </div>
 </div>
-

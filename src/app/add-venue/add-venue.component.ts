@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, OnDestroy } from '@angular/core';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -25,11 +25,12 @@ import { UserItem } from '../interfaces/user.model';
   templateUrl: './add-venue.component.html',
   styleUrl: './add-venue.component.css',
 })
-export class AddVenueComponent implements OnInit {
+export class AddVenueComponent implements OnInit, OnDestroy {
   isEditMode = false;
-  venueId: string = '';
+  venueId = '';
   title = 'Add Venue';
-  venueForm: FormGroup;
+
+  venueForm!: FormGroup;
   loading = false;
   errorMessage = '';
   successMessage = '';
@@ -49,17 +50,19 @@ export class AddVenueComponent implements OnInit {
     this.initializeForm();
   }
 
+  // ------------------------------
+  // INIT
+  // ------------------------------
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       if (params['id']) {
         this.isEditMode = true;
         this.venueId = params['id'];
-        this.title = 'Edit Venue';
-        this.loadVenueData();
+        this.title = 'Update Venue';
+
+        this.loadUsersAndVenue();
       }
     });
-
-    this.loadUsers();
   }
 
   // ------------------------------
@@ -72,33 +75,32 @@ export class AddVenueComponent implements OnInit {
         address: ['', Validators.required],
         city: ['', Validators.required],
       }),
-      // contactPerson: this.fb.group({
-      //   name: ['', Validators.required],
-      //   contactNumber: ['', [Validators.required, Validators.minLength(10)]],
-      // }),
-      userId: ['', [Validators.required, Validators.minLength(0)]],
+      userId: ['', Validators.required],
       isActive: [true],
     });
   }
 
   // ------------------------------
-  // LOAD USERS FOR DROPDOWN
+  // LOAD USERS FIRST, THEN VENUE
   // ------------------------------
-  loadUsers(): void {
-    this.isLoadingUsers= true;
-    
-    this.userService.getActiveUsers()
+  loadUsersAndVenue(): void {
+    this.isLoadingUsers = true;
+
+    this.userService
+      .getActiveUsers()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (warehouses) => {
-          this.users = warehouses;
+        next: (users) => {
+          this.users = users;
+          this.isLoadingUsers = false;
+
+          // users are ready → now load venue
+          this.loadVenueData();
+        },
+        error: () => {
+          this.errorMessage = 'Failed to load users';
           this.isLoadingUsers = false;
         },
-        error: (error) => {
-          // console.error('Error loading warehouses:', error);
-          this.errorMessage = 'Failed to load users. Please try again.';
-          this.isLoadingUsers = false;
-        }
       });
   }
 
@@ -112,39 +114,46 @@ export class AddVenueComponent implements OnInit {
       next: (resp: any) => {
         const venue = resp.data?.venue;
 
+        // 🔑 MATCH USER USING contactPerson
+        const matchedUser = this.users.find(
+          (u) =>
+            u.name === venue?.contactPerson?.name &&
+            u.contactNumber === venue?.contactPerson?.contactNumber
+        );
+
         this.venueForm.patchValue({
           name: venue?.name ?? '',
           location: {
             address: venue?.location?.address ?? '',
             city: venue?.location?.city ?? '',
           },
-          // contactPerson: {
-          //   name: venue?.contactPerson?.name ?? 'NA',
-          //   contactNumber: venue?.contactPerson?.contactNumber ?? 'NA',
-          // },
-          userId: venue?.userId ?? '',
+          userId: matchedUser?._id || '',
           isActive: venue?.isActive ?? true,
         });
 
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to load venue data. Try again later.';
+        this.errorMessage = 'Failed to load venue';
         this.loading = false;
       },
     });
   }
 
+  // ------------------------------
+  // GETTERS
+  // ------------------------------
   get f() {
     return this.venueForm.controls;
   }
+
   get locationControls() {
     return (this.venueForm.get('location') as FormGroup).controls;
   }
-  get contactControls() {
-    return (this.venueForm.get('contactPerson') as FormGroup).controls;
-  }
 
+  // ------------------------------
+  // SUBMIT
+  // ------------------------------
   onSubmit(): void {
     if (this.venueForm.invalid) {
       this.markFormGroupTouched();
@@ -152,59 +161,56 @@ export class AddVenueComponent implements OnInit {
     }
 
     this.loading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
 
-    const formData = this.venueForm.value;
+    const selectedUserId = this.venueForm.value.userId;
+    const selectedUser = this.users.find((u) => u._id === selectedUserId);
 
-    if (this.isEditMode) {
-      this.venueService.updateVenue(this.venueId, formData).subscribe({
-        next: () => {
-          this.loading = false;
-          this.successMessage = 'Venue updated successfully';
+    const formData = {
+      ...this.venueForm.value,
 
-          setTimeout(() => {
-            this.router.navigate(['/venues']);
-          }, 1500);
-        },
-        error: (error) => {
-          this.loading = false;
-          this.errorMessage =
-            error || 'Failed to update venue. Please try again.';
-        },
-      });
-    } else {
-      this.venueService.addVenue(formData).subscribe({
-        next: () => {
-          this.loading = false;
-          this.successMessage = 'Venue added successfully!';
-          this.venueForm.reset();
-          this.initializeForm();
+      // 🔑 IMPORTANT: SAVE BOTH
+      userId: selectedUser?._id,
 
-          setTimeout(() => {
-            this.router.navigate(['/venues']);
-          }, 1500);
-        },
-        error: (error) => {
-          this.loading = false;
-          this.errorMessage = error || 'Failed to add venue. Please try again.';
-        },
-      });
-    }
+      contactPerson: selectedUser
+        ? {
+            name: selectedUser.name,
+            contactNumber: selectedUser.contactNumber,
+          }
+        : null,
+    };
+
+    const request$ = this.isEditMode
+      ? this.venueService.updateVenue(this.venueId, formData)
+      : this.venueService.addVenue(formData);
+
+    request$.subscribe({
+      next: () => {
+        this.loading = false;
+        this.successMessage = this.isEditMode
+          ? 'Venue updated successfully'
+          : 'Venue added successfully';
+
+        setTimeout(() => {
+          this.router.navigate(['/venues']);
+        }, 1500);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage =
+          err || 'Something went wrong. Please try again.';
+      },
+    });
   }
 
   // ------------------------------
   // TOUCH VALIDATION
   // ------------------------------
   private markFormGroupTouched(): void {
-    Object.keys(this.venueForm.controls).forEach((key) => {
-      const control = this.venueForm.get(key);
+    Object.values(this.venueForm.controls).forEach((control) => {
       if (control instanceof FormGroup) {
-        Object.keys(control.controls).forEach((nestedKey) => {
-          control.get(nestedKey)?.markAsTouched();
-        });
+        Object.values(control.controls).forEach((c) => c.markAsTouched());
       } else {
-        control?.markAsTouched();
+        control.markAsTouched();
       }
     });
   }

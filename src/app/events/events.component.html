@@ -37,12 +37,33 @@
                 <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length="10">
                     <thead>
                         <tr>
-                            <th scope="col">Sr No.</th>
+                            <th scope="col">
+                                <div class="d-flex align-items-center gap-10">
+                                Sr No.
+                                </div>
+                            </th>
                             <th scope="col">Event Name</th>
                             <th scope="col">Venues</th>
                             <!-- <th scope="col">Locations</th> -->
                             <th scope="col">Assigned Users</th>
-                            <th scope="col" class="text-center">Status</th>
+                            <th>
+                                Start Date<br />
+                                <input type="date" id="dateFilter" class="form-control form-control-sm" />
+                            </th>
+
+                            <th>
+                                End Date<br />
+                                <input type="date" id="dateFilter" class="form-control form-control-sm" />
+                            </th>
+
+                            <th>
+                                Status<br />
+                                <select id="statusFilter" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                </select>
+                            </th>
                             <th scope="col" class="text-center">Action</th>
                         </tr>
                     </thead>
@@ -51,7 +72,11 @@
                         <tr *ngFor="let event of eventsList; let i = index">
 
                             <!-- Sr No -->
-                            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-10">
+                                {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                                </div>
+                            </td>
 
                             <!-- Event Name -->
                             <td>{{ event.eventName }}</td>
@@ -71,16 +96,14 @@
                             </td> -->
 
                             <!-- Assigned Users -->
-                            <td>
-                                <span *ngFor="let v of event.venues">
-                                    {{ (v.users)? v.users.length : 0 }}
-                                    <!-- <ng-container *ngFor="let u of v.users">
-                                        <span class="badge bg-secondary me-2">
-                                            {{ u.name }}
-                                        </span>
-                                    </ng-container> -->
-                                </span>
-                            </td>
+                            <td>{{ getTotalAssignedUsers(event) }}</td>
+
+                            <!-- Start Date -->
+                            <td>{{ event.startDate | date:'dd-MM-yyyy' }}</td>
+
+                            <!-- End Date -->
+                            <td>{{ event.endDate | date:'dd-MM-yyyy' }}</td>
+
 
                             <!-- Status Toggle -->
                             <td class="text-center">
@@ -294,6 +317,18 @@
                     <label class="text-muted fw-semibold small">Description</label>
                     <p class="mt-1">{{ selectedEvent?.description || '—' }}</p>
                 </div>
+
+                <hr>
+
+                <!--start date and end date-->
+                <div class="mb-4">
+                    <label class="text-muted fw-semibold small">Start Date</label>
+                    <p class="mt-1">{{ selectedEvent?.startDate | date:'yyyy-MM-dd' }}</p>
+
+                    <label class="text-muted fw-semibold small mt-3">End Date</label>
+                    <p class="mt-1">{{ selectedEvent?.endDate | date:'yyyy-MM-dd' }}</p>
+                </div>
+
 
                 <hr>
 

@@ -46,7 +46,14 @@
               <th scope="col">Phone</th>
               <!-- <th scope="col">Capacity</th> -->
               <!-- <th scope="col">Type</th> -->
-              <th scope="col" class="text-center">Status</th>
+              <th>
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
           </thead>

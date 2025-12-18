@@ -107,7 +107,8 @@ export interface UpdateRoleRequest {
 }
 
 export interface UpdateStatusRequest {
-    status: 'Active' | 'Inactive';
+    status?: 'Active' | 'Inactive';
+    isActive?: boolean;
 }
 
 export interface UserFilters {

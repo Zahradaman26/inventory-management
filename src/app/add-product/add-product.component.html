@@ -3,7 +3,7 @@
 
     <div class="card h-100 p-0 radius-12">
         <div class="card-header border-bottom bg-base py-16 px-24">
-            <h5 class="mb-0">{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h5>
+            <h5 class="mb-0">{{ isEditMode ? 'Update Product' : 'Add New Product' }}</h5>
         </div>
         
         <div class="card-body p-24">
@@ -89,7 +89,7 @@
                     </div> -->
 
                     <!-- Price -->
-                    <div class="col-md-6 mb-3">
+                    <!-- <div class="col-md-6 mb-3">
                         <label for="price" class="form-label">Price *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
@@ -107,7 +107,7 @@
                             <div *ngIf="f['price'].errors?.['required']">Price is required</div>
                             <div *ngIf="f['price'].errors?.['min']">Price must be positive</div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Stock Quantity -->
                     <div class="col-md-6 mb-3">
@@ -144,7 +144,7 @@
                                 id="warehouseId"
                                 formControlName="warehouseId"
                                 [disabled]="isLoading">
-                            <option value="">Select Warehouse</option>
+                            <option [value]="null">Select Warehouse</option>
                             <option *ngFor="let warehouse of warehouses" [value]="warehouse._id">
                                 {{ warehouse.name }} - {{ warehouse.location?.city }} 
                                 <span *ngIf="warehouse.capacity">(Capacity: {{ warehouse.capacity | number }})</span>

@@ -1,0 +1,342 @@
+<div class="dashboard-main-body">
+  <app-breadcrumb [title]="title"></app-breadcrumb>
+
+  <div class="card basic-data-table">
+    <div class="card-body">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
+
+      <!-- Add New Vendor Button-->
+      <a routerLink="/add-vendors"
+        class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+        Add New Vendor
+      </a>
+
+      <div class="overflow-x-auto">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-secondary">Loading vendors...</p>
+        </div>
+
+        <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length="10">
+          <thead>
+            <tr>
+              <th scope="col">
+                <div class="d-flex align-items-center gap-10">
+                  Sr No.
+                </div>
+              </th>
+              <th scope="col">Vendor Name</th>
+              <th scope="col">Shop Name</th>
+              <th scope="col">Contact</th>
+              <th scope="col">Address</th>
+              <th scope="col">Products</th>
+              <th>
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </th>
+              <th scope="col" class="text-center">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let vendor of vendorsList; let i = index">
+              <td>
+                <div class="d-flex align-items-center gap-10">
+                  {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                </div>
+              </td>
+
+              <td>
+                <span class="text-md mb-0 fw-normal text-secondary-light">{{ vendor.name }}</span>
+              </td>
+
+              <td>{{ vendor.shopName }}</td>
+
+              <td>{{ vendor.contactNumber }}</td>
+
+              <td>{{ vendor.address }}</td>
+
+              <td>
+                <div class="d-flex flex-column align-items-start">
+                  <!-- Show product count badge -->
+                  <span class="badge bg-primary mb-1">
+                    {{ (vendor.productsData?.length || vendor.products?.length || 0) }} product(s)
+                  </span>
+                  
+                  <!-- View Products Button -->
+                  <button type="button" 
+                          class="btn btn-sm btn-outline-primary"
+                          data-bs-toggle="modal" 
+                          data-bs-target="#vendorProductsModal"
+                          (click)="viewVendorProducts(vendor)">
+                    View Products
+                  </button>
+                </div>
+              </td>
+
+              <td class="text-center">
+                <button (click)="updateStatus(vendor)" [ngClass]="{
+                    'bg-success-focus text-success-600 border border-success-main cursor-pointer': vendor.isActive,
+                    'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': !vendor.isActive
+                  }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating"
+                  [disabled]="isUpdating">
+                  {{ vendor.isActive ? 'Active' : 'Inactive' }}
+                </button>
+              </td>
+
+              <td class="text-center">
+                <div class="d-flex align-items-center gap-10 justify-content-center">
+
+                  <!-- View Button -->
+                  <button type="button" data-bs-toggle="modal" data-bs-target="#vendorDetailsModal"
+                    (click)="viewVendor(vendor)" [disabled]="isUpdating"
+                    class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                  </button>
+
+                  <!-- Edit Button -->
+                  <button type="button" (click)="editVendor(vendor)" [disabled]="isUpdating"
+                    class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                  </button>
+
+                  <!-- Delete Button -->
+                  <button type="button" (click)="deleteVendor(vendor)" [disabled]="isUpdating"
+                    class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                  </button>
+
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal) {
+<div style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    " (click)="closeDeleteModal()">
+  <div style="
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      " (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e5e7eb;
+      ">
+      <h3 style="
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: #1f2937;
+        ">
+        Confirm Delete
+      </h3>
+      <button type="button" (click)="closeDeleteModal()" [disabled]="isUpdating" style="
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          " [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) { this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'; }"
+        onmouseout="if(!this.disabled) { this.style.backgroundColor='transparent'; this.style.color='#6b7280'; }">
+        ×
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="
+        padding: 24px;
+      ">
+      <p style="
+          margin: 0 0 12px 0;
+          color: #374151;
+          line-height: 1.5;
+        ">
+        Are you sure you want to permanently delete <strong>"{{ vendorToDelete?.name }}"</strong>?
+      </p>
+      <p style="
+          margin: 0;
+          color: #6b7280;
+          font-size: 0.875rem;
+        ">
+        This action cannot be undone.
+      </p>
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 20px 24px;
+        border-top: 1px solid #e5e7eb;
+      ">
+      <button type="button" (click)="closeDeleteModal()" [disabled]="isUpdating" style="
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            background: white;
+            color: #374151;
+          " [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'" [style.opacity]="isUpdating ? '0.6' : '1'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#f9fafb'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='white'">
+        Cancel
+      </button>
+      <button type="button" (click)="confirmDeleteVendor()" [disabled]="isUpdating" style="
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.9375rem;
+            background: #dc2626;
+            color: white;
+          " [style.background]="isUpdating ? '#b91c1c' : '#dc2626'" [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'">
+        @if (isUpdating) {
+        <span class="spinner-border spinner-border-sm" style="
+                width: 1rem;
+                height: 1rem;
+                border-width: 0.15em;
+                margin-right: 8px;
+              "></span>
+        }
+        Delete Permanently
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- VENDOR DETAILS MODAL -->
+<div class="modal fade" id="vendorDetailsModal" tabindex="-1" aria-labelledby="vendorDetailsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="vendorDetailsLabel">{{ selectedVendor?.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="selectedVendor">
+
+          <!-- Basic Info -->
+          <h6 class="fw-bold">Basic Details</h6>
+          <p><strong>Shop Name:</strong> {{ selectedVendor.shopName }}</p>
+          <p><strong>Contact:</strong> {{ selectedVendor.contactNumber }}</p>
+          <p><strong>Email:</strong> {{ selectedVendor.email }}</p>
+          <p><strong>Address:</strong> {{ selectedVendor.address }}</p>
+
+          <hr>
+
+          <!-- Products -->
+          <h6 class="fw-bold">Products Supplied</h6>
+          <div *ngIf="selectedVendor.products && selectedVendor.products.length > 0; else noProductsModal">
+              <ul class="list-group">
+                  <li *ngFor="let product of selectedVendor.productsData" class="list-group-item">
+                    {{ product.name }}
+                  </li>
+              </ul>
+          </div>
+          <ng-template #noProductsModal>
+            <p class="text-muted">No products assigned</p>
+          </ng-template>
+
+          <hr>
+
+          <!-- Notes -->
+          <h6 class="fw-bold">Notes</h6>
+          <p>{{ selectedVendor.notes || 'No notes available' }}</p>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Vendor Products View Modal -->
+<div class="modal fade" id="vendorProductsModal" tabindex="-1" aria-labelledby="vendorProductsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <!-- <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div> -->
+      <div class="modal-body">
+        <div *ngIf="selectedVendorProducts && selectedVendorProducts.length > 0; else noProducts">
+          <div class="list-group">
+            <div *ngFor="let product of selectedVendorProducts" 
+                 class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ product.name }}</strong>
+                <div class="text-muted small">{{ product.SKU }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noProducts>
+          <p class="text-muted text-center py-3">No products assigned to this vendor</p>
+        </ng-template>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

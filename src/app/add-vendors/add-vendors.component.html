@@ -1,0 +1,220 @@
+<div class="dashboard-main-body">
+    <app-breadcrumb [title]="title"></app-breadcrumb>
+
+    <div class="card h-100 p-0 radius-12">
+        <div class="card-header border-bottom bg-base py-16 px-24">
+            <h5 class="mb-0">{{ isEditMode ? 'Update Vendor' : 'Add New Vendor' }}</h5>
+        </div>
+        
+        <div class="card-body p-24">
+            <!-- Loading State for Edit Mode -->
+            <div *ngIf="isEditMode && isLoading" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-secondary">Loading vendor data...</p>
+            </div>
+
+            <!-- Loading Products -->
+            <div *ngIf="isLoadingProducts" class="alert alert-info">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                Loading products...
+            </div>
+
+            <!-- Success Message -->
+            <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ successMessage }}
+                <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ errorMessage }}
+                <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+            </div>
+
+            <form [formGroup]="vendorForm" (ngSubmit)="onSubmit()" *ngIf="!isEditMode || !isLoading">
+                <div class="row">
+                    <!-- Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">Vendor Name *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name"
+                               formControlName="name"
+                               placeholder="Enter vendor name"
+                               [disabled]="isLoading">
+                        <div *ngIf="f['name'].invalid && (f['name'].dirty || f['name'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['name'].errors?.['required']">Vendor name is required</div>
+                            <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters</div>
+                        </div>
+                    </div>
+
+                    <!-- Shop Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="shopName" class="form-label">Shop/Business Name *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="shopName"
+                               formControlName="shopName"
+                               placeholder="Enter shop or business name"
+                               [disabled]="isLoading">
+                        <div *ngIf="f['shopName'].invalid && (f['shopName'].dirty || f['shopName'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['shopName'].errors?.['required']">Shop name is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Number -->
+                    <div class="col-md-6 mb-3">
+                        <label for="contactNumber" class="form-label">Contact Number *</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="contactNumber"
+                               formControlName="contactNumber"
+                               placeholder="Enter contact number"
+                               [disabled]="isLoading">
+                        <div *ngIf="f['contactNumber'].invalid && (f['contactNumber'].dirty || f['contactNumber'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['contactNumber'].errors?.['required']">Contact number is required</div>
+                            <div *ngIf="f['contactNumber'].errors?.['pattern']">Please enter a valid phone number</div>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="email"
+                               formControlName="email"
+                               placeholder="Enter email address"
+                               [disabled]="isLoading">
+                        <div *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+                            <div *ngIf="f['email'].errors?.['email']">Please enter a valid email</div>
+                        </div>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="col-12 mb-3">
+                        <label for="address" class="form-label">Address *</label>
+                        <textarea class="form-control" 
+                                  id="address"
+                                  formControlName="address"
+                                  rows="2"
+                                  placeholder="Enter complete address"
+                                  [disabled]="isLoading"></textarea>
+                        <div *ngIf="f['address'].invalid && (f['address'].dirty || f['address'].touched)" 
+                             class="text-danger small mt-1">
+                            <div *ngIf="f['address'].errors?.['required']">Address is required</div>
+                        </div>
+                    </div>
+
+                    <!-- Products Selection (Dynamic FormArray) -->
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Products *</label>
+                        <div formArrayName="products" class="border rounded p-3">
+                            <div *ngFor="let productGroup of products.controls; let i = index" 
+                                 [formGroupName]="i"
+                                 class="row mb-3 align-items-end">
+                                <div class="col-10">
+                                    <label class="form-label">Product {{ i + 1 }}</label>
+                                    <select class="form-select" formControlName="productId">
+                                        <option value="" disabled>Select Product</option>
+                                        <option *ngFor="let product of getAvailableProducts(i)" 
+                                                [value]="product._id">
+                                            {{ product.name }} (SKU: {{ product.SKU || 'N/A' }})
+                                        </option>
+                                    </select>
+                                    <div *ngIf="products.at(i).get('productId')?.invalid && 
+                                               (products.at(i).get('productId')?.dirty || 
+                                                products.at(i).get('productId')?.touched)" 
+                                         class="text-danger small mt-1">
+                                        <div *ngIf="products.at(i).get('productId')?.errors?.['required']">
+                                            Product selection is required
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-2 d-flex align-items-end">
+                                    <button type="button" 
+                                            class="btn btn-danger btn-sm w-100"
+                                            (click)="removeProduct(i)"
+                                            *ngIf="products.length > 1"
+                                            [disabled]="isLoading">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Add More Products Button -->
+                            <button type="button" 
+                                    class="btn btn-outline-primary btn-sm mt-2"
+                                    (click)="addProduct()"
+                                    [disabled]="!canAddMore || isLoading">
+                                + Add More Products
+                            </button>
+                            
+                            <!-- Info message when all products are selected -->
+                            <div *ngIf="!canAddMore && allProducts.length > 0" 
+                                 class="alert alert-info mt-2 mb-0 p-2 small">
+                                All available products have been selected.
+                            </div>
+                            
+                            <!-- Message when no products are available -->
+                            <div *ngIf="allProducts.length === 0 && !isLoadingProducts" 
+                                 class="alert alert-warning mt-2 mb-0 p-2 small">
+                                No products available. Please add products first.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="isActive"
+                                   formControlName="isActive"
+                                   [disabled]="isLoading">
+                            <label class="form-check-label" for="isActive">
+                                {{ vendorForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="col-12 mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" 
+                                  id="notes"
+                                  formControlName="notes"
+                                  rows="3"
+                                  placeholder="Any additional notes about this vendor"
+                                  [disabled]="isLoading"></textarea>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <button type="button" 
+                            class="btn btn-secondary"
+                            (click)="onCancel()"
+                            [disabled]="isLoading">
+                        Cancel
+                    </button>
+                    
+                    <button type="submit" 
+                            class="btn btn-primary"
+                            [disabled]="isLoading || vendorForm.invalid">
+                        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                        {{ isEditMode ? 'Update Vendor' : 'Add Vendor' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -51,7 +51,7 @@ export class AddWarehouseComponent implements OnInit {
       if (params['id']) {
         this.isEditMode = true;
         this.warehouseId = params['id'];
-        this.title = 'Edit Warehouse';
+        this.title = 'Update Warehouse';
         this.loadProductData();
       }
     });

@@ -173,23 +173,19 @@ export class UserService {
   // UPDATE USER STATUS
   // -----------------------------------------
   updateUserStatus(id: string, statusData: { status: 'Active' | 'Inactive' }): Observable<any> {
-    
-     const apiData = {
+    const apiData = {
       isActive: statusData.status === 'Active'
     };
-    return this.http.patch<any>(`${this.apiUrl}/users/${id}`, statusData).pipe(
-      map((response) => {
-        return {
-          data: this.transformUserData(response.data, 0),
-          status: response.status || 'success',
-        };
-      }),
-      catchError((error) => {
-        // console.error('🔧 updateUserStatus error:', error);
-        return this.errorHandler(error);
-      })
+
+    return this.http.patch<any>(`${this.apiUrl}/users/${id}`, apiData).pipe(
+      map((response) => ({
+        data: this.transformUserData(response.data, 0),
+        status: response.status || 'success',
+      })),
+      catchError((error) => this.errorHandler(error))
     );
   }
+
 
   // -----------------------------------------
   // ADD USER

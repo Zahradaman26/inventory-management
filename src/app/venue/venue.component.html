@@ -36,20 +36,34 @@
                 <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
                     <thead>
                         <tr>
-                            <th scope="col">Sr No.</th>
+                            <th scope="col">
+                                <div class="d-flex align-items-center gap-10">
+                                Sr No.
+                                </div>
+                            </th>
                             <th scope="col">Venue Name</th>
                             <th scope="col">Location</th>
                             <th scope="col">Contact Person</th>
                             <th scope="col">Phone</th>
-                            <th scope="col" class="text-center">Status</th>
+                            <th>
+                                Status<br />
+                                <select id="statusFilter" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                </select>
+                            </th>
                             <th scope="col" class="text-center">Action</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         <tr *ngFor="let venue of venuesList; let i = index">
-                            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}</td>
-
+                            <td>
+                                <div class="d-flex align-items-center gap-10">
+                                {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                                </div>
+                            </td>
                             <td>{{ venue.name }}</td>
 
                             <td>
@@ -60,13 +74,13 @@
 
                             <td>
                                 <span class="text-md text-secondary-light">
-                                    {{ getUserName(venue.userId) }}
+                                    {{ venue.contactPerson?.name || getUserName(venue.userId) || 'N/A' }}
                                 </span>
                             </td>
 
                             <td>
                                 <span class="text-md text-secondary-light">
-                                    {{ getUserPhone(venue.userId) }}
+                                    {{ venue.contactPerson?.contactNumber || getUserPhone(venue.userId) || 'N/A' }}
                                 </span>
                             </td>
 

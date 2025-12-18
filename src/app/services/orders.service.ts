@@ -14,7 +14,7 @@ export class OrdersService {
     private http: HttpClient, private pipe: DecimalPipe) {}
 
   getAllOrders(): Observable<any> {
-    return this.http.get<any>(`${this.PRODUCTS_API_URL}/user/my-orders`).pipe(
+    return this.http.get<any>(`${this.PRODUCTS_API_URL}`).pipe(
       map((response) => {
         return response;
       }),
@@ -44,35 +44,39 @@ export class OrdersService {
     if (isEdit && orderId) {
       // Update existing order
       return this.http
-        .put<any>(`${this.PRODUCTS_API_URL}/${orderId}`, payload)
+        .patch<any>(`${this.PRODUCTS_API_URL}/create`, payload)
         .pipe(
           map((response) => response),
           catchError(this.errorHandler)
         );
     } else {
       // Create new order
-      return this.http.post<any>(`${this.PRODUCTS_API_URL}`, payload).pipe(
+      return this.http.post<any>(`${this.PRODUCTS_API_URL}/create`, payload).pipe(
         map((response) => response),
         catchError(this.errorHandler)
       );
     }
   }
 
-  approveOrder(orderId: string): Observable<any> {
+  approveOrder(orderId: string, venueId: string): Observable<any> {
+    const payload = { venueId };
     return this.http.post<any>(`${this.PRODUCTS_API_URL}/${orderId}/approve`, {}).pipe(
       map((response) => response),
       catchError(this.errorHandler)
     );
   }
 
-  rejectOrder(orderId: string): Observable<any> {
-    return this.http.post<any>(`${this.PRODUCTS_API_URL}/${orderId}/reject`, {}).pipe(
+  rejectOrder(orderId: string, rejectionReason: string): Observable<any> {
+    return this.http.post<any>(`${this.PRODUCTS_API_URL}/${orderId}/reject`, {
+      rejectionReason: rejectionReason
+    }).pipe(
       map((response) => response),
       catchError(this.errorHandler)
     );
   }
 
-  issueOrder(orderId: string): Observable<any> {
+  issueOrder(orderId: string, venueId: string): Observable<any> {
+    const payload = { venueId };
     return this.http.post<any>(`${this.PRODUCTS_API_URL}/${orderId}/issue`, {}).pipe(
       map((response) => response),
       catchError(this.errorHandler)

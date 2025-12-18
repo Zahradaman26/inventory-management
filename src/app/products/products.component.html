@@ -36,17 +36,24 @@
             <tr>
               <th scope="col">
                 <div class="d-flex align-items-center gap-10">
-                  S.L.
+                  Sr No.
                 </div>
               </th>
 
               <th scope="col">SKU</th>
               <!-- <th scope="col">Image</th> -->
               <th scope="col">Product Name</th>
-              <th scope="col">Price</th>
+              <!-- <th scope="col">Price</th> -->
               <th scope="col">Stock</th>
               <th scope="col">Available Stock</th>
-              <th scope="col" class="text-center">Status</th>
+              <th>
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm">
+                  <option value="">All</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
           </thead>
@@ -55,7 +62,7 @@
             <tr *ngFor="let product of productsList; let i = index">
               <td>
                 <div class="d-flex align-items-center gap-10">
-                  {{ productService.startIndex + i }}
+                  {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                 </div>
               </td>
 
@@ -73,7 +80,7 @@
 
               <!-- <td>{{ product.category }}</td> -->
 
-              <td>₹{{ (product.price) ? product.price : 0 | number:'1.2-2' }}</td>
+              <!-- <td>₹{{ (product.price) ? product.price : 0 | number:'1.2-2' }}</td> -->
 
               <td>
                 <span [ngClass]="{
@@ -321,25 +328,8 @@
 
           <!-- Warehouse Info -->
           <h6 class="fw-bold">Warehouse</h6>
-          <p><strong>Name:</strong> {{ selectedProduct.warehouseId?.name }}</p>
-          <p><strong>Address:</strong>
-            {{ selectedProduct.warehouseId?.location?.address }},
-            {{ selectedProduct.warehouseId?.location?.city }},
-          </p>
-
-          <hr>
-
-          <!-- Created By -->
-          <h6 class="fw-bold">Created By</h6>
-          <p><strong>Name:</strong> {{ selectedProduct.createdBy?.name }}</p>
-          <p><strong>Contact:</strong> {{ selectedProduct.createdBy?.contactNumber }}</p>
-
-          <hr>
-
-          <!-- Timestamps -->
-          <h6 class="fw-bold">Timestamps</h6>
-          <p><strong>Created At:</strong> {{ selectedProduct.createdAt | date : 'medium' }}</p>
-          <p><strong>Updated At:</strong> {{ selectedProduct.updatedAt | date : 'medium' }}</p>
+          <p><strong>Name:</strong> {{ getWarehouseName(selectedProduct) }}</p>
+          <p><strong>Location:</strong> {{ getWarehouseLocation(selectedProduct) || 'N/A' }}</p>
 
         </div>
       </div>

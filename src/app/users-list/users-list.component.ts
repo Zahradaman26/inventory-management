@@ -48,6 +48,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
   showDeleteModal = false;
   userToDelete: UserItem | null = null;
 
+
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
   private dataTable: any;
@@ -82,17 +83,46 @@ export class UsersListComponent implements OnInit, OnDestroy {
               paging: true,
               searching: true,
               info: true,
+              ordering: false,
+              columnDefs: [
+                { className: "dt-head-center", targets: "_all" }   
+              ]
             });
+            // Join Date Filter
+            document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLInputElement).value;
+
+              if (value) {
+                const formatted = new Date(value).toLocaleDateString('en-US');
+                this.dataTable.column(4).search(formatted).draw();
+              } else {
+                this.dataTable.column(4).search('').draw();
+              }
+            });
+
+            // Role Filter
+            document.getElementById('roleFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLSelectElement).value;
+              this.dataTable.column(5).search(value).draw(); // UPDATE index accordingly
+            });
+
+            // Status Filter
+            document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+              const value = (e.target as HTMLSelectElement).value;
+              this.dataTable.column(6).search(value).draw(); // UPDATE index accordingly
+            });
+
           }, 100);
         },
         error: (error) => {
-          this.error = `Failed to load users: ${error}`;
+          this.error = `Failed to load users`;
           this.isLoading = false;
           this.users = [];
           this.totalItems = 0;
         },
       });
   }
+
 
   onRoleChange(user: UserItem): void {
     this.isUpdating = true;
@@ -111,49 +141,16 @@ export class UsersListComponent implements OnInit, OnDestroy {
     });
   }
 
-  onStatusChange(user: UserItem, newStatus: 'Active' | 'Inactive'): void {
-    if (this.isUpdating) return;
-
-    const userId = user._id;
-
-    if (!userId) {
-      this.error = 'User ID is missing. Cannot update status.';
-      return;
-    }
-
-    this.isUpdating = true;
-    this.successMessage = null;
-    this.error = null;
-
-    this.userService.updateUserStatus(userId, { status: newStatus }).subscribe({
-      next: (response) => {
-        // Update the user in the local array
-        const index = this.users.findIndex((u) => u._id === userId);
-        if (index !== -1) {
-          this.users[index].status = newStatus;
-          this.users[index].isActive = newStatus === 'Active';
-        }
-
-        this.isUpdating = false;
-        this.successMessage = `${user.name}'s status updated to ${newStatus} successfully!`;
-
-        setTimeout(() => {
-          this.successMessage = null;
-        }, 3000);
-      },
-      error: (error) => {
-        this.isUpdating = false;
-        this.error = `Failed to update status: ${error.message || error}`;
-
-        // Revert the UI change if API call failed
-        const index = this.users.findIndex((u) => u._id === userId);
-        if (index !== -1) {
-          this.users[index].status = user.status; // Revert to original status
-          this.users[index].isActive = user.isActive;
-        }
-      },
+  onStatusChange(user: UserItem, newStatus: 'Active' | 'Inactive') {
+    this.userService.updateUserStatus(user._id, { status: newStatus }).subscribe({
+      next: () => {
+        user.status = newStatus;
+        user.isActive = newStatus === 'Active';
+        this.successMessage = `User "${user.name}" status updated successfully!`;
+      }
     });
   }
+
 
   onEdit(user: UserItem): void {
     this.router.navigate(['/add-user', user._id]);
@@ -201,7 +198,7 @@ export class UsersListComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.isUpdating = false;
-        this.error = `Failed to delete user: ${error.message || error}`;
+        this.error = `Failed to delete user`;
         this.showDeleteModal = false;
         this.userToDelete = null;
       },

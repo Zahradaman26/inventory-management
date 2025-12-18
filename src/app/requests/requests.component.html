@@ -1,0 +1,441 @@
+<div class="dashboard-main-body">
+  <app-breadcrumb [title]="title"></app-breadcrumb>
+
+  <div class="card basic-data-table">
+    <div class="card-body">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = null"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        {{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
+
+      <!-- Create New Request Button -->
+      <a routerLink="/add-request"
+        class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
+        <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
+        Create New Request
+      </a>
+
+      <div class="overflow-x-auto">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-secondary">Loading requests...</p>
+        </div>
+
+        <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length="10">
+          <thead>
+            <tr>
+              <th scope="col">
+                <div class="d-flex align-items-center gap-10">
+                  Sr No.
+                </div>
+              </th>
+
+              <th scope="col">Request No.</th>
+              <th scope="col">Vendor</th>
+              <th scope="col">Product</th>
+              <th scope="col">Quantity</th>
+              <th>
+                Status<br />
+                <select id="statusFilter" class="form-select form-select-sm">
+                  <option value="">All</option>           
+                  <option value="draft">Draft</option>
+                  <option value="requested">Requested</option>
+                  <option value="approved">Approved</option>
+                  <option value="completed">Completed</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </th>
+              <th scope="col">Approval</th>
+              <th scope="col" class="text-center">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let request of requestsList; let i = index">
+              <!-- Serial Number -->
+              <td>
+                <div class="d-flex align-items-center gap-10">
+                  {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                </div>
+              </td>
+
+              <!-- Request Number -->
+              <td>{{ request.requestNumber }}</td>
+
+              <!-- Vendor Name -->
+              <td>
+                <span class="text-md mb-0 fw-normal text-secondary-light">{{ request.vendorId?.name || 'N/A' }}</span>
+              </td>
+
+              <!-- Product Name -->
+              <td>
+                <span class="text-md mb-0 fw-normal">{{ getMainProductName(request) }}</span>
+                <div *ngIf="request.items && request.items.length > 1" class="mt-1">
+                  <small class="text-muted">+{{ request.items.length - 1 }} more items</small>
+                </div>
+              </td>
+
+              <!-- Quantity -->
+              <td>
+                <span [ngClass]="{
+                  'text-success': getItemRequestedQuantity(request) > 10,
+                  'text-warning': getItemRequestedQuantity(request) <= 10 && getItemRequestedQuantity(request) > 0,
+                  'text-danger': getItemRequestedQuantity(request) === 0
+                }">
+                  {{ getItemRequestedQuantity(request) }}
+                </span>
+              </td>
+
+              <!-- Status -->
+              <td>
+                <span [ngClass]="getStatusClass(request.status)" 
+                  class="px-24 py-4 radius-4 fw-medium text-sm d-inline-block text-center" style="min-width: 120px;">
+                  {{ getStatusLabel(request.status) }}
+                </span>
+              </td>
+
+              <!-- Approval Column (Matching Orders Pattern) -->
+              <td>
+                <!-- For draft requests - Show assign vendor button -->
+                <div *ngIf="request.status === 'draft'">
+                  <div class="dropdown" [class.show]="showVendorDropdown[request._id]">
+                    <button (click)="toggleVendorDropdown(request._id)" 
+                            class="btn btn-warning btn-sm"
+                            [disabled]="isUpdating">
+                      Assign Vendors
+                    </button>
+                    
+                    <div *ngIf="showVendorDropdown[request._id]" class="dropdown-menu show" style="display: block; position: absolute; transform: translate3d(0px, 38px, 0px);">
+                      <div class="px-3 py-2">
+                        <small class="text-muted d-block mb-2">Select a vendor:</small>
+                        <select [(ngModel)]="selectedVendorForRequest[request._id]" 
+                                class="form-select form-select-sm mb-2">
+                          <option value="" disabled>Select Vendor</option>
+                          <option *ngFor="let vendor of vendorsList" [value]="vendor._id">
+                            {{ vendor.name }}
+                          </option>
+                        </select>
+                        <button (click)="assignVendor(request)" 
+                                class="btn btn-primary btn-sm w-100"
+                                [disabled]="!selectedVendorForRequest[request._id] || isUpdating">
+                          <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
+                          Assign & Send
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- For requested orders - Show Approve/Reject buttons -->
+                <div *ngIf="request.status === 'requested'">
+                  <button (click)="approveRequest(request)" 
+                        class="btn btn-success btn-sm me-1"
+                        [disabled]="isUpdating">
+                    Approve
+                  </button>
+                  <button (click)="rejectRequest(request)" 
+                        class="btn btn-danger btn-sm"
+                        [disabled]="isUpdating">
+                    Reject
+                  </button>
+                </div>
+
+                <!-- For approved requests - Show Complete button -->
+                <div *ngIf="request.status === 'approved'">
+                  <button (click)="completeRequest(request)" 
+                        class="btn btn-primary btn-sm"
+                        [disabled]="isUpdating">
+                    Complete
+                  </button>
+                </div>
+
+                <!-- For completed/rejected requests - Show nothing or status text -->
+                <div *ngIf="['completed', 'rejected', 'cancelled'].includes(request.status)">
+                  <span class="text-muted text-sm">{{ getStatusLabel(request.status) }}</span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="text-center">
+                <div class="d-flex align-items-center gap-10 justify-content-center">
+
+                  <!-- View Button -->
+                  <button type="button" data-bs-toggle="modal" data-bs-target="#requestDetailsModal"
+                    (click)="viewRequest(request)" [disabled]="isUpdating"
+                    class="bg-info-focus bg-hover-info-200 text-info-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="majesticons:eye-line" class="icon text-xl"></iconify-icon>
+                  </button>
+
+                  <!-- Edit Button (only for requested status) -->
+                  <button type="button" (click)="editRequest(request)" [disabled]="isUpdating || request.status !== 'requested'"
+                    class="bg-success-focus text-success-600 bg-hover-success-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                    [class.opacity-50]="isUpdating || request.status !== 'requested'">
+                    <iconify-icon icon="lucide:edit" class="menu-icon"></iconify-icon>
+                  </button>
+
+                  <!-- Delete Button -->
+                  <button type="button" (click)="deleteRequest(request)" [disabled]="isUpdating"
+                    class="remove-item-btn bg-danger-focus bg-hover-danger-200 text-danger-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle">
+                    <iconify-icon icon="fluent:delete-24-regular" class="menu-icon"></iconify-icon>
+                  </button>
+
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal for Requests -->
+@if (showDeleteModal) {
+<div 
+  style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  "
+  (click)="closeDeleteModal()"
+>
+  <div 
+    style="
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    "
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Modal Header -->
+    <div style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    ">
+      <h3 style="
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+      ">
+        Confirm Delete
+      </h3>
+      <button 
+        type="button" 
+        (click)="closeDeleteModal()"
+        [disabled]="isUpdating"
+        style="
+          background: none;
+          border: none;
+          color: #6b7280;
+          font-size: 1.5rem;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) { this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'; }"
+        onmouseout="if(!this.disabled) { this.style.backgroundColor='transparent'; this.style.color='#6b7280'; }"
+      >
+        ×
+      </button>
+    </div>
+    
+    <!-- Modal Body -->
+    <div style="
+      padding: 24px;
+    ">
+      <p style="
+        margin: 0 0 12px 0;
+        color: #374151;
+        line-height: 1.5;
+      ">
+        Are you sure you want to delete request <strong>"{{ requestToDelete?.requestNumber }}"</strong>?
+      </p>
+      <p style="
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+      ">
+        This action cannot be undone.
+      </p>
+    </div>
+    
+    <!-- Modal Footer -->
+    <div style="
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 20px 24px;
+      border-top: 1px solid #e5e7eb;
+    ">
+      <button 
+        type="button" 
+        (click)="closeDeleteModal()"
+        [disabled]="isUpdating"
+        style="
+          padding: 10px 20px;
+          border-radius: 8px;
+          border: 1px solid #d1d5db;
+          font-weight: 500;
+          cursor: pointer;
+          font-size: 0.9375rem;
+          background: white;
+          color: #374151;
+        "
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        [style.opacity]="isUpdating ? '0.6' : '1'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#f9fafb'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='white'"
+      >
+        Cancel
+      </button>
+      <button 
+        type="button" 
+        (click)="confirmDeleteRequest()"
+        [disabled]="isUpdating"
+        style="
+          padding: 10px 20px;
+          border-radius: 8px;
+          border: none;
+          font-weight: 500;
+          cursor: pointer;
+          font-size: 0.9375rem;
+          background: #dc2626;
+          color: white;
+        "
+        [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+        onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
+        onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'"
+      >
+        @if (isUpdating) {
+          <span 
+            class="spinner-border spinner-border-sm" 
+            style="
+              width: 1rem;
+              height: 1rem;
+              border-width: 0.15em;
+              margin-right: 8px;
+            "
+          ></span>
+        }
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- REQUEST DETAILS MODAL -->
+<div class="modal fade" id="requestDetailsModal" tabindex="-1" aria-labelledby="requestDetailsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="requestDetailsLabel">Request #{{ selectedRequest?.requestNumber }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="selectedRequest">
+
+          <!-- Basic Info -->
+          <h6 class="fw-bold">Basic Details</h6>
+          <p><strong>Request Number:</strong> {{ selectedRequest.requestNumber }}</p>
+          <p><strong>Vendor:</strong> {{ selectedRequest.vendorId?.name || 'Not Assigned' }}</p>
+          <p><strong>Order ID:</strong> {{ selectedRequest.orderId || 'N/A' }}</p>
+          <p><strong>Status:</strong> {{ getStatusLabel(selectedRequest.status) }}</p>
+          
+          <div *ngIf="selectedRequest.notes">
+            <p><strong>Notes:</strong> {{ selectedRequest.notes }}</p>
+          </div>
+
+          <hr>
+
+          <!-- Requested Items -->
+          <h6 class="fw-bold">Requested Items</h6>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Product Name</th>
+                  <th>SKU</th>
+                  <th>Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of selectedRequest.items || []; let i = index">
+                  <td>{{ i + 1 }}</td>
+                  <td>
+                    {{ 
+                      item.product?.name || 
+                      item.productId?.name || 
+                      item.productName || 
+                      item.name || 
+                      'N/A' 
+                    }}
+                  </td>
+                  <td>
+                    {{ 
+                      item.product?.SKU || 
+                      item.productId?.SKU || 
+                      item.SKU || 
+                      'N/A' 
+                    }}
+                  </td>
+                  <td>{{ getItemRequestedQuantity(item) }}</td>
+                </tr>
+                <tr *ngIf="!selectedRequest.items || selectedRequest.items.length === 0">
+                  <td colspan="4" class="text-center text-muted">No items in this request</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <hr>
+
+          <!-- Timeline Info -->
+          <h6 class="fw-bold">Timeline</h6>
+          <p><strong>Created At:</strong> {{ selectedRequest.createdAt | date:'medium' }}</p>
+          <p><strong>Last Updated:</strong> {{ selectedRequest.updatedAt | date:'medium' }}</p>
+          <p><strong>Requested By:</strong> {{ selectedRequest.requestedBy?.name || 'N/A' }}</p>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
