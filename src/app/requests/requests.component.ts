@@ -42,6 +42,9 @@ export class RequestsComponent implements OnInit, OnDestroy {
   requestsList: any = [];
   backupRequestsList: any = [];
 
+  vendors: any[] = [];
+  vendorNameMap: { [key: string]: string } = {};
+
   // Pagination and filtering
   currentPage = 1;
   itemsPerPage = 10;
@@ -80,9 +83,32 @@ export class RequestsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.vendorService.getAllVendors().subscribe({
+      next: (res: any) => {
+        this.vendors = res.data || res; // handle both API shapes
+
+        this.vendorNameMap = {};
+        this.vendors.forEach((v: any) => {
+          this.vendorNameMap[v._id] = v.name || v.shopName;
+        });
+      },
+      error: () => {
+        this.vendorNameMap = {};
+      }
+    });
+
     this.fetchRequests();
     this.fetchVendors();
   }
+
+  getVenName(item: any): string {
+    if (!item || !item.vendorId) {
+      return 'N/A';
+    }
+
+    return this.vendorNameMap[item.vendorId] || 'N/A';
+  }
+
 
   fetchRequests(): void {
     this.isLoading = true;
@@ -112,7 +138,7 @@ export class RequestsComponent implements OnInit, OnDestroy {
               paging: true,
               searching: true,
               info: true,
-              ordering: false,
+              // ordering: false,
               columnDefs: [
                 { className: "dt-head-center", targets: "_all" }   
               ]
@@ -255,17 +281,12 @@ export class RequestsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getTotalRequestedQuantity(request: any): number {
-    if (!request || !request.items || !Array.isArray(request.items)) return 0;
-    
-    return request.items.reduce((sum: number, item: any) => {
-      const quantity = item.requestedQuantity || item.quantity || 0;
-      return sum + quantity;
-    }, 0);
-  }
-
-  getItemRequestedQuantity(item: any): number {
-    return item.requestedQuantity || item.quantity || 0;
+  getRequestedQuantity(request: any): number {
+    // Check if request has items and get the first item's quantityRequested
+    if (request && request.items && request.items.length > 0 && request.items[0]) {
+      return request.items[0].quantityRequested || 0;
+    }
+    return 0;
   }
 
   // Approval button click

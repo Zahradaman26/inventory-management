@@ -102,7 +102,8 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
   createItem(): FormGroup {
     return this.fb.group({
       productId: ['', [Validators.required]],
-      quantity: [1, [Validators.required, Validators.min(1)]],
+      quantityRequested: [0, [Validators.min(0)]], // New field
+      purchaseQuantity: [1, [Validators.required, Validators.min(1)]],
       unitPrice: [0, [Validators.required, Validators.min(0)]],
       totalPrice: [{ value: 0, disabled: true }]
     });
@@ -128,9 +129,9 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
   }
 
   calculateItemTotal(itemGroup: FormGroup): void {
-    const quantity = itemGroup.get('quantity')?.value || 0;
+    const purchaseQuantity = itemGroup.get('purchaseQuantity')?.value || 0;
     const unitPrice = itemGroup.get('unitPrice')?.value || 0;
-    const totalPrice = quantity * unitPrice;
+    const totalPrice = purchaseQuantity * unitPrice;
     
     itemGroup.patchValue({ totalPrice: totalPrice }, { emitEvent: false });
     this.calculateOrderTotal();
@@ -140,9 +141,9 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
     let total = 0;
     
     this.items.controls.forEach((itemGroup: any) => {
-      const quantity = itemGroup.get('quantity')?.value || 0;
+      const purchaseQuantity = itemGroup.get('purchaseQuantity')?.value || 0;
       const unitPrice = itemGroup.get('unitPrice')?.value || 0;
-      total += quantity * unitPrice;
+      total += purchaseQuantity * unitPrice;
     });
     
     this.purchaseOrderForm.patchValue({ totalAmount: total }, { emitEvent: false });
@@ -247,15 +248,20 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
     // Patch items array
     if (purchaseOrder.items && purchaseOrder.items.length > 0) {
       purchaseOrder.items.forEach(item => {
+        // Find the product to get requested quantity
+        const product = this.products.find(p => p._id === (item.productId?._id || item.productId));
+        const quantityRequested = product?.requestedStock || 0;
+
         const itemGroup = this.fb.group({
           productId: [item.productId?._id || item.productId || '', [Validators.required]],
-          quantity: [item.quantity || 1, [Validators.required, Validators.min(1)]],
+          quantityRequested: [quantityRequested, [Validators.min(0)]], // New field
+          purchaseQuantity: [item.quantity || 1, [Validators.required, Validators.min(1)]],
           unitPrice: [item.unitPrice || 0, [Validators.required, Validators.min(0)]],
           totalPrice: [{ value: item.totalPrice || 0, disabled: true }]
         });
         
         // Add change listeners
-        itemGroup.get('quantity')?.valueChanges.subscribe(() => this.calculateItemTotal(itemGroup));
+        itemGroup.get('purchaseQuantity')?.valueChanges.subscribe(() => this.calculateItemTotal(itemGroup));
         itemGroup.get('unitPrice')?.valueChanges.subscribe(() => this.calculateItemTotal(itemGroup));
         
         this.items.push(itemGroup);
@@ -281,13 +287,30 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
     return this.purchaseOrderForm.controls;
   }
 
-  generatePONumber(): void {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    const poNumber = `PO-${timestamp}-${random}`;
-    this.purchaseOrderForm.patchValue({
-      poNumber: poNumber
-    });
+  // generatePONumber(): void {
+  //   const timestamp = Date.now();
+  //   const random = Math.floor(Math.random() * 1000);
+  //   const poNumber = `PO-${timestamp}-${random}`;
+  //   this.purchaseOrderForm.patchValue({
+  //     poNumber: poNumber
+  //   });
+  // }
+
+  onProductChange(index: number): void {
+    const itemGroup = this.items.at(index) as FormGroup;
+    const productId = itemGroup.get('productId')?.value;
+    
+    if (productId) {
+      const product = this.products.find(p => p._id === productId);
+      if (product && product.requestedStock) {
+        // Set requested quantity in the form
+        itemGroup.patchValue({
+          quantityRequested: product.requestedStock,
+          // Optionally set purchase quantity to requested quantity by default
+          purchaseQuantity: product.requestedStock || 1
+        });
+      }
+    }
   }
 
   onSubmit(): void {
@@ -306,7 +329,7 @@ export class AddPurchaseOrderComponent implements OnInit, OnDestroy {
     // Format items for API
     const items = formValue.items.map((item: any) => ({
       productId: item.productId,
-      quantity: item.quantity,
+      quantity: item.purchaseQuantity,
       unitPrice: item.unitPrice
     }));
 

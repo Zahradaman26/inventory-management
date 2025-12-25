@@ -29,6 +29,16 @@
                 <p class="mt-2">Loading Orders...</p>
             </div>
             <div class="table-responsive">
+                <div class="mb-3 d-flex align-items-center gap-3">
+                <label for="userFilter" class="fw-semibold">Filter by User:</label>
+                <select id="userFilter" class="form-select w-auto" [(ngModel)]="selectedUserId" (change)="filterOrdersByUser()">
+                    <option value="">All Users</option>
+                    <option *ngFor="let user of usersList" [value]="user._id">
+                    {{ user.name || user.username || user.email }}
+                    </option>
+                </select>
+                </div>
+
                 <table class="table bordered-table mb-0" id="dataTable" data-page-length="10">
                     <thead>
                         <tr>
@@ -38,10 +48,11 @@
                                 </div>
                             </th>
                             <th scope="col">Order No.</th>
+                            <th scope="col">User</th>
                             <th scope="col">Products</th>
                             <th>
                                 Date<br />
-                                <input type="date" id="dateFilter" class="form-control form-control-sm" />
+                                <!-- <input type="date" id="dateFilter" class="form-control form-control-sm" /> -->
                             </th>
                             <th scope="col">Venue</th>
                             <th scope="col">Event</th>
@@ -82,6 +93,9 @@
                             <td>
                                 <a href="javascript:void(0)" class="text-primary-600">{{ order.orderNumber }}</a>
                             </td>
+
+                            <!--user-->
+                            <td>{{ getUserName(order) }}</td>
 
                             <!--products-->
                             <td>
@@ -328,6 +342,13 @@
                     <h6 class="fw-bold">Venue</h6>
                     <p style="margin: auto;" class="mb-1">
                         <strong>Name:</strong> {{ getVenueName(selectedOrder) }}
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold">User</h6>
+                    <p style="margin: auto;" class="mb-1">
+                        <strong>Name:</strong> {{ getUserName(selectedOrder) }}
                     </p>
                 </div>
 

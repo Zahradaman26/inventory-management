@@ -12,6 +12,7 @@ import {
   NavigationEnd,
   Router,
   RouterLink,
+  RouterModule,
   RouterOutlet,
 } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -22,7 +23,7 @@ import { AuthService } from '../services/auth-service.service';
 @Component({
   selector: 'app-side-nav',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, CommonModule],
+  imports: [RouterOutlet, RouterLink, CommonModule, RouterModule],
   templateUrl: './side-nav.component.html',
   styleUrl: './side-nav.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -51,11 +52,14 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     const user = JSON.parse(localStorage.getItem('currentUser'));
     this.user = user;
 
+    this.handleSidebarActiveClass({ url: this.router.url });
+
     this.currentThemeSetting =
       this.themeService.calculateSettingAsThemeString(localStorageTheme);
 
     setTimeout(() => {
       if (this.themeButton) {
+        // this.router.navigateByUrl(this.router.url);
         this.themeService.updateButton(
           this.themeButton.nativeElement,
           this.currentThemeSetting === 'dark'
@@ -167,33 +171,44 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
     this.renderer.removeClass(document.body, 'overlay-active');
   }
 
-  handleSidebarActiveClass(event: NavigationEnd) {
+  handleSidebarActiveClass(event: NavigationEnd | { url: string }) {
     const sidebarMenu = document.querySelector('ul#sidebar-menu');
-
     if (!sidebarMenu) return;
 
-    // 1. Remove existing .active-page and .open classes
+    // Remove existing classes
     const activeLinks = sidebarMenu.querySelectorAll('a.active-page');
     activeLinks.forEach((a) => {
       a.classList.remove('active-page', 'open');
       a.parentElement?.classList.remove('active-page', 'open');
     });
 
-    // 2. Find anchor with matching routerLink
     const currentPath = window.location.pathname;
     const allAnchors = sidebarMenu.querySelectorAll('a');
     let matchedAnchor: HTMLElement | null = null;
 
     allAnchors.forEach((anchor) => {
       const routerLink = anchor.getAttribute('routerlink');
-      if (routerLink === currentPath) {
+
+      if (!routerLink) return;
+
+      // FIX: Normalize both paths for correct matching
+      const normalizedRouterLink = routerLink.startsWith('/')
+        ? routerLink
+        : `/${routerLink}`;
+
+      const normalizedCurrentPath =
+        currentPath.endsWith('/') && currentPath.length > 1
+          ? currentPath.slice(0, -1)
+          : currentPath;
+
+      if (normalizedRouterLink === normalizedCurrentPath) {
         anchor.classList.add('active-page');
         anchor.parentElement?.classList.add('active-page');
         matchedAnchor = anchor;
       }
     });
 
-    // 3. Walk up the parent chain to add .show and .open
+    // Parent chain open logic
     let o = matchedAnchor?.parentElement;
     while (o && o.tagName === 'LI') {
       const parentUl = o.parentElement;
@@ -207,7 +222,7 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
       }
     }
 
-    // 4. Remove .open and .dropdown-open from siblings of active-page
+    // Close siblings
     const activeListItems = sidebarMenu.querySelectorAll('li.active-page');
     activeListItems.forEach((li) => {
       const siblings = Array.from(li.parentElement?.children || []).filter(
@@ -217,9 +232,7 @@ export class SideNavComponent implements AfterViewInit, OnInit, OnDestroy {
       siblings.forEach((sibling) => {
         sibling.classList.remove('open', 'dropdown-open');
         const submenu = sibling.querySelector<HTMLElement>('.sidebar-submenu');
-        if (submenu) {
-          submenu.style.display = 'none';
-        }
+        if (submenu) submenu.style.display = 'none';
       });
     });
   }

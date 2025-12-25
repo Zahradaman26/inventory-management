@@ -38,7 +38,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xxl-8">
+        <!-- <div class="col-xxl-8">
             <div class="card h-100">
                 <div class="card-body p-24 mb-8">
                     <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
@@ -191,51 +191,51 @@
                 </div>
 
             </div>
-        </div>
+        </div> -->
         <div class="col-xxl-4 col-md-6">
             <div class="card h-100">
                 <div class="card-header">
                     <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                        <h6 class="mb-2 fw-bold text-lg">Overall Report</h6>
-                        <select class="form-select form-select-sm w-auto bg-base border text-secondary-light">
+                        <h6 class="mb-2 fw-bold text-lg">Status</h6>
+                        <!-- <select class="form-select form-select-sm w-auto bg-base border text-secondary-light">
                             <option>Yearly</option>
                             <option>Monthly</option>
                             <option>Weekly</option>
                             <option>Today</option>
-                        </select>
+                        </select> -->
                     </div>
                 </div>
                 <div class="card-body p-24">
                     <div class="mt-32">
                         <div id="userOverviewDonutChart" class="mx-auto apexcharts-tooltip-z-none">
-                            <apx-chart [series]="userOverviewDonutChart.series" [chart]="userOverviewDonutChart.chart"
-                                [labels]="userOverviewDonutChart.labels"
-                                [responsive]="userOverviewDonutChart.responsive"
-                                [legend]="userOverviewDonutChart.legend"
-                                [dataLabels]="userOverviewDonutChart.dataLabels"
-                                [plotOptions]="userOverviewDonutChart.plotOptions" [fill]="userOverviewDonutChart.fill"
-                                [stroke]="userOverviewDonutChart.stroke" [colors]="userOverviewDonutChart.colors"
-                                [grid]="userOverviewDonutChart.grid">
+                            <apx-chart [series]="orderPieChartStatus.series" [chart]="orderPieChartStatus.chart"
+                                [labels]="orderPieChartStatus.labels"
+                                [responsive]="orderPieChartStatus.responsive"
+                                [legend]="orderPieChartStatus.legend"
+                                [dataLabels]="orderPieChartStatus.dataLabels"
+                                [plotOptions]="orderPieChartStatus.plotOptions" [fill]="orderPieChartStatus.fill"
+                                [stroke]="orderPieChartStatus.stroke" [colors]="orderPieChartStatus.colors"
+                                [grid]="orderPieChartStatus.grid">
                             </apx-chart>
 
                         </div>
                     </div>
                     <div class="d-flex flex-wrap gap-20 justify-content-center mt-48">
                         <div class="d-flex align-items-center gap-8">
-                            <span class="w-16-px h-16-px radius-2 bg-primary-600"></span>
-                            <span class="text-secondary-light">Purchase</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-8">
-                            <span class="w-16-px h-16-px radius-2 bg-lilac-600"></span>
-                            <span class="text-secondary-light">Sales</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-8">
-                            <span class="w-16-px h-16-px radius-2 bg-warning-600"></span>
-                            <span class="text-secondary-light">Expense</span>
+                            <span class="w-16-px h-16-px radius-2 bg-warning-600"></span>    
+                            <span class="text-secondary-light">Requested</span>
                         </div>
                         <div class="d-flex align-items-center gap-8">
                             <span class="w-16-px h-16-px radius-2 bg-success-600"></span>
-                            <span class="text-secondary-light">Gross Profit</span>
+                            <span class="text-secondary-light">Approved</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-primary-600"></span>
+                            <span class="text-secondary-light">Issued</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-8">
+                            <span class="w-16-px h-16-px radius-2 bg-danger-600"></span>
+                            <span class="text-secondary-light">Rejected</span>
                         </div>
                     </div>
                 </div>
@@ -245,7 +245,7 @@
             <div class="card h-100">
                 <div class="card-header">
                     <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                        <h6 class="mb-2 fw-bold text-lg mb-0">Purchase & Sales</h6>
+                        <h6 class="mb-2 fw-bold text-lg mb-0">Orders & Returns</h6>
                         <select class="form-select form-select-sm w-auto bg-base text-secondary-light">
                             <option>This Month</option>
                             <option>This Week</option>
@@ -256,14 +256,14 @@
                 <div class="card-body p-24">
                     <ul class="d-flex flex-wrap align-items-center justify-content-center my-3 gap-3">
                         <li class="d-flex align-items-center gap-2">
-                            <span class="w-12-px h-8-px rounded-pill bg-warning-600"></span>
-                            <span class="text-secondary-light text-sm fw-semibold">Purchase: $<span
+                            <span class="w-12-px h-8-px rounded-pill bg-success-600"></span>
+                            <span class="text-secondary-light text-sm fw-semibold">Orders: $<span
                                     class="text-primary-light fw-bold">500</span>
                             </span>
                         </li>
                         <li class="d-flex align-items-center gap-2">
-                            <span class="w-12-px h-8-px rounded-pill bg-success-600"></span>
-                            <span class="text-secondary-light text-sm fw-semibold">Sales: $<span
+                            <span class="w-12-px h-8-px rounded-pill bg-danger-600"></span>
+                            <span class="text-secondary-light text-sm fw-semibold">Returns: $<span
                                     class="text-primary-light fw-bold">800</span>
                             </span>
                         </li>
@@ -282,7 +282,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xxl-8">
+        <!-- <div class="col-xxl-8">
             <div class="card h-100">
                 <div class="card-header">
                     <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
@@ -322,6 +322,6 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
     </div>
 </div>

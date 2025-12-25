@@ -84,7 +84,7 @@ export class AddRequestComponent implements OnInit, OnDestroy {
       requestNumber: ['', [Validators.required]],
       vendorId: [null, [Validators.required]],
       items: this.fb.array([], [Validators.required, Validators.minLength(1)]),
-      totalAmount: [0, [Validators.required, Validators.min(0)]],
+      // totalAmount: [0, [Validators.required, Validators.min(0)]],
       notes: [''],
       status: ['requested'] // Auto-set for admin creation
     });
@@ -102,7 +102,7 @@ export class AddRequestComponent implements OnInit, OnDestroy {
     return this.fb.group({
       productId: ['', [Validators.required]],
       quantity: [1, [Validators.required, Validators.min(1)]],
-      requestedQuantity: [1, [Validators.required, Validators.min(1)]]
+      // quantityRequested: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -190,7 +190,6 @@ export class AddRequestComponent implements OnInit, OnDestroy {
     const formData: any = {
       requestNumber: request.requestNumber || '',
       vendorId: request.vendorId?._id || null,
-      totalAmount: request.totalAmount || 0,
       notes: request.notes || '',
       status: request.status || 'requested'
     };
@@ -199,9 +198,8 @@ export class AddRequestComponent implements OnInit, OnDestroy {
     if (request.items && request.items.length > 0) {
       request.items.forEach(item => {
         const itemGroup = this.fb.group({
-          productId: [item.product?._id || '', [Validators.required]],
-          quantity: [item.quantity || 1, [Validators.required, Validators.min(1)]],
-          requestedQuantity: [item.requestedQuantity || item.quantity || 1, [Validators.required, Validators.min(1)]]
+          productId: [item.product?._id || item.product || '', [Validators.required]],
+          quantity: [item.quantityRequested || 1, [Validators.required, Validators.min(1)]]  // Map quantityRequested to quantity field
         });
         this.items.push(itemGroup);
       });
@@ -235,12 +233,21 @@ export class AddRequestComponent implements OnInit, OnDestroy {
 
     // Prepare form data
     const formValue = this.requestForm.value;
+    
+    // Transform the data for backend
     const requestData = {
-      ...formValue,
-      // Ensure status is 'requested' for admin creation
-      status: this.isEditMode ? formValue.status : 'requested'
+      requestNumber: formValue.requestNumber,
+      vendorId: formValue.vendorId,
+      notes: formValue.notes,
+      status: this.isEditMode ? formValue.status : 'requested',
+      // Send quantity field (which backend will map to quantityRequested)
+      items: formValue.items.map((item: any) => ({
+        productId: item.productId,
+        quantity: item.quantity  // This is what backend validation expects
+      }))
     };
 
+    // Rest of your submit logic...
     if (this.isEditMode) {
       this.requestService.updateRequest(this.requestId, requestData)
         .pipe(takeUntil(this.destroy$))

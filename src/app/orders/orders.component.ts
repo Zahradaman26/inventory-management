@@ -23,6 +23,7 @@ import { AuthService } from '../services/auth-service.service';
 import { VenuesService } from '../services/venues.service';
 import { EventsService } from '../services/events.service';
 import { forkJoin } from 'rxjs';
+import { UserService } from '../services/user.service';
 declare var bootstrap: any;
 
 @Component({
@@ -61,7 +62,9 @@ export class OrdersComponent implements OnInit {
   respMessage: string = '';
   selectAll: boolean = false;
   selectedOrders: Set<string> = new Set();
-  
+  usersList: any[] = [];       // All users for dropdown
+  selectedUserId: string = ''; // Currently selected user
+
   // Pagination and filtering
   currentPage = 1;
   itemsPerPage = 10;
@@ -100,6 +103,7 @@ export class OrdersComponent implements OnInit {
     private authService: AuthService,
     private venuesService: VenuesService,
     private eventsService: EventsService,
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -142,7 +146,8 @@ export class OrdersComponent implements OnInit {
       orders: this.ordersService.getAllOrders(),
       products: this.productService.getAllProducts(),
       venues: this.venuesService.getVenues(),
-      events: this.eventsService.getEvents()
+      events: this.eventsService.getEvents(),
+      users: this.userService.getUsers()
     }).subscribe({
       next: (responses: any) => {
         console.log('API Responses:', responses); // Debug log
@@ -161,26 +166,45 @@ export class OrdersComponent implements OnInit {
           this.backupProductsList = responses.products.data.products;
         }
         
-        // Handle venues - CRITICAL FIX
+        // Handle venues - SHOW ALL VENUES (NO FILTERING)
         if (responses.venues.success === true) {
           const venues = responses.venues.data?.venues ?? responses.venues.data ?? [];
-          console.log('Venues loaded:', venues); // Debug log
+          console.log('All Venues loaded:', venues); // Debug log
           this.venuesList = venues;
           this.backupVenuesList = venues;
           this.debugVenuesCount = venues.length;
+          console.log('Venues count:', this.debugVenuesCount);
+        } else {
+          console.error('Venues API error:', responses.venues);
+          this.venuesList = [];
+          this.backupVenuesList = [];
         }
         
         // Handle events
         if (responses.events.success === true) {
           const events = responses.events.data?.events ?? responses.events.data ?? [];
-          console.log('Events loaded:', events); // Debug log
+          console.log('All Events loaded:', events); // Debug log
           this.eventList = events;
           this.backupEventList = events;
           this.debugEventsCount = events.length;
+          console.log('Events count:', this.debugEventsCount);
+        } else {
+          console.error('Events API error:', responses.events);
+          this.eventList = [];
+          this.backupEventList = [];
         }
 
         this.loading = false;
         this.cdr.detectChanges(); // Force change detection
+        
+       // Add this
+      if (responses.users?.success) {
+        this.usersList = responses.users.data;  // data is an array of user objects
+        console.log('Loaded users for dropdown:', this.usersList);
+      } else {
+        this.usersList = [];
+      }
+
       },
       error: (error: any) => {
         console.error('Error loading data:', error);
@@ -194,13 +218,55 @@ export class OrdersComponent implements OnInit {
     });
   }
 
+  getUserName(order: any): string {
+    // Case 1: populated user object
+    if (order?.userId?.name) {
+      return order.userId.name;
+    }
+
+    // Case 2: userId is string, find from usersList
+    const userId =
+      typeof order?.userId === 'string'
+        ? order.userId
+        : order?.userId?._id;
+
+    if (userId && this.usersList?.length) {
+      const user = this.usersList.find(u => u._id === userId);
+      if (user) {
+        return user.name || user.username || user.email;
+      }
+    }
+
+    return '—';
+  }
+
+
+  filterOrdersByUser() {
+    if (!this.selectedUserId) {
+      this.ordersList = [...this.backupOrdersList]; // Show all if no user selected
+    } else {
+      this.ordersList = this.backupOrdersList.filter(order => {
+        return order.userId?._id === this.selectedUserId;
+      });
+    }
+
+    // Reset DataTable if initialized
+    if (this.dataTable) {
+      this.dataTable.destroy();
+      setTimeout(() => this.initializeDataTable(), 0);
+    }
+  }
+
   initializeDataTable(): void {
     setTimeout(() => {
       this.dataTable = new DataTable('#dataTable', {
         paging: true,
         searching: true,
         info: true,
-        ordering: false,
+        // ordering: false,
+        columnDefs: [
+          { className: "dt-head-center", targets: "_all" }   
+        ]
       });
 
       this.setupTableFilters();
@@ -208,24 +274,24 @@ export class OrdersComponent implements OnInit {
   }
 
   setupTableFilters(): void {
-    document.getElementById('dateFilter')?.addEventListener('change', (e) => {
-      const value = (e.target as HTMLInputElement).value;
-      if (value) {
-        const formatted = new Date(value).toLocaleDateString('en-US');
-        this.dataTable.column(4).search(formatted).draw();
-      } else {
-        this.dataTable.column(4).search('').draw();
-      }
-    });
+    // document.getElementById('dateFilter')?.addEventListener('change', (e) => {
+    //   const value = (e.target as HTMLInputElement).value;
+    //   if (value) {
+    //     const formatted = new Date(value).toLocaleDateString('en-US');
+    //     this.dataTable.column(4).search(formatted).draw();
+    //   } else {
+    //     this.dataTable.column(4).search('').draw();
+    //   }
+    // });
 
     document.getElementById('priorityFilter')?.addEventListener('change', (e) => {
       const value = (e.target as HTMLSelectElement).value;
-      this.dataTable.column(6).search(value).draw();
+      this.dataTable.column(7).search(value).draw();
     });
 
     document.getElementById('statusFilter')?.addEventListener('change', (e) => {
       const value = (e.target as HTMLSelectElement).value;
-      this.dataTable.column(7).search(value).draw();
+      this.dataTable.column(8).search(value).draw();
     });
   }
 
@@ -475,9 +541,9 @@ export class OrdersComponent implements OnInit {
     }
     this.addItem();
     
-    // Reset venues to show all venues
+    // SHOW ALL VENUES (not filtered)
     this.venuesList = [...this.backupVenuesList];
-    console.log('Venues list reset to:', this.venuesList);
+    console.log('Venues list reset to ALL venues:', this.venuesList);
     
     this.cdr.detectChanges();
   }
@@ -549,9 +615,9 @@ export class OrdersComponent implements OnInit {
     });
 
     // ----------------------------
-    // Load venues for selected event
+    // SHOW ALL VENUES (NO FILTERING)
     // ----------------------------
-    this.loadVenuesForEvent(eventId);
+    this.venuesList = [...this.backupVenuesList];
 
     // ✅ PATCH VENUE ONLY AFTER OPTIONS EXIST
     this.orderForm.patchValue({
@@ -576,86 +642,19 @@ export class OrdersComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-
-  // FIXED: Simplified venue loading
-  // UPDATED: Better venue loading with proper ID comparison
-  loadVenuesForEvent(eventId: string) {
-
-    if (!eventId) {
-      this.venuesList = [...this.backupVenuesList];
-      return;
-    }
-
-    const selectedEvent = this.eventList.find(
-      (e: any) => e._id === eventId
-    );
-
-    if (!selectedEvent || !selectedEvent.venues?.length) {
-      this.venuesList = [...this.backupVenuesList];
-      return;
-    }
-
-    const eventVenueIds = selectedEvent.venues.map((v: any) =>
-      typeof v === 'string' ? v : v._id
-    );
-
-    this.venuesList = this.backupVenuesList.filter((v: any) =>
-      eventVenueIds.includes(v._id)
-    );
-  }
-
-
- 
-  // Helper method to add missing venue
-  addMissingVenue(order: any, venueId: string) {
-    console.log('Adding missing venue:', venueId);
-    
-    let venueName = 'Unknown Venue';
-    
-    if (order.venue && order.venue.name) {
-      venueName = order.venue.name;
-    } else if (order.venueId && order.venueId.name) {
-      venueName = order.venueId.name;
-    } else if (order.venue && order.venue.venueName) {
-      venueName = order.venue.venueName;
-    } else if (order.venueId && order.venueId.venueName) {
-      venueName = order.venueId.venueName;
-    }
-    
-    console.log('Venue name determined as:', venueName);
-
-    const missingVenue = {
-      _id: venueId,
-      name: venueName,
-      venueName: venueName
-    };
-
-    // Add to venuesList if not already there
-    const venueExists = this.venuesList.some((v: any) => v._id === venueId);
-    if (!venueExists) {
-      this.venuesList.push(missingVenue);
-      console.log('Added venue to venuesList');
-    }
-    
-    // Also add to backup list
-    const backupExists = this.backupVenuesList.some((v: any) => v._id === venueId);
-    if (!backupExists) {
-      this.backupVenuesList.push(missingVenue);
-      console.log('Added venue to backupVenuesList');
-    }
-    
-    this.cdr.detectChanges();
-  }
-
+  // REMOVED: loadVenuesForEvent() method - No longer needed
+  // We're showing ALL venues
+  
   onEventChange(event: any) {
     const selectedEventId = event.target.value;
     console.log('Event changed to:', selectedEventId);
     
-    // Clear venue selection
+    // Clear venue selection when event changes
     this.orderForm.patchValue({ venueId: '' });
     
-    // Load venues for this event
-    this.loadVenuesForEvent(selectedEventId);
+    // SHOW ALL VENUES (No filtering)
+    this.venuesList = [...this.backupVenuesList];
+    console.log('Showing all venues:', this.venuesList.length);
   }
 
   private resetFormForEdit() {
@@ -668,8 +667,10 @@ export class OrdersComponent implements OnInit {
 
     const productsArray = this.orderForm.get('products') as FormArray;
     productsArray.clear();
+    
+    // SHOW ALL VENUES
+    this.venuesList = [...this.backupVenuesList];
   }
-
 
   toggleSelectAll(event: any) {
     this.selectAll = event.target.checked;

@@ -58,7 +58,7 @@
                 </select>
               </th>
               <th scope="col" purchaseOrderSortable="createdAt">Created Date</th>
-              <th scope="col" purchaseOrderSortable="expectedDeliveryDate">Expected Delivery</th>
+              <!-- <th scope="col" purchaseOrderSortable="expectedDeliveryDate">Expected Delivery</th> -->
               <th scope="col" class="text-center">Actions</th>
             </tr>
           </thead>
@@ -93,7 +93,7 @@
 
               <td>{{ formatDate(purchaseOrder.createdAt) }}</td>
 
-              <td>{{ formatDate(purchaseOrder.expectedDeliveryDate) }}</td>
+              <!-- <td>{{ formatDate(purchaseOrder.expectedDeliveryDate) }}</td> -->
 
               <td class="text-center">
                 <div class="d-flex align-items-center gap-10 justify-content-center">
@@ -331,14 +331,14 @@
           </div>
 
           <!-- Delivery Info -->
-          <div class="row mb-3">
+          <!-- <div class="row mb-3">
             <div class="col-md-6">
               <p><strong>Expected Delivery:</strong> {{ formatDate(selectedPurchaseOrder.expectedDeliveryDate) }}</p>
             </div>
             <div class="col-md-6">
               <p><strong>Actual Delivery:</strong> {{ formatDate(selectedPurchaseOrder.actualDeliveryDate) }}</p>
             </div>
-          </div>
+          </div> -->
 
           <!-- Notes -->
           <div class="mb-3" *ngIf="selectedPurchaseOrder.notes">

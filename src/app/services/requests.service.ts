@@ -177,7 +177,7 @@ export class RequestService {
 
   // Delete request
   deleteRequest(requestId: string): Observable<any> {
-    return this.http.delete<any>(`${this.REQUESTS_API_URL}/${requestId}`).pipe(
+    return this.http.delete<any>(`${this.REQUESTS_API_URL}/${requestId}/cancel`).pipe(
       map(response => {
         if (response.success || response.status === 'success' || response.message) {
           return response;

@@ -83,22 +83,12 @@ export class UsersListComponent implements OnInit, OnDestroy {
               paging: true,
               searching: true,
               info: true,
-              ordering: false,
+              // ordering: false,
               columnDefs: [
                 { className: "dt-head-center", targets: "_all" }   
               ]
             });
-            // Join Date Filter
-            document.getElementById('dateFilter')?.addEventListener('change', (e) => {
-              const value = (e.target as HTMLInputElement).value;
-
-              if (value) {
-                const formatted = new Date(value).toLocaleDateString('en-US');
-                this.dataTable.column(4).search(formatted).draw();
-              } else {
-                this.dataTable.column(4).search('').draw();
-              }
-            });
+        
 
             // Role Filter
             document.getElementById('roleFilter')?.addEventListener('change', (e) => {
@@ -108,8 +98,22 @@ export class UsersListComponent implements OnInit, OnDestroy {
 
             // Status Filter
             document.getElementById('statusFilter')?.addEventListener('change', (e) => {
-              const value = (e.target as HTMLSelectElement).value;
-              this.dataTable.column(6).search(value).draw(); // UPDATE index accordingly
+              const selected = (e.target as HTMLSelectElement).value;
+
+              this.dataTable.rows().every(function () {
+                const row = this.node();
+                const statusCell = row.querySelector('td:nth-child(7)'); // STATUS COLUMN (7 = index 6)
+
+                if (!statusCell) return;
+
+                const statusText = statusCell.textContent?.trim();
+
+                if (!selected || statusText === selected) {
+                  (row as HTMLElement).style.display = '';
+                } else {
+                  (row as HTMLElement).style.display = 'none';
+                }
+              });
             });
 
           }, 100);

@@ -10,7 +10,7 @@ export interface RequestItem {
     };
   };
   quantity: number;
-  requestedQuantity: number;
+  quantityRequested: number;
   status?: string;
 }
 

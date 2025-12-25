@@ -40,13 +40,13 @@
                                    placeholder="Purchase order number"
                                    [readonly]="isEditMode && purchaseOrderForm.get('status')?.value !== 'draft'"
                                    [disabled]="isLoading">
-                            <button *ngIf="!isEditMode"
+                            <!-- <button *ngIf="!isEditMode"
                                     type="button" 
                                     class="btn btn-outline-secondary" 
                                     (click)="generatePONumber()"
                                     [disabled]="isLoading">
                                 Generate
-                            </button>
+                            </button> -->
                         </div>
                         <div *ngIf="f['poNumber'].invalid && (f['poNumber'].dirty || f['poNumber'].touched)" 
                              class="text-danger small mt-1">
@@ -114,76 +114,96 @@
                         <div formArrayName="items" *ngIf="!isLoadingProducts">
                             <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="item-row mb-3 p-3 border rounded">
                                 <div class="row align-items-end">
+                                    <!-- Product Selection -->
                                     <div class="col-md-4 mb-2">
-                                        <label class="form-label small mb-1">Product *</label>
-                                        <select class="form-select" 
-                                                formControlName="productId"
-                                                [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
-                                            <option value="">Select Product</option>
-                                            <option *ngFor="let product of products" [value]="product._id">
-                                                {{ product.name }} ({{ product.SKU }})
-                                                <span *ngIf="product.requestedStock"> - Requested: {{ product.requestedStock }}</span>
-                                            </option>
-                                        </select>
-                                        <div *ngIf="items.controls[i].get('productId')?.invalid && 
-                                                   (items.controls[i].get('productId')?.dirty || items.controls[i].get('productId')?.touched)" 
-                                             class="text-danger small mt-1">
-                                            <div *ngIf="items.controls[i].get('productId')?.errors?.['required']">Product is required</div>
-                                        </div>
+                                    <label class="form-label small mb-1">Product *</label>
+                                    <select class="form-select" 
+                                            formControlName="productId"
+                                            [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')"
+                                            (change)="onProductChange(i)">
+                                        <option value="">Select Product</option>
+                                        <option *ngFor="let product of products" [value]="product._id">
+                                        {{ product.name }} ({{ product.SKU }})
+                                        <span *ngIf="product.requestedStock"> - Requested: {{ product.requestedStock }}</span>
+                                        </option>
+                                    </select>
+                                    <!-- Display requested quantity if available -->
+                                    <div *ngIf="item.get('quantityRequested')?.value > 0" class="text-info small mt-1">
+                                        Requested Quantity: {{ item.get('quantityRequested')?.value }}
+                                    </div>
+                                    <div *ngIf="item.get('productId')?.invalid && 
+                                                (item.get('productId')?.dirty || item.get('productId')?.touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="item.get('productId')?.errors?.['required']">Product is required</div>
+                                    </div>
                                     </div>
 
+                                    <!-- Requested Quantity (Display Only) -->
                                     <div class="col-md-2 mb-2">
-                                        <label class="form-label small mb-1">Quantity *</label>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               formControlName="quantity"
-                                               min="1"
-                                               step="1"
-                                               placeholder="Qty"
-                                               [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
-                                        <div *ngIf="items.controls[i].get('quantity')?.invalid && 
-                                                   (items.controls[i].get('quantity')?.dirty || items.controls[i].get('quantity')?.touched)" 
-                                             class="text-danger small mt-1">
-                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['required']">Quantity is required</div>
-                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['min']">Minimum quantity is 1</div>
-                                        </div>
+                                    <label class="form-label small mb-1">Requested Qty</label>
+                                    <input type="number" 
+                                            class="form-control bg-light"
+                                            formControlName="quantityRequested"
+                                            readonly
+                                            placeholder="Auto-filled">
                                     </div>
 
+                                    <!-- Purchase Quantity (Editable) -->
                                     <div class="col-md-2 mb-2">
-                                        <label class="form-label small mb-1">Unit Price ($) *</label>
-                                        <input type="number" 
-                                               class="form-control" 
-                                               formControlName="unitPrice"
-                                               min="0"
-                                               step="0.01"
-                                               placeholder="0.00"
-                                               [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
-                                        <div *ngIf="items.controls[i].get('unitPrice')?.invalid && 
-                                                   (items.controls[i].get('unitPrice')?.dirty || items.controls[i].get('unitPrice')?.touched)" 
-                                             class="text-danger small mt-1">
-                                            <div *ngIf="items.controls[i].get('unitPrice')?.errors?.['required']">Unit price is required</div>
-                                            <div *ngIf="items.controls[i].get('unitPrice')?.errors?.['min']">Price cannot be negative</div>
-                                        </div>
+                                    <label class="form-label small mb-1">Purchase Qty *</label>
+                                    <input type="number" 
+                                            class="form-control" 
+                                            formControlName="purchaseQuantity"
+                                            min="1"
+                                            step="1"
+                                            placeholder="Qty to order"
+                                            [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                    <div *ngIf="item.get('purchaseQuantity')?.invalid && 
+                                                (item.get('purchaseQuantity')?.dirty || item.get('purchaseQuantity')?.touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="item.get('purchaseQuantity')?.errors?.['required']">Quantity is required</div>
+                                        <div *ngIf="item.get('purchaseQuantity')?.errors?.['min']">Minimum quantity is 1</div>
+                                    </div>
                                     </div>
 
+                                    <!-- Unit Price -->
                                     <div class="col-md-2 mb-2">
-                                        <label class="form-label small mb-1">Total Price ($)</label>
-                                        <input type="text" 
-                                               class="form-control bg-light"
-                                               formControlName="totalPrice"
-                                               readonly>
+                                    <label class="form-label small mb-1">Unit Price ($) *</label>
+                                    <input type="number" 
+                                            class="form-control" 
+                                            formControlName="unitPrice"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                    <div *ngIf="item.get('unitPrice')?.invalid && 
+                                                (item.get('unitPrice')?.dirty || item.get('unitPrice')?.touched)" 
+                                        class="text-danger small mt-1">
+                                        <div *ngIf="item.get('unitPrice')?.errors?.['required']">Unit price is required</div>
+                                        <div *ngIf="item.get('unitPrice')?.errors?.['min']">Price cannot be negative</div>
+                                    </div>
                                     </div>
 
+                                    <!-- Total Price -->
                                     <div class="col-md-2 mb-2">
-                                        <button type="button" 
-                                                class="btn btn-outline-danger btn-sm w-100 mt-4"
-                                                (click)="removeItem(i)"
-                                                [disabled]="isLoading || items.length <= 1 || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
-                                            <i class="fas fa-trash"></i> Remove
-                                        </button>
+                                    <label class="form-label small mb-1">Total Price ($)</label>
+                                    <input type="text" 
+                                            class="form-control bg-light"
+                                            formControlName="totalPrice"
+                                            readonly>
+                                    </div>
+
+                                    <!-- Remove Button -->
+                                    <div class="col-md-2 mb-2">
+                                    <button type="button" 
+                                            class="btn btn-outline-danger btn-sm w-100 mt-4"
+                                            (click)="removeItem(i)"
+                                            [disabled]="isLoading || items.length <= 1 || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
 
                             <!-- Items Validation Error -->
                             <div *ngIf="f['items'].invalid && (f['items'].dirty || f['items'].touched)" 
@@ -210,14 +230,14 @@
                     </div>
 
                     <!-- Expected Delivery Date -->
-                    <div class="col-md-4 mb-3">
+                    <!-- <div class="col-md-4 mb-3">
                         <label for="expectedDeliveryDate" class="form-label">Expected Delivery Date</label>
                         <input type="date" 
                                class="form-control" 
                                id="expectedDeliveryDate"
                                formControlName="expectedDeliveryDate"
                                [disabled]="isLoading || (isEditMode && purchaseOrderForm.get('status')?.value !== 'draft')">
-                    </div>
+                    </div> -->
 
                     <!-- Status (Hidden in form, but part of form group) -->
                     <div class="col-md-4 mb-3">

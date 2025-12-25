@@ -147,16 +147,30 @@ export class VendorsComponent implements OnInit, OnDestroy {
             paging: true,
             searching: true,
             info: true,
-            ordering: false,
+            // ordering: false,
             columnDefs: [
                 { className: "dt-head-center", targets: "_all" }
             ]
         });
 
         document.getElementById('statusFilter')?.addEventListener('change', (e) => {
-            const value = (e.target as HTMLSelectElement).value;
-            this.dataTable.column(5).search(value).draw();
-        });
+              const selected = (e.target as HTMLSelectElement).value;
+
+              this.dataTable.rows().every(function () {
+                const row = this.node();
+                const statusCell = row.querySelector('td:nth-child(7)'); // STATUS COLUMN (7 = index 6)
+
+                if (!statusCell) return;
+
+                const statusText = statusCell.textContent?.trim();
+
+                if (!selected || statusText === selected) {
+                  (row as HTMLElement).style.display = '';
+                } else {
+                  (row as HTMLElement).style.display = 'none';
+                }
+              });
+            });
     }
 
     viewVendorProducts(vendor: any): void {

@@ -97,6 +97,7 @@ export class ProductsComponent implements OnInit, OnDestroy {
           });
 
           this.fetchProducts(); 
+          
         }
       });
   }
@@ -129,8 +130,46 @@ export class ProductsComponent implements OnInit, OnDestroy {
             }
           });
 
+
           this.productsList = products;
           this.backupProductsList = products;
+
+          setTimeout(() => {
+          if (this.dataTable) {
+            this.dataTable.destroy(true); 
+          }
+
+          this.dataTable = new DataTables('#dataTable', { // Make sure your table ID is productsTable
+            paging: true,
+            searching: true,
+            info: true,
+            // ordering: false,
+            columnDefs: [
+              { className: 'dt-head-center', targets: '_all' }
+            ]
+          });
+
+          // Status Filter for DataTable
+          document.getElementById('statusFilter')?.addEventListener('change', (e) => {
+            const selected = (e.target as HTMLSelectElement).value;
+
+            this.dataTable.rows().every(function () {
+              const row = this.node();
+              const statusCell = row.querySelector('td:nth-child(6)'); // Column 6 index, change if different
+              if (!statusCell) return;
+
+              const statusText = statusCell.textContent?.trim().toLowerCase();
+
+              if (!selected || statusText === selected.toLowerCase()) {
+                (row as HTMLElement).style.display = '';
+              } else {
+                (row as HTMLElement).style.display = 'none';
+              }
+            });
+          });
+
+        }, 100); 
+
         },
         error: (err: any) => {
           // console.error('Error loading products:', err);

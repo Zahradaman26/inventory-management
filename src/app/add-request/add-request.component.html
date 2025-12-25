@@ -123,36 +123,36 @@
                                     </div>
 
                                     <div class="col-md-3 mb-2">
-                                        <label class="form-label small mb-1">Quantity</label>
+                                        <label class="form-label small mb-1">Requested Quantity</label>
                                         <input type="number" 
                                                class="form-control" 
                                                formControlName="quantity"
                                                min="1"
-                                               placeholder="Qty"
+                                               placeholder="Requested Qty"
                                                [disabled]="isLoading">
                                         <div *ngIf="items.controls[i].get('quantity')?.invalid && 
                                                    (items.controls[i].get('quantity')?.dirty || items.controls[i].get('quantity')?.touched)" 
                                              class="text-danger small mt-1">
-                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['required']">Quantity is required</div>
+                                            <div *ngIf="items.controls[i].get('quantity')?.errors?.['required']">Requested Quantity is required</div>
                                             <div *ngIf="items.controls[i].get('quantity')?.errors?.['min']">Minimum quantity is 1</div>
                                         </div>
                                     </div>
 
-                                    <div class="col-md-3 mb-2">
+                                    <!-- <div class="col-md-3 mb-2">
                                         <label class="form-label small mb-1">Requested Quantity</label>
                                         <input type="number" 
                                                class="form-control" 
-                                               formControlName="requestedQuantity"
+                                               formControlName="quantityRequested"
                                                min="1"
                                                placeholder="Requested Qty"
                                                [disabled]="isLoading">
-                                        <div *ngIf="items.controls[i].get('requestedQuantity')?.invalid && 
-                                                   (items.controls[i].get('requestedQuantity')?.dirty || items.controls[i].get('requestedQuantity')?.touched)" 
+                                        <div *ngIf="items.controls[i].get('quantityRequested')?.invalid && 
+                                                   (items.controls[i].get('quantityRequested')?.dirty || items.controls[i].get('quantityRequested')?.touched)" 
                                              class="text-danger small mt-1">
-                                            <div *ngIf="items.controls[i].get('requestedQuantity')?.errors?.['required']">Requested quantity is required</div>
-                                            <div *ngIf="items.controls[i].get('requestedQuantity')?.errors?.['min']">Minimum quantity is 1</div>
+                                            <div *ngIf="items.controls[i].get('quantityRequested')?.errors?.['required']">Requested quantity is required</div>
+                                            <div *ngIf="items.controls[i].get('quantityRequested')?.errors?.['min']">Minimum quantity is 1</div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="col-md-1 mb-2">
                                         <button type="button" 
@@ -160,6 +160,7 @@
                                                 (click)="removeItem(i)"
                                                 [disabled]="isLoading || items.length <= 1">
                                             <i class="fas fa-trash"></i>
+                                            Remove
                                         </button>
                                     </div>
                                 </div>
@@ -180,7 +181,7 @@
                     </div>
 
                     <!-- Total Amount -->
-                    <div class="col-md-6 mb-3">
+                    <!-- <div class="col-md-6 mb-3">
                         <label for="totalAmount" class="form-label">Total Amount *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
@@ -198,7 +199,7 @@
                             <div *ngIf="f['totalAmount'].errors?.['required']">Total amount is required</div>
                             <div *ngIf="f['totalAmount'].errors?.['min']">Amount must be positive</div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Status (Hidden in form, but part of form group) -->
                     <input type="hidden" formControlName="status">

@@ -57,7 +57,7 @@ export class VenueComponent implements OnInit {
               paging: true,
               searching: true,
               info: true,
-              ordering: false,
+              // ordering: false,
               columnDefs: [
                 { className: "dt-head-center", targets: "_all" }   
               ]
@@ -65,8 +65,22 @@ export class VenueComponent implements OnInit {
 
             // Status Filter
             document.getElementById('statusFilter')?.addEventListener('change', (e) => {
-              const value = (e.target as HTMLSelectElement).value;
-              this.dataTable.column(6).search(value).draw(); // UPDATE index accordingly
+              const selected = (e.target as HTMLSelectElement).value;
+
+              this.dataTable.rows().every(function () {
+                const row = this.node();
+                const statusCell = row.querySelector('td:nth-child(6)'); // STATUS COLUMN (6 = index 5)
+
+                if (!statusCell) return;
+
+                const statusText = statusCell.textContent?.trim();
+
+                if (!selected || statusText === selected) {
+                  (row as HTMLElement).style.display = '';
+                } else {
+                  (row as HTMLElement).style.display = 'none';
+                }
+              });
             });
             
           }, 100);

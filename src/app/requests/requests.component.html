@@ -43,7 +43,7 @@
               <th scope="col">Request No.</th>
               <th scope="col">Vendor</th>
               <th scope="col">Product</th>
-              <th scope="col">Quantity</th>
+              <th scope="col">Requested Quantity</th>
               <th>
                 Status<br />
                 <select id="statusFilter" class="form-select form-select-sm">
@@ -89,11 +89,11 @@
               <!-- Quantity -->
               <td>
                 <span [ngClass]="{
-                  'text-success': getItemRequestedQuantity(request) > 10,
-                  'text-warning': getItemRequestedQuantity(request) <= 10 && getItemRequestedQuantity(request) > 0,
-                  'text-danger': getItemRequestedQuantity(request) === 0
+                  'text-success': getRequestedQuantity(request) > 10,
+                  'text-warning': getRequestedQuantity(request) <= 10 && getRequestedQuantity(request) > 0,
+                  'text-danger': getRequestedQuantity(request) === 0
                 }">
-                  {{ getItemRequestedQuantity(request) }}
+                  {{ getRequestedQuantity(request) }}
                 </span>
               </td>
 
@@ -389,7 +389,7 @@
                   <th>#</th>
                   <th>Product Name</th>
                   <th>SKU</th>
-                  <th>Quantity</th>
+                  <th>Requested Quantity</th>
                 </tr>
               </thead>
               <tbody>
@@ -412,7 +412,7 @@
                       'N/A' 
                     }}
                   </td>
-                  <td>{{ getItemRequestedQuantity(item) }}</td>
+                  <td>{{ getRequestedQuantity(item) }}</td>
                 </tr>
                 <tr *ngIf="!selectedRequest.items || selectedRequest.items.length === 0">
                   <td colspan="4" class="text-center text-muted">No items in this request</td>

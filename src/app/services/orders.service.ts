@@ -44,7 +44,7 @@ export class OrdersService {
     if (isEdit && orderId) {
       // Update existing order
       return this.http
-        .patch<any>(`${this.PRODUCTS_API_URL}/create`, payload)
+        .patch<any>(`${this.PRODUCTS_API_URL}/${orderId}`, payload)
         .pipe(
           map((response) => response),
           catchError(this.errorHandler)
