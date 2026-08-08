@@ -46,7 +46,7 @@
               <th scope="col">Requested Quantity</th>
               <th>
                 Status<br />
-                <select id="statusFilter" class="form-select form-select-sm">
+                <!-- <select id="statusFilter" class="form-select form-select-sm">
                   <option value="">All</option>           
                   <option value="draft">Draft</option>
                   <option value="requested">Requested</option>
@@ -54,7 +54,7 @@
                   <option value="completed">Completed</option>
                   <option value="rejected">Rejected</option>
                   <option value="cancelled">Cancelled</option>
-                </select>
+                </select> -->
               </th>
               <th scope="col">Approval</th>
               <th scope="col" class="text-center">Action</th>
@@ -98,12 +98,12 @@
               </td>
 
               <!-- Status -->
-              <td>
+              <!-- <td>
                 <span [ngClass]="getStatusClass(request.status)" 
                   class="px-24 py-4 radius-4 fw-medium text-sm d-inline-block text-center" style="min-width: 120px;">
                   {{ getStatusLabel(request.status) }}
                 </span>
-              </td>
+              </td> -->
 
               <!-- Approval Column (Matching Orders Pattern) -->
               <td>

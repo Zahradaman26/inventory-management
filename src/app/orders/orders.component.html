@@ -29,22 +29,44 @@
                 <p class="mt-2">Loading Orders...</p>
             </div>
             <div class="table-responsive">
+                <div style="display: flex; justify-content: space-between;">
                 <div class="mb-3 d-flex align-items-center gap-3">
-                <label for="userFilter" class="fw-semibold">Filter by User:</label>
-                <select id="userFilter" class="form-select w-auto" [(ngModel)]="selectedUserId" (change)="filterOrdersByUser()">
-                    <option value="">All Users</option>
-                    <option *ngFor="let user of usersList" [value]="user._id">
-                    {{ user.name || user.username || user.email }}
-                    </option>
-                </select>
+                    <label for="userFilter" class="fw-semibold">Filter by User:</label>
+                    <select id="userFilter" class="form-select w-auto" [(ngModel)]="selectedUserId"
+                        (change)="filterOrdersByUser()">
+                        <option value="">All Users</option>
+                        <option *ngFor="let user of usersList" [value]="user._id">
+                            {{ user.name || user.username || user.email }}
+                        </option>
+                    </select>
                 </div>
-
+                <div class="mb-3 d-flex align-items-center gap-3">
+                    <label class="fw-semibold">Filter by Priority:</label>
+                    <select id="priorityFilter" class="form-control form-control-sm custom-select-sm">
+                        <option value="">All</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <div class="mb-3 d-flex align-items-center gap-3">
+                    <label class="fw-semibold">Filter by Status:</label>
+                    <select id="statusFilter" class="form-control form-control-sm custom-select-sm">
+                        <option value="">All</option>
+                        <option value="requested">Requested</option>
+                        <option value="approved">Approved</option>
+                        <option value="issued">Issued</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                </div>
                 <table class="table bordered-table mb-0" id="dataTable" data-page-length="10">
                     <thead>
                         <tr>
                             <th scope="col">
                                 <div class="d-flex align-items-center gap-10">
-                                Sr No.
+                                    Sr No.
                                 </div>
                             </th>
                             <th scope="col">Order No.</th>
@@ -57,24 +79,10 @@
                             <th scope="col">Venue</th>
                             <th scope="col">Event</th>
                             <th>
-                                Priority<br />
-                                <select id="priorityFilter" class="form-control form-control-sm">
-                                    <option value="">All</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="urgent">Urgent</option>
-                                </select>
+                                Priority
                             </th>
                             <th>
-                                Status<br />
-                                <select id="statusFilter" class="form-control form-control-sm">
-                                    <option value="">All</option>
-                                    <option value="requested">Requested</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="issued">Issued</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
+                                Status
                             </th>
                             <th scope="col">Approval</th>
                             <th scope="col">Action</th>
@@ -85,7 +93,7 @@
                             <!--sr. no.-->
                             <td>
                                 <div class="d-flex align-items-center gap-10">
-                                {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
+                                    {{ (currentPage - 1) * itemsPerPage + i + 1 | number: '2.0' }}
                                 </div>
                             </td>
 
@@ -130,36 +138,31 @@
                                 </span>
                             </td>
                             <td>
-                            <!-- For requested orders - Show Approve/Reject buttons -->
-                            <div *ngIf="order.status === 'requested'">
-                                <button (click)="approveOrder(order._id)" 
-                                        class="btn btn-success btn-sm me-1"
+                                <!-- For requested orders - Show Approve/Reject buttons -->
+                                <div *ngIf="order.status === 'requested'">
+                                    <button (click)="approveOrder(order._id)" class="btn btn-success btn-sm me-1"
                                         [disabled]="isUpdating">
-                                Approve
-                                </button>
-                                <button type="button" 
-                                        class="btn btn-danger btn-sm"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#rejectOrderModal"
-                                        (click)="openRejectModal(order)"
+                                        Approve
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#rejectOrderModal" (click)="openRejectModal(order)"
                                         [disabled]="isUpdating">
-                                Reject
-                                </button>
-                            </div>
+                                        Reject
+                                    </button>
+                                </div>
 
-                            <!-- For approved orders - Show Issue button -->
-                            <div *ngIf="order.status === 'approved'">
-                                <button (click)="issueOrder(order._id)" 
-                                        class="btn btn-primary btn-sm"
+                                <!-- For approved orders - Show Issue button -->
+                                <div *ngIf="order.status === 'approved'">
+                                    <button (click)="issueOrder(order._id)" class="btn btn-primary btn-sm"
                                         [disabled]="isUpdating">
-                                Issue
-                                </button>
-                            </div>
+                                        Issue
+                                    </button>
+                                </div>
 
-                            <!-- For issued/rejected orders - Show nothing or status text -->
-                            <div *ngIf="['issued', 'rejected'].includes(order.status)">
-                                <span class="text-muted text-sm">{{ order.status | titlecase }}</span>
-                            </div>
+                                <!-- For issued/rejected orders - Show nothing or status text -->
+                                <div *ngIf="['issued', 'rejected'].includes(order.status)">
+                                    <span class="text-muted text-sm">{{ order.status | titlecase }}</span>
+                                </div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-1 w-100">
@@ -169,7 +172,8 @@
                                         <iconify-icon icon="iconamoon:eye-light"></iconify-icon>
                                     </a>
                                     <a *ngIf="order.status == 'requested'" data-bs-toggle="modal"
-                                        data-bs-target="#orderModal" (click)="openEditOrder(order)" style="cursor: pointer;"
+                                        data-bs-target="#orderModal" (click)="openEditOrder(order)"
+                                        style="cursor: pointer;"
                                         class="w-32-px h-32-px bg-success-focus text-success-main rounded-circle d-inline-flex align-items-center justify-content-center">
                                         <iconify-icon icon="lucide:edit"></iconify-icon>
                                     </a>
@@ -185,7 +189,7 @@
                                 </div>
                             </td>
                         </tr>
-    
+
                     </tbody>
                 </table>
             </div>
@@ -333,7 +337,8 @@
                 <!-- Event Info -->
                 <div class="mb-3">
                     <h6 class="fw-bold">Event</h6>
-                    <p style="margin: auto;" class="mb-1"><strong>Name:</strong> {{ selectedOrder?.eventId?.eventName }}</p>
+                    <p style="margin: auto;" class="mb-1"><strong>Name:</strong> {{ selectedOrder?.eventId?.eventName }}
+                    </p>
                     <!-- <p class="mb-1"><strong>Start:</strong> {{ selectedOrder?.eventId?.startDate | date }}</p>
                     <p><strong>End:</strong> {{ selectedOrder?.eventId?.endDate | date }}</p> -->
                 </div>
@@ -417,56 +422,56 @@
 
 <!-- Rejection Modal for Orders (MANDATORY reason) -->
 <div class="modal fade" id="rejectOrderModal" tabindex="-1" aria-labelledby="rejectOrderModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="rejectOrderModalLabel">Reject Order</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="closeRejectModal()"></button>
-      </div>
-      
-      <form [formGroup]="rejectOrderForm" (ngSubmit)="rejectOrder()">
-        <div class="modal-body">
-          <div class="mb-3">
-            <h6>Order: {{ selectedOrderForRejection?.orderNumber }}</h6>
-            <p class="text-muted">Event: {{ getEventName(selectedOrderForRejection) }}</p>
-            <p class="text-muted">Venue: {{ getVenueName(selectedOrderForRejection) }}</p>
-          </div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectOrderModalLabel">Reject Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    (click)="closeRejectModal()"></button>
+            </div>
 
-          <div class="mb-3">
-            <label for="orderRejectionReason" class="form-label">
-              Rejection Reason <span class="text-danger">*</span>
-            </label>
-            <textarea id="orderRejectionReason" 
-                      formControlName="rejectionReason" 
-                      class="form-control" 
-                      rows="4"
-                      placeholder="Please provide a detailed reason for rejecting this order..."
-                      [ngClass]="{
+            <form [formGroup]="rejectOrderForm" (ngSubmit)="rejectOrder()">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6>Order: {{ selectedOrderForRejection?.orderNumber }}</h6>
+                        <p class="text-muted">Event: {{ getEventName(selectedOrderForRejection) }}</p>
+                        <p class="text-muted">Venue: {{ getVenueName(selectedOrderForRejection) }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="orderRejectionReason" class="form-label">
+                            Rejection Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea id="orderRejectionReason" formControlName="rejectionReason" class="form-control"
+                            rows="4" placeholder="Please provide a detailed reason for rejecting this order..."
+                            [ngClass]="{
                         'is-invalid': rejectFormSubmitted && rejectOrderForm.get('rejectionReason')?.invalid,
                         'is-valid': rejectFormSubmitted && rejectOrderForm.get('rejectionReason')?.valid
                       }"></textarea>
-            
-            <!-- Validation messages -->
-            <div *ngIf="rejectFormSubmitted && rejectOrderForm.get('rejectionReason')?.errors" class="invalid-feedback">
-              <div *ngIf="rejectOrderForm.get('rejectionReason')?.errors?.['required']">
-                Rejection reason is required
-              </div>
-            </div>
-            
-            <div class="form-text">
-              Please provide a clear and detailed reason for rejecting this order.
-            </div>
-          </div>
+
+                        <!-- Validation messages -->
+                        <div *ngIf="rejectFormSubmitted && rejectOrderForm.get('rejectionReason')?.errors"
+                            class="invalid-feedback">
+                            <div *ngIf="rejectOrderForm.get('rejectionReason')?.errors?.['required']">
+                                Rejection reason is required
+                            </div>
+                        </div>
+
+                        <div class="form-text">
+                            Please provide a clear and detailed reason for rejecting this order.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        (click)="closeRejectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-danger" [disabled]="isUpdating">
+                        <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
+                        {{ isUpdating ? 'Processing...' : 'Confirm Reject' }}
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" (click)="closeRejectModal()">Cancel</button>
-          <button type="submit" class="btn btn-danger" [disabled]="isUpdating">
-            <span *ngIf="isUpdating" class="spinner-border spinner-border-sm me-1"></span>
-            {{ isUpdating ? 'Processing...' : 'Confirm Reject' }}
-          </button>
-        </div>
-      </form>
     </div>
-  </div>
 </div>

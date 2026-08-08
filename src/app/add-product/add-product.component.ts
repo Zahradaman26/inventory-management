@@ -79,7 +79,7 @@ export class AddProductComponent implements OnInit, OnDestroy {
       name: ['', [Validators.required, Validators.minLength(2)]],
       description: [''],
       // category: ['Select Category', Validators.required],
-      // price: [0, [Validators.required, Validators.min(0)]],
+      price: [0, [Validators.required, Validators.min(0)]],
       warehouseId: [null, [Validators.required]],
       stock: [0, [Validators.required, Validators.min(0)]],
       isActive: [true]
@@ -153,6 +153,7 @@ export class AddProductComponent implements OnInit, OnDestroy {
       description: product.description || '',
       warehouseId: warehouseId,
       stock: product.stock || 0,
+      price: product.price || 0,
       isActive: product.isActive !== undefined ? product.isActive : true
     };
 

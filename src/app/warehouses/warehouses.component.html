@@ -15,7 +15,7 @@
         {{ error }}
         <button type="button" class="btn-close" (click)="error = null"></button>
       </div>
-      
+
       <a routerLink="/add-warehouse"
         class="btn btn-primary text-sm btn-sm px-12 py-12 my-3 radius-8 d-inline-flex align-items-center gap-2">
         <iconify-icon icon="ic:baseline-plus" class="icon text-xl line-height-1"></iconify-icon>
@@ -48,11 +48,11 @@
               <!-- <th scope="col">Type</th> -->
               <th>
                 Status<br />
-                <select id="statusFilter" class="form-select form-select-sm">
+                <!-- <select id="statusFilter" class="form-select form-select-sm">
                   <option value="">All</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
-                </select>
+                </select> -->
               </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
@@ -101,14 +101,10 @@
                 </span>
               </td> -->
               <td class="text-center">
-                <button 
-                  (click)="updateStatus(warehouse)" 
-                  [ngClass]="{
+                <button (click)="updateStatus(warehouse)" [ngClass]="{
                     'bg-success-focus text-success-600 border border-success-main cursor-pointer': warehouse.isActive,
                     'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': !warehouse.isActive
-                  }" 
-                  class="px-24 py-4 radius-4 fw-medium text-sm"
-                  [class.opacity-50]="isUpdating"
+                  }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating"
                   [disabled]="isUpdating">
                   {{ warehouse.isActive ? 'Active' : 'Inactive' }}
                 </button>
@@ -138,8 +134,7 @@
 
   <!-- Delete Confirmation Modal for Warehouse -->
   @if (showDeleteModal) {
-  <div 
-    style="
+  <div style="
       position: fixed;
       top: 0;
       left: 0;
@@ -150,20 +145,15 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
-    "
-    (click)="closeDeleteModal()"
-  >
-    <div 
-      style="
+    " (click)="closeDeleteModal()">
+    <div style="
         background: white;
         border-radius: 12px;
         width: 90%;
         max-width: 450px;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         overflow: hidden;
-      "
-      (click)="$event.stopPropagation()"
-    >
+      " (click)="$event.stopPropagation()">
       <!-- Modal Header -->
       <div style="
         display: flex;
@@ -180,11 +170,7 @@
         ">
           Confirm Delete
         </h3>
-        <button 
-          type="button" 
-          (click)="closeDeleteModal()"
-          [disabled]="isUpdating"
-          style="
+        <button type="button" (click)="closeDeleteModal()" [disabled]="isUpdating" style="
             background: none;
             border: none;
             color: #6b7280;
@@ -195,15 +181,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-          "
-          [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+          " [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
           onmouseover="if(!this.disabled) { this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'; }"
-          onmouseout="if(!this.disabled) { this.style.backgroundColor='transparent'; this.style.color='#6b7280'; }"
-        >
+          onmouseout="if(!this.disabled) { this.style.backgroundColor='transparent'; this.style.color='#6b7280'; }">
           ×
         </button>
       </div>
-      
+
       <!-- Modal Body -->
       <div style="
         padding: 24px;
@@ -223,7 +207,7 @@
           This action cannot be undone.
         </p>
       </div>
-      
+
       <!-- Modal Footer -->
       <div style="
         display: flex;
@@ -232,11 +216,7 @@
         padding: 20px 24px;
         border-top: 1px solid #e5e7eb;
       ">
-        <button 
-          type="button" 
-          (click)="closeDeleteModal()"
-          [disabled]="isUpdating"
-          style="
+        <button type="button" (click)="closeDeleteModal()" [disabled]="isUpdating" style="
             padding: 10px 20px;
             border-radius: 8px;
             border: 1px solid #d1d5db;
@@ -245,19 +225,12 @@
             font-size: 0.9375rem;
             background: white;
             color: #374151;
-          "
-          [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
-          [style.opacity]="isUpdating ? '0.6' : '1'"
+          " [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'" [style.opacity]="isUpdating ? '0.6' : '1'"
           onmouseover="if(!this.disabled) this.style.backgroundColor='#f9fafb'"
-          onmouseout="if(!this.disabled) this.style.backgroundColor='white'"
-        >
+          onmouseout="if(!this.disabled) this.style.backgroundColor='white'">
           Cancel
         </button>
-        <button 
-          type="button" 
-          (click)="confirmDeleteWarehouse()"
-          [disabled]="isUpdating"
-          style="
+        <button type="button" (click)="confirmDeleteWarehouse()" [disabled]="isUpdating" style="
             padding: 10px 20px;
             border-radius: 8px;
             border: none;
@@ -266,22 +239,17 @@
             font-size: 0.9375rem;
             background: #dc2626;
             color: white;
-          "
-          [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
+          " [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
           [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
           onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
-          onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'"
-        >
+          onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'">
           @if (isUpdating) {
-            <span 
-              class="spinner-border spinner-border-sm" 
-              style="
+          <span class="spinner-border spinner-border-sm" style="
                 width: 1rem;
                 height: 1rem;
                 border-width: 0.15em;
                 margin-right: 8px;
-              "
-            ></span>
+              "></span>
           }
           Delete Permanently
         </button>

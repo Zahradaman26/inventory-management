@@ -46,11 +46,11 @@
               <th scope="col">Products</th>
               <th>
                 Status<br />
-                <select id="statusFilter" class="form-select form-select-sm">
+                <!-- <select id="statusFilter" class="form-select form-select-sm">
                   <option value="">All</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
-                </select>
+                </select> -->
               </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
@@ -80,13 +80,10 @@
                   <span class="badge bg-primary mb-1">
                     {{ (vendor.productsData?.length || vendor.products?.length || 0) }} product(s)
                   </span>
-                  
+
                   <!-- View Products Button -->
-                  <button type="button" 
-                          class="btn btn-sm btn-outline-primary"
-                          data-bs-toggle="modal" 
-                          data-bs-target="#vendorProductsModal"
-                          (click)="viewVendorProducts(vendor)">
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                    data-bs-target="#vendorProductsModal" (click)="viewVendorProducts(vendor)">
                     View Products
                   </button>
                 </div>
@@ -241,7 +238,8 @@
             font-size: 0.9375rem;
             background: #dc2626;
             color: white;
-          " [style.background]="isUpdating ? '#b91c1c' : '#dc2626'" [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
+          " [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
+        [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
         onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
         onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'">
         @if (isUpdating) {
@@ -284,11 +282,11 @@
           <!-- Products -->
           <h6 class="fw-bold">Products Supplied</h6>
           <div *ngIf="selectedVendor.products && selectedVendor.products.length > 0; else noProductsModal">
-              <ul class="list-group">
-                  <li *ngFor="let product of selectedVendor.productsData" class="list-group-item">
-                    {{ product.name }}
-                  </li>
-              </ul>
+            <ul class="list-group">
+              <li *ngFor="let product of selectedVendor.productsData" class="list-group-item">
+                {{ product.name }}
+              </li>
+            </ul>
           </div>
           <ng-template #noProductsModal>
             <p class="text-muted">No products assigned</p>
@@ -312,7 +310,8 @@
 </div>
 
 <!-- Vendor Products View Modal -->
-<div class="modal fade" id="vendorProductsModal" tabindex="-1" aria-labelledby="vendorProductsModalLabel" aria-hidden="true">
+<div class="modal fade" id="vendorProductsModal" tabindex="-1" aria-labelledby="vendorProductsModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <!-- <div class="modal-header">
@@ -321,8 +320,8 @@
       <div class="modal-body">
         <div *ngIf="selectedVendorProducts && selectedVendorProducts.length > 0; else noProducts">
           <div class="list-group">
-            <div *ngFor="let product of selectedVendorProducts" 
-                 class="list-group-item d-flex justify-content-between align-items-center">
+            <div *ngFor="let product of selectedVendorProducts"
+              class="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <strong>{{ product.name }}</strong>
                 <div class="text-muted small">{{ product.SKU }}</div>

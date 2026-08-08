@@ -21,6 +21,19 @@
         Add New User
       </a>
 
+      <div class="py-12" style="display: flex; justify-content: space-between;">
+        <select id="statusFilter" class="form-select form-select-sm custom-select-sm">
+          <option value="" selected>Status: All</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+
+        <select id="roleFilter" class="form-select form-select-sm custom-select-sm">
+          <option value="" selected>Role: All</option>
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+
       <div class="overflow-x-auto">
         <!-- Loading State -->
         <div *ngIf="isLoading" class="text-center py-4">
@@ -29,7 +42,7 @@
           </div>
           <p class="mt-2 text-secondary">Loading users...</p>
         </div>
-        
+
         <table class="table bordered-table mb-0 mx-0" id="dataTable" data-page-length='10'>
           <thead>
             <tr>
@@ -45,21 +58,12 @@
                 Join Date<br />
                 <!-- <input type="date" class="form-control form-control-sm" /> -->
               </th>
-              
+
               <th>
-                Role<br />
-                <select id="roleFilter" class="form-select form-select-sm">
-                  <option value="">All</option>
-                  <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
-                </select>
+                Role
               </th>
               <th>
-                Status<br />
-                <select id="statusFilter" class="form-select form-select-sm">
-                  <option value="">All</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+                Status
               </th>
               <th scope="col" class="text-center">Action</th>
             </tr>
@@ -91,15 +95,10 @@
                 </select>
               </td> -->
               <td class="text-center">
-                <button 
-                  (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" 
-                  [ngClass]="{
+                <button (click)="onStatusChange(user, user.status === 'Active' ? 'Inactive' : 'Active')" [ngClass]="{
                     'bg-success-focus text-success-600 border border-success-main cursor-pointer': user.status === 'Active',
                     'bg-neutral-200 text-neutral-600 border border-neutral-400 cursor-pointer': user.status === 'Inactive'
-                  }" 
-                  class="px-24 py-4 radius-4 fw-medium text-sm"
-                  [class.opacity-50]="isUpdating"
-                >
+                  }" class="px-24 py-4 radius-4 fw-medium text-sm" [class.opacity-50]="isUpdating">
                   {{ user.status }}
                 </button>
               </td>
@@ -128,8 +127,7 @@
 
   <!-- Delete Confirmation Modal - Add this at the end of your template -->
   @if (showDeleteModal) {
-  <div 
-    style="
+  <div style="
       position: fixed;
       top: 0;
       left: 0;
@@ -141,11 +139,8 @@
       justify-content: center;
       z-index: 9999;
       animation: fadeIn 0.2s ease-in-out;
-    "
-    (click)="closeDeleteModal()"
-  >
-    <div 
-      style="
+    " (click)="closeDeleteModal()">
+    <div style="
         background: white;
         border-radius: 12px;
         width: 90%;
@@ -153,9 +148,7 @@
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         animation: slideIn 0.3s ease-out;
         overflow: hidden;
-      "
-      (click)="$event.stopPropagation()"
-    >
+      " (click)="$event.stopPropagation()">
       <!-- Modal Header -->
       <div style="
         display: flex;
@@ -172,10 +165,7 @@
         ">
           Confirm Delete
         </h3>
-        <button 
-          type="button" 
-          (click)="closeDeleteModal()"
-          style="
+        <button type="button" (click)="closeDeleteModal()" style="
             background: none;
             border: none;
             color: #6b7280;
@@ -187,14 +177,12 @@
             align-items: center;
             justify-content: center;
             transition: background-color 0.2s;
-          "
-          onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'"
-          onmouseout="this.style.backgroundColor='transparent'; this.style.color='#6b7280'"
-        >
+          " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.color='#374151'"
+          onmouseout="this.style.backgroundColor='transparent'; this.style.color='#6b7280'">
           <iconify-icon icon="mdi:close" class="icon text-xl"></iconify-icon>
         </button>
       </div>
-      
+
       <!-- Modal Body -->
       <div style="
         padding: 24px;
@@ -214,7 +202,7 @@
           This action cannot be undone.
         </p>
       </div>
-      
+
       <!-- Modal Footer -->
       <div style="
         display: flex;
@@ -223,11 +211,7 @@
         padding: 20px 24px;
         border-top: 1px solid #e5e7eb;
       ">
-        <button 
-          type="button" 
-          (click)="closeDeleteModal()"
-          [disabled]="isUpdating"
-          style="
+        <button type="button" (click)="closeDeleteModal()" [disabled]="isUpdating" style="
             padding: 10px 20px;
             border-radius: 8px;
             border: none;
@@ -237,19 +221,13 @@
             background: #f3f4f6;
             color: #374151;
             transition: background-color 0.2s;
-          "
-          [style.background]="isUpdating ? '#e5e7eb' : '#f3f4f6'"
+          " [style.background]="isUpdating ? '#e5e7eb' : '#f3f4f6'"
           [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
           onmouseover="if(!this.disabled) this.style.backgroundColor='#e5e7eb'"
-          onmouseout="if(!this.disabled) this.style.backgroundColor='#f3f4f6'"
-        >
+          onmouseout="if(!this.disabled) this.style.backgroundColor='#f3f4f6'">
           Cancel
         </button>
-        <button 
-          type="button" 
-          (click)="confirmDelete()"
-          [disabled]="isUpdating"
-          style="
+        <button type="button" (click)="confirmDelete()" [disabled]="isUpdating" style="
             padding: 10px 20px;
             border-radius: 8px;
             border: none;
@@ -259,22 +237,17 @@
             background: #dc2626;
             color: white;
             transition: background-color 0.2s;
-          "
-          [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
+          " [style.background]="isUpdating ? '#b91c1c' : '#dc2626'"
           [style.cursor]="isUpdating ? 'not-allowed' : 'pointer'"
           onmouseover="if(!this.disabled) this.style.backgroundColor='#b91c1c'"
-          onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'"
-        >
+          onmouseout="if(!this.disabled) this.style.backgroundColor='#dc2626'">
           @if (isUpdating) {
-            <span 
-              class="spinner-border spinner-border-sm" 
-              style="
+          <span class="spinner-border spinner-border-sm" style="
                 width: 1rem;
                 height: 1rem;
                 border-width: 0.15em;
                 margin-right: 8px;
-              "
-            ></span>
+              "></span>
           }
           Delete Permanently
         </button>
@@ -283,6 +256,3 @@
   </div>
   }
 </div>
-
-
-
